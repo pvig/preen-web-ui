@@ -8,7 +8,8 @@ function lcg(seed: number) {
 }
 import React from 'react';
 import styled from 'styled-components';
-import { LfoType, LFO_TYPE_LABELS, LFO_TYPES } from '../../types/lfo';
+import { useTranslation } from 'react-i18next';
+import { LfoType, LFO_TYPES } from '../../types/lfo';
 import { useThemeStore } from '../../theme/themeStore';
 
 const SelectorContainer = styled.div`
@@ -193,6 +194,7 @@ const generateWaveformPath = (type: LfoType, frequency: number = 1, width: numbe
 
 const LfoWaveformSelector: React.FC<LfoWaveformSelectorProps> = ({ value, onChange, frequency, keysync, phase }) => {
   const { theme } = useThemeStore();
+  const { t } = useTranslation();
   const path = generateWaveformPath(value, frequency ?? 1, 200, 50, keysync, phase ?? 0);
   return (
     <SelectorContainer>
@@ -211,7 +213,7 @@ const LfoWaveformSelector: React.FC<LfoWaveformSelectorProps> = ({ value, onChan
       <Select value={value} onChange={(e) => onChange(e.target.value as LfoType)}>
         {LFO_TYPES.map((type) => (
           <option key={type} value={type}>
-            {LFO_TYPE_LABELS[type]}
+            {t(`lfo.types.${type}`)}
           </option>
         ))}
       </Select>

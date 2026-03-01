@@ -8,6 +8,7 @@ import { PatchLibrary } from './screens/PatchLibrary';
 import { MidiMenu } from './components/MidiMenu';
 import { MidiCCTester } from './components/MidiCCTester';
 import { ThemeToggle } from './theme/ThemeToggle';
+import { LanguageToggle } from './components/LanguageToggle';
 import { useThemeStore } from './theme/themeStore';
 import { GlobalStyles } from './theme/GlobalStyles';
 
@@ -116,6 +117,7 @@ export default function App() {
             <TestButton onClick={() => setShowCCTester(prev => !prev)}>
               🧪 Test CC
             </TestButton>
+            <LanguageToggle />
             <ThemeToggle />
           </HeaderRight>
         </Header>

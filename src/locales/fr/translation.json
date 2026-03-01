@@ -1,0 +1,113 @@
+{
+  "common": {
+    "frequency": "Fréquence",
+    "phase": "Phase",
+    "amplitude": "Amplitude",
+    "save": "Enregistrer",
+    "load": "Charger",
+    "reset": "Réinitialiser",
+    "cancel": "Annuler",
+    "apply": "Appliquer",
+    "off": "Désactivé",
+    "noPatch": "Aucun patch chargé"
+  },
+  "lfo": {
+    "title": "LFO {{number}}",
+    "editor": "Éditeur LFO",
+    "syncMode": "Mode de synchronisation",
+    "internal": "Interne (0-99.9 Hz)",
+    "external": "Externe (MIDI Clock)",
+    "midiClock": "Horloge MIDI",
+    "keysync": "Synchro clavier",
+    "bias": "Décalage",
+    "waveform": "Forme d'onde",
+    "types": {
+      "LFO_SIN": "Sinusoïdale",
+      "LFO_SAW": "Dent de scie",
+      "LFO_TRIANGLE": "Triangle",
+      "LFO_SQUARE": "Carré",
+      "LFO_RANDOM": "Aléatoire S&H",
+      "LFO_BROWNIAN": "Brownien S&H",
+      "LFO_WANDERING": "Vagabond (interpolé)",
+      "LFO_FLOW": "Flux (interpolé)"
+    }
+  },
+  "operator": {
+    "title": "Opérateur {{number}}",
+    "frequency": "Fréquence",
+    "fineTune": "Accord fin",
+    "waveform": "Forme d'onde",
+    "keyboardTracking": "Suivi clavier",
+    "adsr": "Enveloppe ADSR"
+  },
+  "algorithm": {
+    "title": "Algorithme",
+    "selector": "Sélecteur d'algorithme",
+    "visualization": "Visualisation de l'algorithme"
+  },
+  "filter": {
+    "title": "Filtre",
+    "type": "Type",
+    "cutoff": "Fréquence de coupure",
+    "resonance": "Résonance",
+    "gain": "Gain",
+    "types": {
+      "FILTER_OFF": "Désactivé",
+      "FILTER_LP": "Passe-bas",
+      "FILTER_HP": "Passe-haut",
+      "FILTER_BP": "Passe-bande",
+      "FILTER_BASS": "Basse",
+      "FILTER_CRUSH": "Crusher",
+      "FILTER_AP": "Passe-tout"
+    }
+  },
+  "effects": {
+    "title": "Effets",
+    "editor": "Éditeur d'effets"
+  },
+  "patch": {
+    "title": "Patch",
+    "editor": "Éditeur de patch",
+    "library": "Bibliothèque de patches",
+    "name": "Nom du patch",
+    "save": "Enregistrer le patch",
+    "download": "Télécharger SysEx"
+  },
+  "modulation": {
+    "title": "Modulation",
+    "matrix": "Matrice de modulation",
+    "source": "Source",
+    "destination": "Destination",
+    "amount": "Quantité",
+    "lfoEnv": "Enveloppe LFO",
+    "stepSeq": "Séquenceur pas à pas",
+    "noteCurve": "Courbe de note",
+    "arpeggiator": "Arpégiateur",
+    "imIndex": "Index de modulation",
+    "noLinks": "Aucune liaison de modulation"
+  },
+  "carrier": {
+    "title": "Porteuse",
+    "volume": "Volume"
+  },
+  "midi": {
+    "title": "MIDI",
+    "menu": "Menu MIDI",
+    "input": "Entrée MIDI",
+    "output": "Sortie MIDI",
+    "channel": "Canal MIDI",
+    "connected": "Connecté",
+    "disconnected": "Déconnecté",
+    "noDevices": "Aucun périphérique MIDI trouvé"
+  },
+  "theme": {
+    "toggle": "Changer le thème",
+    "light": "Mode clair",
+    "dark": "Mode sombre"
+  },
+  "language": {
+    "toggle": "Changer de langue",
+    "en": "English",
+    "fr": "Français"
+  }
+}

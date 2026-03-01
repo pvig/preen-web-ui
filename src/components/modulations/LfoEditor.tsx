@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
 import KnobBase from '../knobs/KnobBase';
 import LfoWaveformSelector from './LfoWaveformSelector';
 import { type MidiClockMode, MIDI_CLOCK_MODES, MIDI_CLOCK_LABELS, lfoFrequencyToNrpn } from '../../types/lfo';
@@ -102,6 +103,7 @@ export const LfoEditor: React.FC = () => {
   const [activeLfo, setActiveLfo] = useState<0 | 1 | 2>(0);
   const lfo = useLfo(activeLfo);
   const { theme } = useThemeStore();
+  const { t } = useTranslation();
 
   // Helper: send correct NRPN for frequency or MIDI clock
   const sendLfoFrequencyOrClock = (freqOrMode: number | MidiClockMode) => {
@@ -142,7 +144,7 @@ export const LfoEditor: React.FC = () => {
 
       <LfoControls>
         <ControlGroup>
-          <ControlLabel>Sync Mode</ControlLabel>
+          <ControlLabel>{t('lfo.syncMode')}</ControlLabel>
           <Select
             value={lfo.syncMode}
             onChange={(e) => {
@@ -157,8 +159,8 @@ export const LfoEditor: React.FC = () => {
               }
             }}
           >
-            <option value="Int">Internal (0-99.9 Hz)</option>
-            <option value="Ext">External (MIDI Clock)</option>
+            <option value="Int">{t('lfo.internal')}</option>
+            <option value="Ext">{t('lfo.external')}</option>
           </Select>
         </ControlGroup>
 
@@ -185,12 +187,12 @@ export const LfoEditor: React.FC = () => {
               backgroundColor={theme.colors.knobBackground}
               strokeColor={theme.colors.knobStroke}
               renderLabel={(v) => v.toFixed(1) + ' Hz'}
-              label="Frequency"
+              label={t('common.frequency')}
               labelPosition="left"
             />
           ) : (
             <div>
-              <ControlLabel>MIDI Clock Mode</ControlLabel>
+              <ControlLabel>{t('lfo.midiClock')}</ControlLabel>
               <Select
                 value={lfo.midiClockMode}
                 onChange={(e) => {
@@ -224,7 +226,7 @@ export const LfoEditor: React.FC = () => {
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
             renderLabel={(v) => v.toFixed(3)}
-            label="Phase (0-1)"
+            label={t('common.phase')}
             labelPosition="left"
           />
         </ControlGroup>
@@ -244,7 +246,7 @@ export const LfoEditor: React.FC = () => {
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
             renderLabel={(v) => v.toFixed(2)}
-            label="Bias"
+            label={t('lfo.bias')}
             labelPosition="left"
           />
         </ControlGroup>
@@ -264,8 +266,8 @@ export const LfoEditor: React.FC = () => {
             color={theme.colors.knobFrequency}
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
-            renderLabel={(v) => v < 0 ? 'Off' : v.toFixed(1)}
-            label="KeySync"
+            renderLabel={(v) => v < 0 ? t('common.off') : v.toFixed(1)}
+            label={t('lfo.keysync')}
             labelPosition="left"
           />
         </ControlGroup>

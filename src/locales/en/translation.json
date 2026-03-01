@@ -1,0 +1,113 @@
+{
+  "common": {
+    "frequency": "Frequency",
+    "phase": "Phase",
+    "amplitude": "Amplitude",
+    "save": "Save",
+    "load": "Load",
+    "reset": "Reset",
+    "cancel": "Cancel",
+    "apply": "Apply",
+    "off": "Off",
+    "noPatch": "No patch loaded"
+  },
+  "lfo": {
+    "title": "LFO {{number}}",
+    "editor": "LFO Editor",
+    "syncMode": "Sync Mode",
+    "internal": "Internal (0-99.9 Hz)",
+    "external": "External (MIDI Clock)",
+    "midiClock": "MIDI Clock",
+    "keysync": "KeySync",
+    "bias": "Bias",
+    "waveform": "Waveform",
+    "types": {
+      "LFO_SIN": "Sine",
+      "LFO_SAW": "Saw",
+      "LFO_TRIANGLE": "Triangle",
+      "LFO_SQUARE": "Square",
+      "LFO_RANDOM": "Random S&H",
+      "LFO_BROWNIAN": "Brownian S&H",
+      "LFO_WANDERING": "Wandering (interpolated)",
+      "LFO_FLOW": "Flow (interpolated)"
+    }
+  },
+  "operator": {
+    "title": "Operator {{number}}",
+    "frequency": "Frequency",
+    "fineTune": "Fine Tune",
+    "waveform": "Waveform",
+    "keyboardTracking": "Keyboard Tracking",
+    "adsr": "ADSR Envelope"
+  },
+  "algorithm": {
+    "title": "Algorithm",
+    "selector": "Algorithm Selector",
+    "visualization": "Algorithm Visualization"
+  },
+  "filter": {
+    "title": "Filter",
+    "type": "Type",
+    "cutoff": "Cutoff",
+    "resonance": "Resonance",
+    "gain": "Gain",
+    "types": {
+      "FILTER_OFF": "Off",
+      "FILTER_LP": "Low Pass",
+      "FILTER_HP": "High Pass",
+      "FILTER_BP": "Band Pass",
+      "FILTER_BASS": "Bass",
+      "FILTER_CRUSH": "Crusher",
+      "FILTER_AP": "All Pass"
+    }
+  },
+  "effects": {
+    "title": "Effects",
+    "editor": "Effects Editor"
+  },
+  "patch": {
+    "title": "Patch",
+    "editor": "Patch Editor",
+    "library": "Patch Library",
+    "name": "Patch Name",
+    "save": "Save Patch",
+    "download": "Download SysEx"
+  },
+  "modulation": {
+    "title": "Modulation",
+    "matrix": "Modulation Matrix",
+    "source": "Source",
+    "destination": "Destination",
+    "amount": "Amount",
+    "lfoEnv": "LFO Envelope",
+    "stepSeq": "Step Sequencer",
+    "noteCurve": "Note Curve",
+    "arpeggiator": "Arpeggiator",
+    "imIndex": "Modulation Index",
+    "noLinks": "No modulation links"
+  },
+  "carrier": {
+    "title": "Carrier",
+    "volume": "Volume"
+  },
+  "midi": {
+    "title": "MIDI",
+    "menu": "MIDI Menu",
+    "input": "MIDI Input",
+    "output": "MIDI Output",
+    "channel": "MIDI Channel",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "noDevices": "No MIDI devices found"
+  },
+  "theme": {
+    "toggle": "Toggle Theme",
+    "light": "Light Mode",
+    "dark": "Dark Mode"
+  },
+  "language": {
+    "toggle": "Toggle Language",
+    "en": "English",
+    "fr": "Français"
+  }
+}

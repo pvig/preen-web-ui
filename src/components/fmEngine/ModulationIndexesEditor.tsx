@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
 import { Algorithm } from '../../types/patch';
 import { useCurrentPatch, updateModulationAmount, updateModulationVelo } from '../../stores/patchStore';
 import { useFMSynthContext } from './FMSynthContext';
@@ -110,6 +111,7 @@ interface ModulationIndexesEditorProps {
 }
 
 export const ModulationIndexesEditor: React.FC<ModulationIndexesEditorProps> = ({ algorithm, globalKnobs }) => {
+  const { t } = useTranslation();
   const { theme } = useThemeStore();
   const currentPatch = useCurrentPatch();
   const { setHighlightedLink } = useFMSynthContext();
@@ -138,8 +140,8 @@ export const ModulationIndexesEditor: React.FC<ModulationIndexesEditorProps> = (
           </HeaderSection>
         )}
         <ModulationList>
-          <ModulationListTitle>Index de Modulation</ModulationListTitle>
-          <EmptyMessage>Pas de patch</EmptyMessage>
+          <ModulationListTitle>{t('modulation.imIndex')}</ModulationListTitle>
+          <EmptyMessage>{t('common.noPatch')}</EmptyMessage>
         </ModulationList>
       </EditorContainer>
     );
@@ -194,8 +196,8 @@ export const ModulationIndexesEditor: React.FC<ModulationIndexesEditorProps> = (
           </HeaderSection>
         )}
         <ModulationList>
-          <ModulationListTitle>Index de Modulation</ModulationListTitle>
-          <EmptyMessage>Aucune liaison</EmptyMessage>
+          <ModulationListTitle>{t('modulation.imIndex')}</ModulationListTitle>
+          <EmptyMessage>{t('modulation.noLinks')}</EmptyMessage>
         </ModulationList>
       </EditorContainer>
     );
@@ -211,7 +213,7 @@ export const ModulationIndexesEditor: React.FC<ModulationIndexesEditorProps> = (
         </HeaderSection>
       )}
       <ModulationList>
-        <ModulationListTitle>Index de Modulation</ModulationListTitle>
+        <ModulationListTitle>{t('modulation.imIndex')}</ModulationListTitle>
         {modulationLinks.map((link) => {
         const isFeedback = link.sourceId === link.targetId;
 
