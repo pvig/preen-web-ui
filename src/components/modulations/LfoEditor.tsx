@@ -129,6 +129,9 @@ export const LfoEditor: React.FC = () => {
 
         <LfoWaveformSelector
           value={lfo.shape}
+          frequency={lfo.syncMode === 'Int' ? lfo.frequency : 10}
+          keysync={lfo.keysync !== 'Off' ? (lfo.keysync as number) : undefined}
+          phase={typeof lfo.phase === 'number' ? lfo.phase : 0}
           onChange={(shape) => {
             updateLfo(activeLfo, { shape });
             const shapeIndex = LFO_TYPES.indexOf(shape as any);
