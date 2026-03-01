@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { WaveformType, getWaveformId } from '../types/waveform';
-import { sendOperatorMix, sendOperatorPan, sendOperatorFrequency, sendOperatorDetune, sendOperatorWaveform, sendOperatorKeyboardTracking, sendOperatorADSR, sendModulationIM, sendModulationVelo, calculateIMIndex, sendStepSequencerStep, sendStepSequencerBpm, sendStepSequencerGate } from '../midi/midiService';
+import { sendOperatorMix, sendOperatorPan, sendOperatorFrequency, sendOperatorDetune, sendOperatorWaveform, sendOperatorKeyboardTracking, sendOperatorADSR, sendModulationIM, sendModulationVelo, calculateIMIndex, sendStepSequencerStep, sendStepSequencerBpm, sendStepSequencerGate, sendStepSequencerMidiClockMode } from '../midi/midiService';
 import { sendCC } from '../midi/midiService';
 import { LFO_TYPES } from '../types/lfo';
 
@@ -106,18 +106,8 @@ const createDefaultPatch = (): Patch => ({
   },
 
   filters: [
-    {
-      type: 'OFF',
-      param1: 0,
-      param2: 0,
-      gain: 0
-    },
-    {
-      type: 'OFF',
-      param1: 0,
-      param2: 0,
-      gain: 0
-    }
+    { ...DEFAULT_FILTER },
+    { ...DEFAULT_FILTER }
   ],
 
   arpeggiator: {
@@ -485,9 +475,10 @@ export const usePatchStore = create<PatchStore>()(
               }
             }
           }
-          // MIDI : envoyer le BPM modifié
+          // MIDI : envoyer le BPM modifié (mode sync inclus)
           if (typeof changes.bpm === 'number' && prev.bpm !== changes.bpm) {
-            sendStepSequencerBpm(seqIndex, changes.bpm);
+            const midiClockMode = state.currentPatch.stepSequencers?.[seqIndex]?.midiClockMode;
+            sendStepSequencerBpm(seqIndex, changes.bpm, midiClockMode);
           }
           // MIDI : envoyer le gate modifié
           if (typeof changes.gate === 'number' && prev.gate !== changes.gate) {
@@ -649,14 +640,7 @@ export const usePatchStore = create<PatchStore>()(
           };
         }
         
-        // Réappliquer les valeurs MIX/PAN préservées
-        newPatch.operators = newPatch.operators.map(op => {
-          const preserved = preservedMixPan.get(op.id);
-          if (preserved) {
-            return { ...op, amplitude: preserved.amplitude, pan: preserved.pan };
-          }
-          return op;
-        });
+        // Les valeurs d'amplitude et de pan du patch importé sont désormais utilisées directement
         
         state.currentPatch = newPatch;
         state.isModified = false;

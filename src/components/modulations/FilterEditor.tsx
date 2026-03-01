@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import KnobBase from '../knobs/KnobBase';
 import { useFilter, updateFilter } from '../../stores/patchStore';
 import type { Filter1Type, Filter2Type } from '../../types/patch';
+import { FILTER1_TYPE_LIST, FILTER2_TYPE_LIST } from '../../types/patch';
 import { useThemeStore } from '../../theme/themeStore';
 
 const FilterContainer = styled.div`
@@ -75,32 +76,19 @@ export const FilterEditor: React.FC<FilterEditorProps> = ({ filterIndex }) => {
   const filter = useFilter(filterIndex);
   const { theme } = useThemeStore();
 
-  // Filter 1 types
-  const filter1Types: Filter1Type[] = [
-    'OFF', 'MIXER', 'LP', 'HP', 'BASS', 'BP', 'CRUSHER',
-    'LP2', 'HP2', 'BP2', 'LP3', 'HP3', 'BP3',
-    'PEAK', 'NOTCH', 'BELL', 'LOWSHELF', 'HIGHSHELF',
-    'LPHP', 'BPds', 'LPWS', 'TILT', 'STEREO',
-    'SAT', 'SIGMOID', 'FOLD', 'WRAP', 'XOR',
-    'TEXTURE1', 'TEXTURE2', 'LPXOR', 'LPXOR2',
-    'LPSIN', 'HPSIN', 'QUADNOTCH',
-    'AP4', 'AP4B', 'AP4D',
-    'ORYX', 'ORYX2', 'ORYX3',
-    '18DB', 'LADDER', 'LADDER2', 'DIOD',
-    'KRMG', 'TEEBEE', 'SVFLH', 'CRUSH2'
-  ];
+  // Filter 1 types: canonical list from patch.ts (spread to mutable array)
+  const filter1Types = [...FILTER1_TYPE_LIST];
 
-  // Filter 2 types
-  const filter2Types: Filter2Type[] = [
-    'OFF', 'FLANGE', 'DIMENSION', 'CHORUS', 'WIDE',
-    'DOUBLER', 'TRIPLER', 'BODE', 'DELAYCRUNCH',
-    'PINGPONG', 'DIFFUSER', 'GRAIN1', 'GRAIN2',
-    'STEREO_BP', 'PLUCK', 'PLUCK2', 'RESONATORS'
-  ];
+  // Filter 2 types: canonical list from patch.ts (spread to mutable array)
+  const filter2Types = [...FILTER2_TYPE_LIST];
 
   const filterTypes = filterIndex === 0 ? filter1Types : filter2Types;
 
   const thirdParamLabel = filterIndex === 0 ? 'Gain' : 'Mix';
+
+  // Gain range: 0-2 for Filter1, 0-1 for Filter2
+  const gainMin = 0;
+  const gainMax = filterIndex === 0 ? 2 : 1;
 
   return (
     <FilterContainer>
@@ -124,53 +112,53 @@ export const FilterEditor: React.FC<FilterEditorProps> = ({ filterIndex }) => {
           </Select>
         </ControlGroup>
 
-        {/* Param1 - Frequency/Cutoff */}
+        {/* Param1 - Frequency/Cutoff (0-1) */}
         <ControlGroup>
           <KnobBase
             size={60}
             min={0}
-            max={255}
-            step={1}
+            max={1}
+            step={0.01}
             value={filter.param1}
-            onChange={(param1) => updateFilter(filterIndex, { param1 })}
+            onChange={(v) => updateFilter(filterIndex, { param1: Math.max(0, Math.min(1, v)) })}
             color={theme.colors.knobFilter}
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
-            renderLabel={(v) => Math.round(v)}
+            renderLabel={(v) => v.toFixed(2)}
             label="Cutoff"
           />
         </ControlGroup>
 
-        {/* Param2 - Resonance */}
+        {/* Param2 - Resonance (0-1) */}
         <ControlGroup>
           <KnobBase
             size={60}
             min={0}
-            max={255}
-            step={1}
+            max={1}
+            step={0.01}
             value={filter.param2}
-            onChange={(param2) => updateFilter(filterIndex, { param2 })}
+            onChange={(v) => updateFilter(filterIndex, { param2: Math.max(0, Math.min(1, v)) })}
             color={theme.colors.knobPhase}
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
-            renderLabel={(v) => Math.round(v)}
+            renderLabel={(v) => v.toFixed(2)}
             label="Resonance"
           />
         </ControlGroup>
 
-        {/* Gain (Filter1) ou Mix (Filter2) */}
+        {/* Gain (Filter1: 0-2, Filter2: 0-1) */}
         <ControlGroup>
           <KnobBase
             size={60}
-            min={0}
-            max={255}
-            step={1}
+            min={gainMin}
+            max={gainMax}
+            step={0.01}
             value={filter.gain}
-            onChange={(gain) => updateFilter(filterIndex, { gain })}
+            onChange={(v) => updateFilter(filterIndex, { gain: Math.max(gainMin, Math.min(gainMax, v)) })}
             color={theme.colors.knobFrequency}
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
-            renderLabel={(v) => Math.round(v)}
+            renderLabel={(v) => v.toFixed(2)}
             label={thirdParamLabel}
           />
         </ControlGroup>

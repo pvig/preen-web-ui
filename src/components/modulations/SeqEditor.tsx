@@ -232,10 +232,14 @@ export const SeqEditor: React.FC = () => {
   };
 
   const handleMidiClockModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    updateStepSequencer(activeSeq, { midiClockMode: e.target.value as StepSeqMidiClockMode });
-    // Si on est en mode Ext, renvoyer aussi bpm=241 pour forcer la bascule
+    const newClockMode = e.target.value as StepSeqMidiClockMode;
+    // Si on est en mode Ext, envoyer bpm = 240 + index du mode clock à chaque changement
     if (seq.syncMode === 'Ext') {
-      updateStepSequencer(activeSeq, { bpm: 241 });
+      const modeIndex = STEP_SEQ_MIDI_CLOCK_MODES.indexOf(newClockMode);
+      const bpm = 240 + (modeIndex >= 0 ? modeIndex : 0);
+      updateStepSequencer(activeSeq, { midiClockMode: newClockMode, bpm });
+    } else {
+      updateStepSequencer(activeSeq, { midiClockMode: newClockMode });
     }
   };
 

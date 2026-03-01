@@ -94,13 +94,14 @@ const CarrierControls = () => {
             <KnobBase
               size={60}
               min={0}
-              max={127}
+              max={1}
+              step={0.01}
               value={operator?.amplitude ?? 0}
-              onChange={val => updateOperator(id, { amplitude: val })}
+              onChange={val => updateOperator(id, { amplitude: Math.max(0, Math.min(1, val)) })}
               color={theme.colors.knobVolume}
               backgroundColor={theme.colors.knobBackground}
               strokeColor={theme.colors.knobStroke}
-              renderLabel={(val) => Math.round(val)}
+              renderLabel={(val) => val.toFixed(2)}
               label="Volume"
             />
           </ControlGroup>

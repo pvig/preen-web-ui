@@ -240,24 +240,8 @@ export const MidiMenu = () => {
       
       // MIX: NRPN [0, 16+(n-1)*2] plage 0-100
       // PAN: NRPN [0, 17+(n-1)*2] plage 0-200
-      if (nrpn.paramMSB === 0 && paramIndex >= 16 && paramIndex <= 27) {
-        const offset = paramIndex - 16;
-        const opNumber = Math.floor(offset / 2) + 1; // 1-6
-        
-        if (offset % 2 === 0) {
-          // MIX (indices pairs: 16, 18, 20, 22, 24, 26)
-          // Convertir 0-100 (NRPN) -> 0-127 (UI amplitude)
-          const amplitude = Math.round(value * 127 / 100);
-          console.log(`🎛️ MIX${opNumber} reçu: ${value} -> amplitude ${amplitude}`);
-          updateOperator(opNumber, { amplitude }, false); // sendMidi=false
-        } else {
-          // PAN (indices impairs: 17, 19, 21, 23, 25, 27)
-          // Convertir 0-200 (NRPN) -> -100 à +100 (UI pan)
-          const pan = value - 100;
-          console.log(`🎛️ PAN${opNumber} reçu: ${value} -> pan ${pan}`);
-          updateOperator(opNumber, { pan }, false); // sendMidi=false
-        }
-      }
+      // Suppression de la mise à jour immédiate de l’amplitude/pan lors du pull NRPN :
+      // Les valeurs correctes seront appliquées lors du chargement du patch complet.
       
       // Mettre à jour l'affichage
       const stats = parserRef.current.getStats();

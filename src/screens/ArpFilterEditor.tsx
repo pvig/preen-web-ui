@@ -43,7 +43,8 @@ export function ArpFilterEditor() {
     <ArpFilterContainer>
       <LeftColumn>
         <FilterEditor filterIndex={0} />
-        <FilterEditor filterIndex={1} />
+        {/* TODO: Gestion du filtre 2 à implémenter aussi sur le firmware */}
+        {/* <FilterEditor filterIndex={1} /> */}
       </LeftColumn>
       
       <RightColumn>

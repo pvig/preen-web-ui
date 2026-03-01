@@ -1,4 +1,29 @@
 /**
+ * Envoie le mode midiClockMode du step sequencer via NRPN
+ * @param seqIndex 0 ou 1 (Seq1 ou Seq2)
+ * @param midiClockMode string ("Ck/4", "Ck/2", "Ck  ", "Ck*2", "Ck*4")
+ * @param channel MIDI channel (défaut: currentChannel)
+ * Mapping PreenFM3 :
+ *   Seq1: MSB=1, LSB=63
+ *   Seq2: MSB=1, LSB=65
+ *   Value: 0-4 selon l'index dans lfoSeqMidiClock
+ */
+export function sendStepSequencerMidiClockMode(seqIndex: 0 | 1, midiClockMode: string, channel: number = currentChannel) {
+  const MODES = ["Ck/4", "Ck/2", "Ck  ", "Ck*2", "Ck*4"];
+  const idx = MODES.indexOf(midiClockMode);
+  const value = idx >= 0 ? idx : 0;
+  const paramMSB = 1;
+  const paramLSB = seqIndex === 0 ? 63 : 65;
+  const nrpn = {
+    paramMSB,
+    paramLSB,
+    valueMSB: (value >> 7) & 0x7F,
+    valueLSB: value & 0x7F
+  };
+  console.log('📤 Sending Step Sequencer midiClockMode via NRPN:', { seqIndex, midiClockMode, value, nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+/**
  * Envoie le BPM du step sequencer via NRPN
  * @param seqIndex 0 ou 1 (Seq1 ou Seq2)
  * @param bpm valeur BPM (10-240)
@@ -7,17 +32,36 @@
  *   Seq1: MSB=1, LSB=60
  *   Seq2: MSB=1, LSB=64
  */
-export function sendStepSequencerBpm(seqIndex: 0 | 1, bpm: number, channel: number = currentChannel) {
-  const clampedBpm = Math.max(10, Math.min(240, Math.round(bpm)));
+/**
+ * Envoie le BPM du step sequencer via NRPN
+ * @param seqIndex 0 ou 1 (Seq1 ou Seq2)
+ * @param bpm valeur BPM (10-240 pour mode interne, >240 pour mode sync)
+ * @param midiClockMode (optionnel) : string ("Ck/4", "Ck/2", "Ck  ", "Ck*2", "Ck*4")
+ * @param channel MIDI channel (défaut: currentChannel)
+ * Mapping PreenFM3 :
+ *   Seq1: MSB=1, LSB=60
+ *   Seq2: MSB=1, LSB=64
+ *   Si bpm > 240, valeur = 240 + index du mode clock
+ */
+export function sendStepSequencerBpm(seqIndex: 0 | 1, bpm: number, midiClockMode?: string, channel: number = currentChannel) {
+  let valueToSend = Math.round(bpm);
+  if (bpm > 240 && midiClockMode) {
+    // Mode sync : encoder l'index du mode clock dans la valeur
+    const MODES = ["Ck/4", "Ck/2", "Ck  ", "Ck*2", "Ck*4"];
+    const idx = MODES.indexOf(midiClockMode);
+    valueToSend = 240 + (idx >= 0 ? idx : 0);
+  } else {
+    valueToSend = Math.max(10, Math.min(240, valueToSend));
+  }
   const paramMSB = 1;
   const paramLSB = seqIndex === 0 ? 60 : 64;
   const nrpn = {
     paramMSB,
     paramLSB,
-    valueMSB: (clampedBpm >> 7) & 0x7F,
-    valueLSB: clampedBpm & 0x7F
+    valueMSB: (valueToSend >> 7) & 0x7F,
+    valueLSB: valueToSend & 0x7F
   };
-  console.log('📤 Sending Step Sequencer BPM via NRPN:', { seqIndex, bpm: clampedBpm, nrpn, channel });
+  console.log('📤 Sending Step Sequencer BPM via NRPN:', { seqIndex, bpm: valueToSend, midiClockMode, nrpn, channel });
   sendNRPN(nrpn, channel);
 }
 
@@ -415,11 +459,12 @@ export function sendOperatorMix(opNumber: number, value: number, channel: number
     console.warn('⚠️ Mix CC only available for operators 1-4, got:', opNumber);
     return;
   }
-  
   // OP1-4: Interleaved mapping - Mix on even CCs: 22, 24, 26, 28
   const ccNumber = 22 + (opNumber - 1) * 2; // CC22, CC24, CC26, CC28
-  const scaledValue = Math.max(0, Math.min(127, Math.round(value)));
-  
+  // Convertir float 0..1 en CC 0..127, 1.00 doit donner 127
+  let scaledValue = value * 127;
+  if (Math.abs(scaledValue - 127) < 0.01) scaledValue = 127;
+  scaledValue = Math.max(0, Math.min(127, Math.round(scaledValue)));
   console.log('📤 Sending MIX via CC:', {
     opNumber,
     ccNumber,
@@ -427,7 +472,6 @@ export function sendOperatorMix(opNumber: number, value: number, channel: number
     scaledValue,
     hex: `0x${(0xB0 + channel - 1).toString(16)} 0x${ccNumber.toString(16)} 0x${scaledValue.toString(16)}`
   });
-  
   sendCC(ccNumber, scaledValue, channel);
 }
 

@@ -37,30 +37,41 @@ export interface LFO {
 }
 
 // Types de filtres basés sur le firmware PreenFM3
-export type Filter1Type = 
-  | 'OFF' | 'MIXER' | 'LP' | 'HP' | 'BASS' | 'BP' | 'CRUSHER' 
-  | 'LP2' | 'HP2' | 'BP2' | 'LP3' | 'HP3' | 'BP3' 
-  | 'PEAK' | 'NOTCH' | 'BELL' | 'LOWSHELF' | 'HIGHSHELF' 
-  | 'LPHP' | 'BPds' | 'LPWS' | 'TILT' | 'STEREO' 
-  | 'SAT' | 'SIGMOID' | 'FOLD' | 'WRAP' | 'XOR' 
-  | 'TEXTURE1' | 'TEXTURE2' | 'LPXOR' | 'LPXOR2' 
-  | 'LPSIN' | 'HPSIN' | 'QUADNOTCH' 
-  | 'AP4' | 'AP4B' | 'AP4D' 
-  | 'ORYX' | 'ORYX2' | 'ORYX3' 
-  | '18DB' | 'LADDER' | 'LADDER2' | 'DIOD' 
-  | 'KRMG' | 'TEEBEE' | 'SVFLH' | 'CRUSH2';
+// Canonical list of Filter1Type values, in firmware order
+export const FILTER1_TYPE_LIST = [
+  'OFF', 'MIXER', 'LP', 'HP', 'BASS', 'BP', 'CRUSHER',
+  'LP2', 'HP2', 'BP2', 'LP3', 'HP3', 'BP3',
+  'PEAK', 'NOTCH', 'BELL', 'LOWSHELF', 'HIGHSHELF',
+  'LPHP', 'BPds', 'LPWS', 'TILT', 'STEREO',
+  'SAT', 'SIGMOID', 'FOLD', 'WRAP', 'XOR',
+  'TEXTURE1', 'TEXTURE2', 'LPXOR', 'LPXOR2',
+  'LPSIN', 'HPSIN', 'QUADNOTCH',
+  'AP4', 'AP4B', 'AP4D',
+  'ORYX', 'ORYX2', 'ORYX3',
+  '18DB', 'LADDER', 'LADDER2', 'DIOD',
+  'KRMG', 'TEEBEE', 'SVFLH', 'CRUSH2'
+] as const;
 
-export type Filter2Type = 
-  | 'OFF' | 'FLANGE' | 'DIMENSION' | 'CHORUS' | 'WIDE' 
-  | 'DOUBLER' | 'TRIPLER' | 'BODE' | 'DELAYCRUNCH' 
-  | 'PINGPONG' | 'DIFFUSER' | 'GRAIN1' | 'GRAIN2' 
-  | 'STEREO_BP' | 'PLUCK' | 'PLUCK2' | 'RESONATORS';
+export type Filter1Type = typeof FILTER1_TYPE_LIST[number];
+
+// Canonical list of Filter1Type values, in firmware order
+// ...FILTER1_TYPE_LIST is now defined above as const and exported, with type derived below...
+
+// Canonical list of Filter2Type values, in firmware order
+export const FILTER2_TYPE_LIST = [
+  'OFF', 'FLANGE', 'DIMENSION', 'CHORUS', 'WIDE',
+  'DOUBLER', 'TRIPLER', 'BODE', 'DELAYCRUNCH',
+  'PINGPONG', 'DIFFUSER', 'GRAIN1', 'GRAIN2',
+  'STEREO_BP', 'PLUCK', 'PLUCK2', 'RESONATORS'
+] as const;
+
+export type Filter2Type = typeof FILTER2_TYPE_LIST[number];
 
 export interface Filter {
   type: Filter1Type | Filter2Type;
-  param1: number;  // Frequency/Cutoff (0-255)
-  param2: number;  // Resonance/Q (0-255)
-  gain: number;    // Gain (0-255) for Filter1, or Mix for Filter2
+  param1: number;  // Frequency/Cutoff (0-1)
+  param2: number;  // Resonance/Q (0-1)
+  gain: number;    // Gain (0-2 for Filter1, 0-1 for Filter2)
 }
 
 export interface Operator {
@@ -269,11 +280,12 @@ export const DEFAULT_LFO: LFO = {
   keysync: 'Off'
 };
 
+// By default, gain for Filter1 should be 1
 export const DEFAULT_FILTER: Filter = {
   type: 'OFF',
-  param1: 128,
-  param2: 0,
-  gain: 128
+  param1: 0.5,
+  param2: 0.0,
+  gain: 1.0
 };
 
 export const DEFAULT_ARPEGGIATOR: ArpeggiatorSettings = {
@@ -311,7 +323,7 @@ export const DEFAULT_OPERATOR: Omit<Operator, 'id'> = {
   keyboardTracking: 1,
   frequencyType: 'KEYBOARD',
   waveform: 'SINE',
-  amplitude: 100,
+  amplitude: 1.0, // 0-1 float for PreenFM
   pan: 0,
   adsr: DEFAULT_ADSR,
   target: [],

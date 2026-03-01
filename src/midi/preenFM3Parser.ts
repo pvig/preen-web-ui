@@ -4,8 +4,10 @@
  */
 
 import type { Patch } from '../types/patch';
+import { FILTER1_TYPE_LIST } from '../types/patch';
+// import type { Filter1Type, Filter2Type } from '../types/patch';
 import type { NRPNMessage } from './preenFM3MidiMap';
-import { DEFAULT_ALGORITHMS, DEFAULT_LFO, DEFAULT_LFO_ENVELOPE, DEFAULT_STEP_SEQUENCER } from '../types/patch';
+import { DEFAULT_ALGORITHMS, DEFAULT_LFO_ENVELOPE } from '../types/patch';
 import { WaveformType } from '../types/waveform';
 import { 
   nrpnToLfoFrequency, 
@@ -13,7 +15,7 @@ import {
   parseLfoBias,
   parseLfoKeysync,
   LFO_BIAS_CENTER,
-  type LfoType 
+  // type LfoType
 } from '../types/lfo';
 import type { LFO } from '../types/patch';
 
@@ -130,6 +132,14 @@ export class PreenFM3Parser {
    * Convertir les données NRPN en objet Patch
    */
   toPatch(): Patch {
+        // DEBUG: Log NRPN Mix1-6 values reçues lors du patch pull
+        const mixDebug: number[] = [];
+        for (let i = 0; i < 6; i++) {
+          const mixLsb = 16 + i * 2;
+          const mixValue = this.getValue(0, mixLsb);
+          mixDebug.push(mixValue ?? -1);
+        }
+        console.log('[PreenFM3Parser] NRPN Mix1-6 (LSB 16,18,20,22,24,26) values:', mixDebug);
     // Récupérer l'algorithme (index 0, valeur 0-31)
     const algoIndex = this.getValue(0, 0) ?? 0;
     const algorithm = DEFAULT_ALGORITHMS[algoIndex] || DEFAULT_ALGORITHMS[0];
@@ -137,15 +147,12 @@ export class PreenFM3Parser {
     // Nom du preset
     const name = this.getPresetName() || 'MIDI Patch';
     
-    // Créer les opérateurs depuis l'algorithme avec les valeurs NRPN
-    const operators = algorithm.ops.map((op) => {
-      // Utiliser op.id pour l'indexation NRPN (1-6), pas l'index du tableau
+    // Créer les opérateurs depuis l'algorithme, puis appliquer les valeurs NRPN d'amplitude dans l'ordre OP1-6
+    let operators = algorithm.ops.map((op) => {
       const opIndex = op.id - 1; // 0-5 pour les calculs d'offset
-      
       // Base index pour ROW_OSCx (ROW_OSC1=44, ROW_OSC2=48, etc.)
       // Chaque ROW_OSC a 4 encoders: shape, frequencyType, frequencyMul, detune
       const oscRowBase = 44 + opIndex * 4;
-      
       // Waveform (encoder 0: shape) - correspond aux 14 types du firmware
       const waveformValue = this.getValue(0, oscRowBase) ?? 0;
       const waveforms: WaveformType[] = [
@@ -153,7 +160,6 @@ export class PreenFM3Parser {
         'RAND', 'OFF', 'USER1', 'USER2', 'USER3', 'USER4', 'USER5', 'USER6'
       ];
       const waveform = waveforms[Math.min(waveformValue, 13)] || 'SINE';
-      
       // Frequency Type / Keyboard Tracking (encoder 1: frequencyType)
       // PreenFM3 firmware: 0=Keyboard, 1=Fixed, 2=Finetune
       // UI expects: 0=Fixed, 1=Keyboard, 2=Finetune
@@ -167,20 +173,15 @@ export class PreenFM3Parser {
       } else {
         keyboardTracking = 2; // Finetune stays 2
       }
-      
       // Fréquence (encoder 2: frequencyMul)
       const freqValue = this.getValue(0, oscRowBase + 2) ?? 1600;
       const frequency = freqValue / 100; // PreenFM3 stocke freq * 100
-      
       // Détune (encoder 3: detune)
       const detuneValue = this.getValue(0, oscRowBase + 3) ?? 1600;
       const detune = (detuneValue - 1600) / 100; // Centré sur 1600 pour 0
-      
-      // ADSR: Les données sont interleaved (Time/Level alternés)
       // ROW_ENV1: indices 68-75 (Attack T/L, Decay T/L, Sustain T/L, Release T/L)
       // ROW_ENV2: indices 76-83, etc.
       const envRowBase = 68 + opIndex * 8; // 8 valeurs par envelope (4 temps + 4 niveaux entrelacés)
-      
       // Les temps sont RELATIFS et en centièmes, les niveaux sont déjà en pourcentage (0-100)
       // Il faut les cumuler pour obtenir les positions absolues pour l'UI
       const attackTimeRel = (this.getValue(0, envRowBase + 0) ?? 0) / 100;
@@ -190,70 +191,55 @@ export class PreenFM3Parser {
       const sustainTimeRel = (this.getValue(0, envRowBase + 4) ?? 10000) / 100;
       const sustainLevel = this.getValue(0, envRowBase + 5) ?? 100;
       const releaseTimeRel = (this.getValue(0, envRowBase + 6) ?? 0) / 100;
-      const releaseLevel = this.getValue(0, envRowBase + 7) ?? 0;
-      
+      const releaseLevel = (this.getValue(0, envRowBase + 7) ?? 0);
       // Conversion en positions absolues (cumulatives)
       const attackTime = attackTimeRel;
       const decayTime = attackTime + decayTimeRel;
       const sustainTime = decayTime + sustainTimeRel;
       const releaseTime = sustainTime + releaseTimeRel;
-      
       // Note: Les courbes ADSR (ROW_ENV1_CURVE) ne sont pas transmises via NRPN par le firmware
       // On utilise donc les valeurs par défaut de l'algorithme
-      
-      // MIX (amplitude): Lecture depuis NRPN
-      // OP1-4: Théoriquement contrôlés par CC 27-30, mais peuvent être dans NRPN [0, 32-35] pour le dump
-      // OP5-6: NRPN [0, 36-37] (non documenté officiellement)
-      let mixLsb: number;
-      if (opIndex < 4) {
-        mixLsb = 32 + opIndex; // Mix1-4: LSB 32-35
-      } else {
-        mixLsb = 32 + opIndex; // Mix5-6: LSB 36-37 (continues the sequence)
-      }
-      
-      const mixValue = this.getValue(0, mixLsb) ?? 100;
-      const amplitude = Math.round(mixValue * 127 / 100);
-      
-      console.log(`📊 Parsing operator ${op.id} (index ${opIndex}):`, {
-        mixLsb,
-        mixValue,
-        amplitude,
-        note: opIndex < 4 ? 'Also controllable via CC ' + (27 + opIndex) : 'NRPN only (undocumented)'
-      });
-      
-      // PAN: Lecture depuis NRPN
-      // OP1-4: Théoriquement contrôlés par CC 31-34, mais peuvent être dans NRPN [0, 36-39] pour le dump
-      // OP5-6: NRPN [0, 40-41] (non documenté officiellement) 
-      let panLsb: number;
-      if (opIndex < 4) {
-        panLsb = 36 + opIndex; // Pan1-4: LSB 36-39
-      } else {
-        panLsb = 36 + opIndex; // Pan5-6: LSB 40-41 (continues the sequence)
-      }
-      
-      const panValue = this.getValue(0, panLsb) ?? 100;
-      const pan = panValue - 100;
-      
       return {
         ...op,
         waveform,
         keyboardTracking,
         frequency,
         detune,
-        amplitude,
-        pan,
-        // Créer une copie profonde des targets pour éviter les erreurs de lecture seule
+        // amplitude sera patchée après
+        pan: 0, // sera patché après aussi si besoin
         target: op.target.map(t => ({ ...t })),
         adsr: {
           attack: { time: attackTime, level: attackLevel },
           decay: { time: decayTime, level: decayLevel },
           sustain: { time: sustainTime, level: sustainLevel },
           release: { time: releaseTime, level: releaseLevel },
-          // Les courbes restent celles définies dans l'algorithme par défaut
           curves: op.adsr.curves,
         },
       };
     });
+
+    // Appliquer les valeurs NRPN Mix1-6 (ordre NRPN) aux opérateurs OP1-6 (id:1-6)
+    // Correction : Mix1-4 doivent être assignés aux carriers dans l'ordre de l'algo, pas à OP1-4
+    const carriers = algorithm.ops.filter(op => op.type === 'CARRIER');
+    for (let i = 0; i < carriers.length; i++) {
+      const mixLsb = 16 + i * 2;
+      const mixValue = this.getValue(0, mixLsb) ?? 100;
+      const amplitude = Math.max(0, Math.min(1, mixValue / 100));
+      const carrierOp = operators.find(o => o.id === carriers[i].id);
+      console.log(`[PreenFM3Parser] Mapping Mix${i+1} (LSB ${mixLsb}) = ${mixValue} → amplitude ${amplitude} for Carrier OP${carriers[i].id} (found: ${!!carrierOp})`);
+      if (carrierOp) carrierOp.amplitude = amplitude;
+    }
+    // Pour OP5-6 (modulateurs avec mix), garder le mapping direct par id
+    for (let i = 4; i < 6; i++) {
+      const mixLsb = 16 + i * 2;
+      const mixValue = this.getValue(0, mixLsb) ?? 100;
+      const amplitude = Math.max(0, Math.min(1, mixValue / 100));
+      const op = operators.find(o => o.id === i + 1);
+      if (op && op.type !== 'CARRIER') {
+        console.log(`[PreenFM3Parser] Mapping Mix${i+1} (LSB ${mixLsb}) = ${mixValue} → amplitude ${amplitude} for Modulator OP${i+1} (found: true)`);
+        op.amplitude = amplitude;
+      }
+    }
     
     // Modulation Indexes (IM1-IM6): indices 4, 6, 8, 10, 12, 14
     // Modulation Velo (IMVelo1-6): indices 5, 7, 9, 11, 13, 15
@@ -464,7 +450,48 @@ export class PreenFM3Parser {
         });
         return [arr[0], arr[1]] as [import('../types/modulation').StepSequencer, import('../types/modulation').StepSequencer];
       })(),
-      
+      filters: ([0, 1].map(i => {
+        // Filter1: MSB=0, LSB=40-43 | Filter2: MSB=0, LSB=44-47
+        const baseLsb = 40 + i * 4;
+        let typeRaw = this.getValue(0, baseLsb);
+        // Firmware: type = valeur NRPN brute (0=Off, 1=Mix, ...), clamp à la plage supportée (0-48)
+        const MAX_FILTER_TYPE = 48;
+        let typeIndex = 0;
+        if (typeof typeRaw === 'number') {
+          typeIndex = Math.max(0, Math.min(MAX_FILTER_TYPE, typeRaw));
+        }
+        // Use canonical Filter1Type list for mapping
+        const type = FILTER1_TYPE_LIST[typeIndex] || 'OFF';
+        if (i === 0) {
+          console.log('🔎 Filter1 NRPN:', {
+            typeRaw,
+            type,
+            param1Raw: this.getValue(0, baseLsb + 1),
+            param2Raw: this.getValue(0, baseLsb + 2),
+            gainRaw: this.getValue(0, baseLsb + 3)
+          });
+        }
+        const param1Raw = this.getValue(0, baseLsb + 1);
+        const param2Raw = this.getValue(0, baseLsb + 2);
+        const gainRaw = this.getValue(0, baseLsb + 3);
+        // Firmware: param1/2 = valeur NRPN * 0.01 (0-1), gain = NRPN * 0.01 (0-2 for Filter1, 0-1 for Filter2)
+        const param1 = typeof param1Raw === 'number' ? Math.max(0, Math.min(1, param1Raw * 0.01)) : 0.5;
+        const param2 = typeof param2Raw === 'number' ? Math.max(0, Math.min(1, param2Raw * 0.01)) : 0.5;
+        let gain;
+        if (i === 0) {
+          // Filter1: gain can go up to 2.0
+          gain = typeof gainRaw === 'number' ? Math.max(0, Math.min(2, gainRaw * 0.01)) : 0.5;
+        } else {
+          // Filter2: gain/mix is 0-1
+          gain = typeof gainRaw === 'number' ? Math.max(0, Math.min(1, gainRaw * 0.01)) : 0.5;
+        }
+        return { type, param1, param2, gain };
+      }) as unknown as [import('../types/patch').Filter, import('../types/patch').Filter]),
+        noteCurves: [
+          { before: 'Flat', breakNote: 60, after: 'Flat' },
+          { before: 'Flat', breakNote: 60, after: 'Flat' }
+        ],
+      // import type { Filter1Type, Filter2Type } from '../types/patch';
       global: {
         volume: 0.8,
         transpose: 0,
@@ -480,10 +507,13 @@ export class PreenFM3Parser {
         chorus: { enabled: false, rate: 0.5, depth: 0.3, level: 0.3 },
       },
       arpeggiator: {
+        clock: 120,
+        direction: 'Up',
         pattern: 'Pattern1',
-        rate: 0.25,
-        gate: 0.8,
-        octaves: 1,
+        division: '1/1',
+        duration: '100%',
+        latch: 'Off',
+        octave: 1,
       },
       midi: {
         channel: 1,
