@@ -149,8 +149,8 @@ export const MatrixEditor: React.FC = () => {
                 <KnobBase
                   size={50}
                   knobRadius={18}
-                  min={-1}
-                  max={1}
+                  min={-10}
+                  max={24}
                   value={row.amount}
                   onChange={(value) => handleAmountChange(index, value)}
                   step={0.01}

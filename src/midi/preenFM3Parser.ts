@@ -72,9 +72,16 @@ export class PreenFM3Parser {
   getScaledValue(paramMSB: number, paramLSB: number, min: number, max: number): number {
     const raw = this.getValue(paramMSB, paramLSB);
     if (raw === undefined) return min;
-    
-    // NRPN 14-bit: 0-16383
-    return (raw / 16383) * (max - min) + min;
+    let scaled;
+    if (paramLSB === 68 || paramLSB === 69 || paramLSB === 70) {
+      // LFO phase: NRPN/100 (0-127 → 0-1.27)
+      scaled = raw / 100;
+      console.log(`[LFO PHASE PARSE] paramMSB=${paramMSB} paramLSB=${paramLSB} NRPN=${raw} → float=${scaled}`);
+    } else {
+      // NRPN 14-bit: 0-16383
+      scaled = (raw / 16383) * (max - min) + min;
+    }
+    return scaled;
   }
   
   /**
@@ -360,8 +367,8 @@ export class PreenFM3Parser {
         const keysyncRaw = this.getValue(1, lfoBase + 3) ?? 0;
         const keysync = parseLfoKeysync(keysyncRaw);
         
-        // Phase (0-16383 → 0-360) - stored separately at LSB 68-70
-        const phase = this.getScaledValue(1, 68 + lfoIndex, 0, 360);
+        // Phase (0-16383 → 0-1) - stored separately at LSB 68-70
+        const phase = this.getScaledValue(1, 68 + lfoIndex, 0, 1);
         
         return {
           shape,

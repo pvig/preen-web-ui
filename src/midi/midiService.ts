@@ -1,3 +1,4 @@
+import { encodeLfoBias } from '../types/lfo';
 /**
  * Envoie le mode midiClockMode du step sequencer via NRPN
  * @param seqIndex 0 ou 1 (Seq1 ou Seq2)
@@ -159,20 +160,21 @@ export function sendLfoParamNRPN(lfoIndex: 0 | 1 | 2, param: 'shape' | 'frequenc
       rawValue = Math.max(0, Math.min(7, Math.round(value)));
       break;
     case 'frequency':
-      // UI: 0-99.9 Hz → NRPN: 0-16383 (0-100)
-      rawValue = Math.max(0, Math.min(16383, Math.round((value / 100) * 16383)));
+      // value is already a NRPN (0–9999 for internal, 10000+ for MIDI clock)
+      rawValue = Math.max(0, Math.min(16383, Math.round(value)));
       break;
     case 'bias':
-      // UI: -1 à +1 → NRPN: 0-16383 (-100 à +100)
-      rawValue = Math.max(0, Math.min(16383, Math.round(((value + 1) / 2) * 16383)));
+      // UI: -1 à +1 → NRPN: 0-200 (center 100)
+      rawValue = Math.max(0, Math.min(200, encodeLfoBias(value)));
       break;
     case 'keysync':
       // UI: 0-16 (ou -1 pour Off) → NRPN: 0-16383 (0-16)
-      rawValue = value < 0 ? 0 : Math.max(0, Math.min(16383, Math.round((value / 16) * 16383)));
+      rawValue = value < 0 ? 0 : Math.max(0, Math.min(16383, Math.round(value * 100)));
       break;
     case 'phase':
-      // UI: 0-360° → NRPN: 0-16383
-      rawValue = Math.max(0, Math.min(16383, Math.round((value / 360) * 16383)));
+      // UI: 0-1.27 (float) → NRPN: 0-127 (firmware attend NRPN/100)
+      rawValue = Math.max(0, Math.min(127, Math.round(value * 100)));
+      console.log(`[LFO PHASE SEND] lfoIndex=${lfoIndex} UI value=${value} → NRPN=${rawValue}`);
       break;
   }
   const nrpn = {

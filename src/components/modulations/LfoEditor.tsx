@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import KnobBase from '../knobs/KnobBase';
 import LfoWaveformSelector from './LfoWaveformSelector';
-import { type MidiClockMode, MIDI_CLOCK_MODES, MIDI_CLOCK_LABELS } from '../../types/lfo';
+import { type MidiClockMode, MIDI_CLOCK_MODES, MIDI_CLOCK_LABELS, lfoFrequencyToNrpn } from '../../types/lfo';
 import { useLfo, updateLfo } from '../../stores/patchStore';
 import { sendLfoParamNRPN } from '../../midi/midiService';
 import { LFO_TYPES } from '../../types/lfo';
@@ -103,6 +103,12 @@ export const LfoEditor: React.FC = () => {
   const lfo = useLfo(activeLfo);
   const { theme } = useThemeStore();
 
+  // Helper: send correct NRPN for frequency or MIDI clock
+  const sendLfoFrequencyOrClock = (freqOrMode: number | MidiClockMode) => {
+    // If string, it's a MIDI clock mode
+    sendLfoParamNRPN(activeLfo, 'frequency', lfoFrequencyToNrpn(freqOrMode));
+  };
+
   return (
     <LfoContainer>
       <HeaderRow>
@@ -136,7 +142,17 @@ export const LfoEditor: React.FC = () => {
           <ControlLabel>Sync Mode</ControlLabel>
           <Select
             value={lfo.syncMode}
-            onChange={(e) => updateLfo(activeLfo, { syncMode: e.target.value as 'Int' | 'Ext' })}
+            onChange={(e) => {
+              const newMode = e.target.value as 'Int' | 'Ext';
+              updateLfo(activeLfo, { syncMode: newMode });
+              if (newMode === 'Int') {
+                // Send current frequency as NRPN
+                sendLfoFrequencyOrClock(lfo.frequency);
+              } else {
+                // Send current MIDI clock mode as NRPN
+                sendLfoFrequencyOrClock(lfo.midiClockMode);
+              }
+            }}
           >
             <option value="Int">Internal (0-99.9 Hz)</option>
             <option value="Ext">External (MIDI Clock)</option>
@@ -152,8 +168,15 @@ export const LfoEditor: React.FC = () => {
               step={0.1}
               value={lfo.frequency}
               onChange={(frequency) => {
-                updateLfo(activeLfo, { frequency });
-                sendLfoParamNRPN(activeLfo, 'frequency', frequency);
+                // If user sets freq > 99.9, switch to Ext and send default MIDI clock
+                if (frequency > 99.9) {
+                  const defaultClock = lfo.midiClockMode || MIDI_CLOCK_MODES[0];
+                  updateLfo(activeLfo, { syncMode: 'Ext', midiClockMode: defaultClock });
+                  sendLfoFrequencyOrClock(defaultClock);
+                } else {
+                  updateLfo(activeLfo, { frequency });
+                  sendLfoFrequencyOrClock(frequency);
+                }
               }}
               color={theme.colors.knobLfo}
               backgroundColor={theme.colors.knobBackground}
@@ -167,7 +190,11 @@ export const LfoEditor: React.FC = () => {
               <ControlLabel>MIDI Clock Mode</ControlLabel>
               <Select
                 value={lfo.midiClockMode}
-                onChange={(e) => updateLfo(activeLfo, { midiClockMode: e.target.value as MidiClockMode })}
+                onChange={(e) => {
+                  const mode = e.target.value as MidiClockMode;
+                  updateLfo(activeLfo, { midiClockMode: mode });
+                  sendLfoFrequencyOrClock(mode);
+                }}
               >
                 {MIDI_CLOCK_MODES.map((mode) => (
                   <option key={mode} value={mode}>
@@ -183,8 +210,8 @@ export const LfoEditor: React.FC = () => {
           <KnobBase
             size={60}
             min={0}
-            max={360}
-            step={1}
+            max={1.00}
+            step={0.001}
             value={lfo.phase}
             onChange={(phase) => {
               updateLfo(activeLfo, { phase });
@@ -193,8 +220,8 @@ export const LfoEditor: React.FC = () => {
             color={theme.colors.knobPhase}
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
-            renderLabel={(v) => Math.round(v) + '°'}
-            label="Phase"
+            renderLabel={(v) => v.toFixed(3)}
+            label="Phase (0-1)"
             labelPosition="left"
           />
         </ControlGroup>
