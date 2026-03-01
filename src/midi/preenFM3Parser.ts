@@ -218,26 +218,41 @@ export class PreenFM3Parser {
       };
     });
 
-    // Appliquer les valeurs NRPN Mix1-6 (ordre NRPN) aux opérateurs OP1-6 (id:1-6)
-    // Correction : Mix1-4 doivent être assignés aux carriers dans l'ordre de l'algo, pas à OP1-4
+    // Factorisation de l'assignation Mix/Pan pour chaque opérateur
+    // Mix : carriers dans l'ordre de l'algo, modulateurs OP5-6 par id
+    // Pan : OP1-6 par id
     const carriers = algorithm.ops.filter(op => op.type === 'CARRIER');
-    for (let i = 0; i < carriers.length; i++) {
+    for (let i = 0; i < 6; i++) {
+      // --- Mix (amplitude) ---
       const mixLsb = 16 + i * 2;
-      const mixValue = this.getValue(0, mixLsb) ?? 100;
-      const amplitude = Math.max(0, Math.min(1, mixValue / 100));
-      const carrierOp = operators.find(o => o.id === carriers[i].id);
-      console.log(`[PreenFM3Parser] Mapping Mix${i+1} (LSB ${mixLsb}) = ${mixValue} → amplitude ${amplitude} for Carrier OP${carriers[i].id} (found: ${!!carrierOp})`);
-      if (carrierOp) carrierOp.amplitude = amplitude;
-    }
-    // Pour OP5-6 (modulateurs avec mix), garder le mapping direct par id
-    for (let i = 4; i < 6; i++) {
-      const mixLsb = 16 + i * 2;
-      const mixValue = this.getValue(0, mixLsb) ?? 100;
-      const amplitude = Math.max(0, Math.min(1, mixValue / 100));
-      const op = operators.find(o => o.id === i + 1);
-      if (op && op.type !== 'CARRIER') {
-        console.log(`[PreenFM3Parser] Mapping Mix${i+1} (LSB ${mixLsb}) = ${mixValue} → amplitude ${amplitude} for Modulator OP${i+1} (found: true)`);
-        op.amplitude = amplitude;
+      const mixValue = this.getValue(0, mixLsb);
+      if (i < carriers.length) {
+        // Carriers : Mix1-4 dans l'ordre de l'algo
+        const amplitude = Math.max(0, Math.min(1, (mixValue ?? 100) / 100));
+        const carrierOp = operators.find(o => o.id === carriers[i].id);
+        if (carrierOp) carrierOp.amplitude = amplitude;
+      } else {
+        // Modulateurs OP5-6 : mapping direct par id
+        const amplitude = Math.max(0, Math.min(1, (mixValue ?? 100) / 100));
+        const op = operators.find(o => o.id === i + 1 && o.type !== 'CARRIER');
+        if (op) op.amplitude = amplitude;
+      }
+      // --- Pan ---
+      const panLsb = 17 + i * 2;
+      const panValue = this.getValue(0, panLsb);
+      console.log(`[PreenFM3Parser] PAN NRPN LSB=${panLsb} value=${panValue}`);
+      if (typeof panValue === 'number') {
+        // PreenFM3: 0 = -1, 100 = 0, 200 = 1 (plage -1 à 1)
+        const pan = (panValue - 100) / 100;
+        if (i < carriers.length) {
+          const carrierOp = operators.find(o => o.id === carriers[i].id);
+          if (carrierOp) carrierOp.pan = pan;
+          console.log(`[PreenFM3Parser] PAN converted for Carrier OP${carriers[i].id}: NRPN=${panValue} → pan=${pan}`);
+        } else {
+          const op = operators.find(o => o.id === i + 1 && o.type !== 'CARRIER');
+          if (op) op.pan = pan;
+          console.log(`[PreenFM3Parser] PAN converted for Modulator OP${i+1}: NRPN=${panValue} → pan=${pan}`);
+        }
       }
     }
     

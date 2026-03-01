@@ -109,10 +109,11 @@ const CarrierControls = () => {
           <ControlGroup>
             <ControlInput
               type="range"
-              min="-100"
-              max="100"
+              min="-1"
+              max="1"
+              step="0.01"
               value={operator?.pan ?? 0}
-              onChange={(e) => updateOperator(id, { pan: Number(e.target.value) })}
+              onChange={e => updateOperator(id, { pan: Number(e.target.value) })}
               width="80px"
             />
             <ControlLabel>Pan</ControlLabel>

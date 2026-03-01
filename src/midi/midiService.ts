@@ -490,22 +490,28 @@ export function sendOperatorPan(opNumber: number, value: number, channel: number
     return;
   }
   
-  // OP1-4: Interleaved mapping - Pan on odd CCs: 23, 25, 27, 29
-  // value is -100 (left) to 100 (right) in UI
-  // CC range: 0-127 (0=full left, 64=center, 127=full right)
-  const scaledValue = Math.max(0, Math.min(127, Math.round((value + 100) * 127 / 200)));
-  const ccNumber = 23 + (opNumber - 1) * 2; // CC23, CC25, CC27, CC29
-  
-  console.log('📤 Sending PAN via CC:', {
+  // Pour PreenFM3 NRPN: pan -1..1 → 0..200
+  const nrpnPanValue = Math.round((value + 1) * 100);
+  // Clamp to [0,200]
+  const clampedPan = Math.max(0, Math.min(200, nrpnPanValue));
+  // Envoyer via NRPN (pas CC)
+  // Pan1: LSB 17, Pan2: 19, Pan3: 21, Pan4: 23
+  const panLsb = 17 + (opNumber - 1) * 2;
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: panLsb,
+    valueMSB: (clampedPan >> 7) & 0x7F,
+    valueLSB: clampedPan & 0x7F
+  };
+  console.log('📤 Sending PAN via NRPN:', {
     opNumber,
-    ccNumber,
+    panLsb,
     expectedParam: `Pan${opNumber}`,
     originalValue: value,
-    scaledValue,
-    hex: `0x${(0xB0 + channel - 1).toString(16)} 0x${ccNumber.toString(16)} 0x${scaledValue.toString(16)}`
+    clampedPan,
+    nrpn
   });
-  
-  sendCC(ccNumber, scaledValue, channel);
+  sendNRPN(nrpn, channel);
 }
 
 /**
