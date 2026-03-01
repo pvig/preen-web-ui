@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { sendLfoEnvelope } from '../../midi/midiService';
 import { sendLfoEnvelope2 } from '../../midi/midiService';
 import styled from 'styled-components';
@@ -87,6 +88,7 @@ const Select = styled.select`
  * Ces enveloppes peuvent moduler les LFOs et autres paramètres
  */
 export const LfoEnvEditor: React.FC = () => {
+  const { t } = useTranslation();
   const [activeEnv, setActiveEnv] = useState<0 | 1>(0);
   const env = useLfoEnvelope(activeEnv);
   const { theme } = useThemeStore();
@@ -205,7 +207,7 @@ export const LfoEnvEditor: React.FC = () => {
 
   return (
     <EnvContainer>
-      <EnvTitle>LFO Envelope Editor</EnvTitle>
+      <EnvTitle>{t('modulation.lfoEnvEditor')}</EnvTitle>
       
       <EnvTabs>
         {([0, 1] as const).map((envNum) => (
@@ -253,7 +255,7 @@ export const LfoEnvEditor: React.FC = () => {
                 backgroundColor={theme.colors.knobBackground}
                 strokeColor={theme.colors.knobStroke}
                 renderLabel={(v) => v.toFixed(2)}
-                label="Attack Time"
+                label={t('modulation.attackTime')}
                 labelPosition="left"
               />
             </ControlGroup>
@@ -281,7 +283,7 @@ export const LfoEnvEditor: React.FC = () => {
                 backgroundColor={theme.colors.knobBackground}
                 strokeColor={theme.colors.knobStroke}
                 renderLabel={(v) => v.toFixed(2)}
-                label="Decay Time"
+                label={t('modulation.decayTime')}
                 labelPosition="left"
               />
             </ControlGroup>
@@ -313,7 +315,7 @@ export const LfoEnvEditor: React.FC = () => {
                 backgroundColor={theme.colors.knobBackground}
                 strokeColor={theme.colors.knobStroke}
                 renderLabel={(v) => Math.round(v)}
-                label="Sustain Level"
+                label={t('modulation.sustainLevel')}
                 labelPosition="left"
               />
             </ControlGroup>
@@ -341,7 +343,7 @@ export const LfoEnvEditor: React.FC = () => {
                 backgroundColor={theme.colors.knobBackground}
                 strokeColor={theme.colors.knobStroke}
                 renderLabel={(v) => v.toFixed(2)}
-                label="Release Time"
+                label={t('modulation.releaseTime')}
                 labelPosition="left"
               />
             </ControlGroup>
@@ -371,7 +373,7 @@ export const LfoEnvEditor: React.FC = () => {
                 backgroundColor={theme.colors.knobBackground}
                 strokeColor={theme.colors.knobStroke}
                 renderLabel={(v) => v.toFixed(2)}
-                label="Silence"
+                label={t('modulation.silence')}
                 labelPosition="left"
               />
             </ControlGroup>
@@ -400,7 +402,7 @@ export const LfoEnvEditor: React.FC = () => {
                 backgroundColor={theme.colors.knobBackground}
                 strokeColor={theme.colors.knobStroke}
                 renderLabel={(v) => v.toFixed(2)}
-                label="Attack"
+                label={t('modulation.attack')}
                 labelPosition="left"
               />
             </ControlGroup>
@@ -429,7 +431,7 @@ export const LfoEnvEditor: React.FC = () => {
                 backgroundColor={theme.colors.knobBackground}
                 strokeColor={theme.colors.knobStroke}
                 renderLabel={(v) => v.toFixed(2)}
-                label="Release"
+                label={t('modulation.release')}
                 labelPosition="left"
               />
             </ControlGroup>

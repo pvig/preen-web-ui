@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
 import KnobBase from '../knobs/KnobBase';
 import { useStepSequencer, updateStepSequencer } from '../../stores/patchStore';
 import type { StepSeqSyncMode, StepSeqMidiClockMode } from '../../types/modulation';
@@ -165,6 +166,7 @@ const Select = styled.select`
  * - MIDI Clock mode: C/16, Ck/8, Ck/4, Ck/2, Ck, Ck*2, Ck*3, Ck*4, Ck*8 (utilisé si syncMode = 'Ext')
  */
 export const SeqEditor: React.FC = () => {
+  const { t } = useTranslation();
   const [activeSeq, setActiveSeq] = useState<0 | 1>(0);
   const [isDrawing, setIsDrawing] = useState(false);
   const seq = useStepSequencer(activeSeq);
@@ -263,7 +265,7 @@ export const SeqEditor: React.FC = () => {
     <SeqContainer>
       <HeaderRow>
         <TitleTabGroup>
-          <SeqTitle>Step Sequencer</SeqTitle>
+          <SeqTitle>{t('modulation.stepSeq')}</SeqTitle>
           <SeqTabs>
             {([0, 1] as const).map((seqNum) => (
               <SeqTab
@@ -309,7 +311,7 @@ export const SeqEditor: React.FC = () => {
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
             renderLabel={(v) => `${(v * 100).toFixed(0)}%`}
-            label="Gate"
+            label={t('modulation.gate')}
           />
         </ControlGroup>
 
@@ -338,7 +340,7 @@ export const SeqEditor: React.FC = () => {
               backgroundColor={theme.colors.knobBackground}
               strokeColor={theme.colors.knobStroke}
               renderLabel={(v) => Math.round(v)}
-              label="BPM"
+              label={t('modulation.bpm')}
             />
           </ControlGroup>
         )}

@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
 import KnobBase from '../knobs/KnobBase';
 import { useArpeggiator, updateArpeggiator } from '../../stores/patchStore';
 import type { ArpDirection, ArpPattern, ArpDivision, ArpDuration, ArpLatch } from '../../types/patch';
@@ -69,6 +70,7 @@ const Select = styled.select`
  * Paramètres : Clock (BPM), Direction, Octave, Pattern, Division, Duration, Latch
  */
 export const ArpeggiatorEditor: React.FC = () => {
+  const { t } = useTranslation();
   const arp = useArpeggiator();
   const { theme } = useThemeStore();
 
@@ -95,7 +97,7 @@ export const ArpeggiatorEditor: React.FC = () => {
   return (
     <ArpContainer>
       <ArpHeader>
-        <ArpTitle>Arpeggiator</ArpTitle>
+        <ArpTitle>{t('modulation.arpeggiator')}</ArpTitle>
       </ArpHeader>
 
       <ArpControls>
@@ -112,13 +114,13 @@ export const ArpeggiatorEditor: React.FC = () => {
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
             renderLabel={(v) => Math.round(v)}
-            label="BPM"
+            label={t('modulation.bpm')}
           />
         </ControlGroup>
 
         {/* Direction */}
         <ControlGroup>
-          <ControlLabel>Direction</ControlLabel>
+          <ControlLabel>{t('modulation.direction')}</ControlLabel>
           <Select 
             value={arp.direction}
             onChange={(e) => updateArpeggiator({ direction: e.target.value as ArpDirection })}
@@ -144,13 +146,13 @@ export const ArpeggiatorEditor: React.FC = () => {
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
             renderLabel={(v) => Math.round(v)}
-            label="Octaves"
+            label={t('modulation.octaves')}
           />
         </ControlGroup>
 
         {/* Pattern */}
         <ControlGroup>
-          <ControlLabel>Pattern</ControlLabel>
+          <ControlLabel>{t('modulation.pattern')}</ControlLabel>
           <Select 
             value={arp.pattern}
             onChange={(e) => updateArpeggiator({ pattern: e.target.value as ArpPattern })}
@@ -165,7 +167,7 @@ export const ArpeggiatorEditor: React.FC = () => {
 
         {/* Division */}
         <ControlGroup>
-          <ControlLabel>Division</ControlLabel>
+          <ControlLabel>{t('modulation.division')}</ControlLabel>
           <Select 
             value={arp.division}
             onChange={(e) => updateArpeggiator({ division: e.target.value as ArpDivision })}
@@ -180,7 +182,7 @@ export const ArpeggiatorEditor: React.FC = () => {
 
         {/* Duration */}
         <ControlGroup>
-          <ControlLabel>Duration</ControlLabel>
+          <ControlLabel>{t('modulation.duration')}</ControlLabel>
           <Select 
             value={arp.duration}
             onChange={(e) => updateArpeggiator({ duration: e.target.value as ArpDuration })}
@@ -195,7 +197,7 @@ export const ArpeggiatorEditor: React.FC = () => {
 
         {/* Latch */}
         <ControlGroup>
-          <ControlLabel>Latch</ControlLabel>
+          <ControlLabel>{t('modulation.latch')}</ControlLabel>
           <Select 
             value={arp.latch}
             onChange={(e) => updateArpeggiator({ latch: e.target.value as ArpLatch })}

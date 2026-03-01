@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
 import KnobBase from '../knobs/KnobBase';
 import { useFilter, updateFilter } from '../../stores/patchStore';
 import type { Filter1Type, Filter2Type } from '../../types/patch';
@@ -73,6 +74,7 @@ interface FilterEditorProps {
  * Chaque filtre a : type, param1 (frequency), param2 (resonance), gain/mix
  */
 export const FilterEditor: React.FC<FilterEditorProps> = ({ filterIndex }) => {
+  const { t } = useTranslation();
   const filter = useFilter(filterIndex);
   const { theme } = useThemeStore();
 
@@ -84,7 +86,7 @@ export const FilterEditor: React.FC<FilterEditorProps> = ({ filterIndex }) => {
 
   const filterTypes = filterIndex === 0 ? filter1Types : filter2Types;
 
-  const thirdParamLabel = filterIndex === 0 ? 'Gain' : 'Mix';
+  const thirdParamLabel = filterIndex === 0 ? t('filter.gain') : 'Mix';
 
   // Gain range: 0-2 for Filter1, 0-1 for Filter2
   const gainMin = 0;
@@ -93,13 +95,13 @@ export const FilterEditor: React.FC<FilterEditorProps> = ({ filterIndex }) => {
   return (
     <FilterContainer>
       <FilterHeader>
-        <FilterTitle>Filter {filterIndex + 1}</FilterTitle>
+        <FilterTitle>{t('filter.title')} {filterIndex + 1}</FilterTitle>
       </FilterHeader>
 
       <FilterControls>
         {/* Type de filtre */}
         <ControlGroup>
-          <ControlLabel>Type</ControlLabel>
+          <ControlLabel>{t('filter.type')}</ControlLabel>
           <Select 
             value={filter.type}
             onChange={(e) => updateFilter(filterIndex, { type: e.target.value as (Filter1Type | Filter2Type) })}
@@ -125,7 +127,7 @@ export const FilterEditor: React.FC<FilterEditorProps> = ({ filterIndex }) => {
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
             renderLabel={(v) => v.toFixed(2)}
-            label="Cutoff"
+            label={t('filter.cutoff')}
           />
         </ControlGroup>
 
@@ -142,7 +144,7 @@ export const FilterEditor: React.FC<FilterEditorProps> = ({ filterIndex }) => {
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
             renderLabel={(v) => v.toFixed(2)}
-            label="Resonance"
+            label={t('filter.resonance')}
           />
         </ControlGroup>
 

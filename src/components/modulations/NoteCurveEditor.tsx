@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
 import KnobBase from '../knobs/KnobBase';
 import { useNoteCurve, updateNoteCurve } from '../../stores/patchStore';
 import type { NoteCurveType } from '../../types/patch';
@@ -74,6 +75,7 @@ interface NoteCurveEditorProps {
  * Chaque courbe a : Before (type de courbe avant break), Break (note de break), After (type après break)
  */
 export const NoteCurveEditor: React.FC<NoteCurveEditorProps> = ({ curveIndex }) => {
+  const { t } = useTranslation();
   const curve = useNoteCurve(curveIndex);
   const { theme } = useThemeStore();
 
@@ -94,7 +96,7 @@ export const NoteCurveEditor: React.FC<NoteCurveEditorProps> = ({ curveIndex }) 
   return (
     <NoteCurveContainer>
       <NoteCurveHeader>
-        <NoteCurveTitle>Note Curve {curveIndex + 1}</NoteCurveTitle>
+        <NoteCurveTitle>{t('modulation.noteCurve')} {curveIndex + 1}</NoteCurveTitle>
       </NoteCurveHeader>
 
       <NoteCurveVisualizer
@@ -132,7 +134,7 @@ export const NoteCurveEditor: React.FC<NoteCurveEditorProps> = ({ curveIndex }) 
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
             renderLabel={(v) => noteToName(Math.round(v))}
-            label="Break"
+            label={t('modulation.break')}
             labelPosition="left"
           />
         </ControlGroup>

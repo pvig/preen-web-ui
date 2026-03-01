@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
 import { useCurrentPatch, usePatchStore } from '../../stores/patchStore';
 import { useThemeStore } from '../../theme/themeStore';
 import KnobBase from '../knobs/KnobBase';
@@ -30,7 +31,7 @@ const MatrixRow = styled.div`
   display: grid;
   grid-template-columns: 1fr 120px 1fr 1fr;
   gap: 10px;
-  padding: 8px;
+  padding: 0 8px;
   background: ${props => props.theme.colors.background};
   border-radius: 4px;
   align-items: center;
@@ -48,7 +49,8 @@ const AmountLabel = styled.label`
   color: ${props => props.theme.colors.textMuted};
   font-size: 0.65rem;
   text-transform: uppercase;
-  margin-bottom: 4px;
+  margin-top: 8px;
+  margin-bottom: -4px;
   display: block;
   margin-left: 64px;
 `;
@@ -79,6 +81,7 @@ const MatrixSelect = styled.select`
  * Gère la matrice de modulation (12 lignes, chacune avec Source + 2 Destinations)
  */
 export const MatrixEditor: React.FC = () => {
+  const { t } = useTranslation();
   const { theme } = useThemeStore();
   const currentPatch = useCurrentPatch();
   const updateModulationMatrixRow = usePatchStore((state) => state.updateModulationMatrixRow);
@@ -125,12 +128,12 @@ export const MatrixEditor: React.FC = () => {
 
   return (
     <MatrixContainer>
-      <MatrixTitle>Modulation Matrix</MatrixTitle>
+      <MatrixTitle>{t('modulation.matrix')}</MatrixTitle>
       <MatrixGrid>
         {currentPatch.modulationMatrix.map((row, index) => (
           <MatrixRow key={index}>
             <div>
-              <MatrixLabel>Source {index + 1}</MatrixLabel>
+              <MatrixLabel>{t('modulation.source')} {index + 1}</MatrixLabel>
               <MatrixSelect 
                 value={row.source}
                 onChange={(e) => handleSourceChange(index, e.target.value)}
@@ -144,11 +147,11 @@ export const MatrixEditor: React.FC = () => {
             </div>
             
             <div>
-              <AmountLabel>Amount</AmountLabel>
+              <AmountLabel>{t('modulation.amount')}</AmountLabel>
               <KnobContainer>
                 <KnobBase
                   size={50}
-                  knobRadius={18}
+                  knobRadius={16}
                   min={-10}
                   max={24}
                   value={row.amount}
@@ -165,7 +168,7 @@ export const MatrixEditor: React.FC = () => {
             </div>
             
             <div>
-              <MatrixLabel>Dest1</MatrixLabel>
+              <MatrixLabel>{t('modulation.dest1')}</MatrixLabel>
               <MatrixSelect 
                 value={row.destination1}
                 onChange={(e) => handleDestination1Change(index, e.target.value)}
@@ -179,7 +182,7 @@ export const MatrixEditor: React.FC = () => {
             </div>
             
             <div>
-              <MatrixLabel>Dest2</MatrixLabel>
+              <MatrixLabel>{t('modulation.dest2')}</MatrixLabel>
               <MatrixSelect 
                 value={row.destination2}
                 onChange={(e) => handleDestination2Change(index, e.target.value)}
