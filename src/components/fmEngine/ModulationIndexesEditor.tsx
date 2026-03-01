@@ -214,14 +214,27 @@ export const ModulationIndexesEditor: React.FC<ModulationIndexesEditorProps> = (
         <ModulationListTitle>Index de Modulation</ModulationListTitle>
         {modulationLinks.map((link) => {
         const isFeedback = link.sourceId === link.targetId;
-        
+
         let label: string;
+        let imMin = 0, imMax = 16, imStep = 0.01, imValue = 0;
         if (isFeedback) {
           label = `IM${link.imIndex}: Op${link.sourceId} feedback `;
+          imMax = 1;
+          imStep = 0.001;
+          imValue = typeof link.im === 'number' ? Math.max(0, Math.min(1, link.im)) : 0;
         } else {
           label = `IM${link.imIndex}: Op${link.sourceId} → Op${link.targetId}`;
+          imValue = typeof link.im === 'number' ? Math.max(0, Math.min(16, link.im)) : 0;
         }
-        
+        let veloMin = 0, veloMax = 16, veloStep = 0.01, veloValue = 0;
+        if (isFeedback) {
+          veloMax = 1;
+          veloStep = 0.001;
+          veloValue = typeof link.modulationIndexVelo === 'number' ? Math.max(0, Math.min(1, link.modulationIndexVelo)) : 0;
+        } else {
+          veloValue = typeof link.modulationIndexVelo === 'number' ? Math.max(0, Math.min(16, link.modulationIndexVelo)) : 0;
+        }
+
         return (
           <ModulationItem 
             key={`im-${link.sourceId}-${link.targetId}`}
@@ -233,28 +246,30 @@ export const ModulationIndexesEditor: React.FC<ModulationIndexesEditorProps> = (
               <KnobBase
                 size={50}
                 knobRadius={12}
-                min={0}
-                max={100}
-                value={link.im}
-                onChange={(val) => handleIMChange(link.sourceId, link.targetId, Math.round(val))}
+                min={imMin}
+                max={imMax}
+                step={imStep}
+                value={imValue}
+                onChange={val => handleIMChange(link.sourceId, link.targetId, val)}
                 color={theme.colors.knobModulation}
                 backgroundColor={theme.colors.knobBackground}
                 strokeColor={theme.colors.knobStroke}
-                renderLabel={(val) => Math.round(val)}
+                renderLabel={val => val.toFixed(isFeedback ? 3 : 2)}
                 label="IM"
                 labelPosition="left"
               />
               <KnobBase
                 size={50}
                 knobRadius={12}
-                min={0}
-                max={100}
-                value={link.modulationIndexVelo}
-                onChange={(val) => handleVeloChange(link.sourceId, link.targetId, Math.round(val))}
+                min={veloMin}
+                max={veloMax}
+                step={veloStep}
+                value={veloValue}
+                onChange={val => handleVeloChange(link.sourceId, link.targetId, val)}
                 color={theme.colors.knobVelocity}
                 backgroundColor={theme.colors.knobBackground}
                 strokeColor={theme.colors.knobStroke}
-                renderLabel={(val) => Math.round(val)}
+                renderLabel={val => val.toFixed(isFeedback ? 3 : 2)}
                 label="Velo"
                 labelPosition="left"
               />

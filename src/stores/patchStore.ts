@@ -383,7 +383,7 @@ export const usePatchStore = create<PatchStore>()(
         if (sourceOsc) {
           const modulation = sourceOsc.target.find(mod => mod.id === targetId);
           if (modulation) {
-            modulation.im = Math.max(0, Math.min(100, amount));
+            modulation.im = Math.max(0, Math.min(16, amount));
             state.isModified = true;
             updateLastModified(state.currentPatch);
           }
@@ -396,7 +396,7 @@ export const usePatchStore = create<PatchStore>()(
         if (sourceOsc) {
           const modulation = sourceOsc.target.find(mod => mod.id === targetId);
           if (modulation) {
-            modulation.modulationIndexVelo = Math.max(0, Math.min(100, velo));
+            modulation.modulationIndexVelo = Math.max(0, Math.min(16, velo));
             state.isModified = true;
             updateLastModified(state.currentPatch);
           }

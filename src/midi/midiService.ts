@@ -712,12 +712,13 @@ export function sendModulationIM(imIndex: number, value: number, isFeedback: boo
     return;
   }
   
-  // UI value: 0-100
-  // Feedback: firmware 0-100 (represents 0.0-1.0)
-  // Regular IMs: firmware 0-1000 (represents 0.0-10.0, multiply by 10)
-  const firmwareValue = isFeedback 
-    ? Math.round(Math.max(0, Math.min(100, value)))
-    : Math.round(Math.max(0, Math.min(100, value)) * 10);
+  // UI value: 0-16, firmware expects 0-1600 (value * 100), feedback IM expects 0-1 (0-100)
+  let firmwareValue;
+  if (isFeedback) {
+    firmwareValue = Math.round(Math.max(0, Math.min(1, value)) * 100);
+  } else {
+    firmwareValue = Math.round(Math.max(0, Math.min(16, value)) * 100);
+  }
   
   const nrpn: NRPNMessage = {
     paramMSB: 0,
@@ -752,12 +753,13 @@ export function sendModulationVelo(imIndex: number, value: number, isFeedback: b
     return;
   }
   
-  // UI value: 0-100
-  // Feedback: firmware 0-100 (represents 0.0-1.0 scale)
-  // Regular IMVelo: firmware 0-1000 (represents 0.0-10.0 scale, multiply by 10)
-  const firmwareValue = isFeedback 
-    ? Math.round(Math.max(0, Math.min(100, value)))
-    : Math.round(Math.max(0, Math.min(100, value)) * 10);
+  // UI value: 0-16, firmware expects 0-1600 (value * 100), feedback IMVelo expects 0-1 (0-100)
+  let firmwareValue;
+  if (isFeedback) {
+    firmwareValue = Math.round(Math.max(0, Math.min(1, value)) * 100);
+  } else {
+    firmwareValue = Math.round(Math.max(0, Math.min(16, value)) * 100);
+  }
   
   const nrpn: NRPNMessage = {
     paramMSB: 0,
