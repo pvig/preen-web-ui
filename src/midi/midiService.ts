@@ -1,4 +1,93 @@
 /**
+ * Envoie le BPM du step sequencer via NRPN
+ * @param seqIndex 0 ou 1 (Seq1 ou Seq2)
+ * @param bpm valeur BPM (10-240)
+ * @param channel MIDI channel (défaut: currentChannel)
+ * Mapping PreenFM3 :
+ *   Seq1: MSB=1, LSB=60
+ *   Seq2: MSB=1, LSB=64
+ */
+export function sendStepSequencerBpm(seqIndex: 0 | 1, bpm: number, channel: number = currentChannel) {
+  const clampedBpm = Math.max(10, Math.min(240, Math.round(bpm)));
+  const paramMSB = 1;
+  const paramLSB = seqIndex === 0 ? 60 : 64;
+  const nrpn = {
+    paramMSB,
+    paramLSB,
+    valueMSB: (clampedBpm >> 7) & 0x7F,
+    valueLSB: clampedBpm & 0x7F
+  };
+  console.log('📤 Sending Step Sequencer BPM via NRPN:', { seqIndex, bpm: clampedBpm, nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Envoie le gate du step sequencer via NRPN
+ * @param seqIndex 0 ou 1 (Seq1 ou Seq2)
+ * @param gate valeur gate (0-1, UI) → 0-100 (firmware)
+ * @param channel MIDI channel (défaut: currentChannel)
+ * Mapping PreenFM3 :
+ *   Seq1: MSB=1, LSB=61
+ *   Seq2: MSB=1, LSB=62
+ */
+export function sendStepSequencerGate(seqIndex: 0 | 1, gate: number, channel: number = currentChannel) {
+  // UI: 0-1, firmware: 0-100
+  const clampedGate = Math.max(0, Math.min(1, gate));
+  const firmwareGate = Math.round(clampedGate * 100);
+  const paramMSB = 1;
+  const paramLSB = seqIndex === 0 ? 61 : 62;
+  const nrpn = {
+    paramMSB,
+    paramLSB,
+    valueMSB: (firmwareGate >> 7) & 0x7F,
+    valueLSB: firmwareGate & 0x7F
+  };
+  console.log('📤 Sending Step Sequencer Gate via NRPN:', { seqIndex, gate: firmwareGate, nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+/**
+ * Send a step value for the step sequencer via NRPN
+ * @param seqIndex 0 or 1 (StepSeq1 or StepSeq2)
+ * @param stepIndex 0-15 (step number)
+ * @param value 0-100 (step value)
+ * @param channel MIDI channel (default: currentChannel)
+ *
+ * NRPN mapping (empirically verified):
+ *   StepSeq1: MSB=1, LSB=16+stepIndex (0-15)
+ *   StepSeq2: MSB=1, LSB=32+stepIndex (0-15)
+ *   Value: 0-100 (UI) → 0-100 (firmware)
+ */
+export function sendStepSequencerStep(
+  seqIndex: 0 | 1,
+  stepIndex: number,
+  value: number,
+  channel: number = currentChannel
+) {
+  if (seqIndex !== 0 && seqIndex !== 1) {
+    console.error('Invalid step sequencer index:', seqIndex);
+    return;
+  }
+  if (stepIndex < 0 || stepIndex > 15) {
+    console.error('Invalid step index:', stepIndex);
+    return;
+  }
+  // Clamp value to 0-100 (UI)
+  const uiValue = Math.max(0, Math.min(100, Math.round(value)));
+  // Convert UI value (0-100) to firmware value (0-15)
+  const firmwareValue = Math.round((uiValue / 100) * 15);
+  // NRPN address: MSB=2 (Seq1) ou 3 (Seq2), LSB=0-15
+  const paramMSB = seqIndex === 0 ? 2 : 3;
+  const paramLSB = stepIndex;
+  const nrpn = {
+    paramMSB,
+    paramLSB,
+    valueMSB: (firmwareValue >> 7) & 0x7F, // always 0 for 0-15
+    valueLSB: firmwareValue & 0x7F
+  };
+  console.log('📤 Sending Step Sequencer Step via NRPN:', { seqIndex, stepIndex, uiValue, firmwareValue, nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+/**
  * Envoie tous les paramètres d'un LFO au PreenFM3 via CC
  * lfoIndex: 0 = LFO1, 1 = LFO2, 2 = LFO3
  * params: { frequency, shape, phase, bias }

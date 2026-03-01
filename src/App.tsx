@@ -63,6 +63,9 @@ const Nav = styled.nav`
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     transition: all 0.2s;
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
     
     &:hover {
       background-color: ${props => props.theme.colors.buttonHover};
@@ -71,8 +74,12 @@ const Nav = styled.nav`
     
     &.active {
       background-color: ${props => props.theme.colors.navActive};
-      color: ${props => props.theme.colors.text};
-      border-bottom: 1px solid ${props => props.theme.colors.navActive};
+      color: ${props => props.theme.colors.primary};
+      border-bottom: 2.5px solid ${props => props.theme.colors.primary};
+      font-weight: 700;
+      box-shadow: 0 2px 12px 0 ${props => props.theme.colors.primary}33;
+      text-shadow: 0 1px 4px ${props => props.theme.colors.primary}55;
+      z-index: 2;
     }
   }
 `;

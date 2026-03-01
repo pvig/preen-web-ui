@@ -67,7 +67,7 @@ export interface Operator {
   id: number;
   enabled: boolean;
   frequency: number;      // Fréquence en Hz ou ratio FM
-  detune: number;      // Fréquence en Hz ou ratio FM
+  detune: number;      // [-16, +16] pour correspondre au PreenFM3
   keyboardTracking: number;
   frequencyType: 'FIXED' | 'KEYBOARD'; // Suivi du clavier ou fréquence fixe
   waveform: WaveformType;

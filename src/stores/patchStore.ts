@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { WaveformType, getWaveformId } from '../types/waveform';
-import { sendOperatorMix, sendOperatorPan, sendOperatorFrequency, sendOperatorDetune, sendOperatorWaveform, sendOperatorKeyboardTracking, sendOperatorADSR, sendModulationIM, sendModulationVelo, calculateIMIndex } from '../midi/midiService';
+import { sendOperatorMix, sendOperatorPan, sendOperatorFrequency, sendOperatorDetune, sendOperatorWaveform, sendOperatorKeyboardTracking, sendOperatorADSR, sendModulationIM, sendModulationVelo, calculateIMIndex, sendStepSequencerStep, sendStepSequencerBpm, sendStepSequencerGate } from '../midi/midiService';
 import { sendCC } from '../midi/midiService';
 import { LFO_TYPES } from '../types/lfo';
 
@@ -470,11 +470,29 @@ export const usePatchStore = create<PatchStore>()(
             { ...DEFAULT_STEP_SEQUENCER }
           ];
         }
-        
         if (seqIndex >= 0 && seqIndex < 2) {
+          const prev = { ...state.currentPatch.stepSequencers[seqIndex] };
           Object.assign(state.currentPatch.stepSequencers[seqIndex], changes);
           state.isModified = true;
           updateLastModified(state.currentPatch);
+          // MIDI : envoyer les steps modifiés
+          if (changes.steps) {
+            if (Array.isArray(changes.steps) && changes.steps.length === 16) {
+              for (let i = 0; i < 16; i++) {
+                if (!prev.steps || prev.steps[i] !== changes.steps[i]) {
+                  sendStepSequencerStep(seqIndex, i, changes.steps[i]);
+                }
+              }
+            }
+          }
+          // MIDI : envoyer le BPM modifié
+          if (typeof changes.bpm === 'number' && prev.bpm !== changes.bpm) {
+            sendStepSequencerBpm(seqIndex, changes.bpm);
+          }
+          // MIDI : envoyer le gate modifié
+          if (typeof changes.gate === 'number' && prev.gate !== changes.gate) {
+            sendStepSequencerGate(seqIndex, changes.gate);
+          }
         }
       }),
 

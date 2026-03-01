@@ -215,11 +215,28 @@ export const SeqEditor: React.FC = () => {
   const handleStepClick = (index: number, e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const value = calculateValueFromMouseY(e, rect);
-    
     // Mise à jour immédiate du store pour un simple clic
     const newSteps = [...seq.steps];
     newSteps[index] = value;
     updateStepSequencer(activeSeq, { steps: newSteps });
+  };
+
+  // Envoie le NRPN midiClockMode à chaque changement de mode Ext ou de valeur midiClockMode
+  const handleSyncModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newMode = e.target.value as StepSeqSyncMode;
+    if (newMode === 'Ext') {
+      updateStepSequencer(activeSeq, { syncMode: 'Ext', bpm: 241, midiClockMode: seq.midiClockMode });
+    } else {
+      updateStepSequencer(activeSeq, { syncMode: 'Int', bpm: seq.bpm });
+    }
+  };
+
+  const handleMidiClockModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    updateStepSequencer(activeSeq, { midiClockMode: e.target.value as StepSeqMidiClockMode });
+    // Si on est en mode Ext, renvoyer aussi bpm=241 pour forcer la bascule
+    if (seq.syncMode === 'Ext') {
+      updateStepSequencer(activeSeq, { bpm: 241 });
+    }
   };
 
   React.useEffect(() => {
@@ -296,7 +313,7 @@ export const SeqEditor: React.FC = () => {
           <ControlLabel>Sync</ControlLabel>
           <Select 
             value={seq.syncMode}
-            onChange={(e) => updateStepSequencer(activeSeq, { syncMode: e.target.value as StepSeqSyncMode })}
+            onChange={handleSyncModeChange}
           >
             {syncModes.map(mode => (
               <option key={mode} value={mode}>{mode === 'Int' ? 'Internal' : 'External'}</option>
@@ -327,7 +344,7 @@ export const SeqEditor: React.FC = () => {
             <ControlLabel>MIDI Clock</ControlLabel>
             <Select 
               value={seq.midiClockMode}
-              onChange={(e) => updateStepSequencer(activeSeq, { midiClockMode: e.target.value as StepSeqMidiClockMode })}
+              onChange={handleMidiClockModeChange}
             >
               {STEP_SEQ_MIDI_CLOCK_MODES.map(mode => (
                 <option key={mode} value={mode}>{mode}</option>

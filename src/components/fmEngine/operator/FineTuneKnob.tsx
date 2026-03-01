@@ -13,8 +13,8 @@ interface FineTuneKnobProps {
 }
 
 export const FineTuneKnob: React.FC<FineTuneKnobProps> = ({
-  min = -1,
-  max = 1,
+  min = -16,
+  max = 16,
   step = 0.01,
   value,
   label = "",

@@ -61,7 +61,7 @@ export const OperatorPanel = ({ opNumber }: OperatorPanelProps) => {
         <FineTuneKnob 
         label="Finetuning" 
         value={selectedOperator?.detune ?? 0}
-        min={-9} max={9} 
+        min={-16} max={16} 
         onChange={val => updateOperator(opId, { detune: val })}
         />
       </ControlsRow>

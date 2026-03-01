@@ -436,12 +436,34 @@ export class PreenFM3Parser {
         },
       ] as [typeof DEFAULT_LFO_ENVELOPE, typeof DEFAULT_LFO_ENVELOPE],
       
-      // Step Sequencers (TODO)
-      // Step Seq: MSB=2-3, LSB=step number (16 steps par séquenceur)
-      stepSequencers: [
-        { ...DEFAULT_STEP_SEQUENCER },
-        { ...DEFAULT_STEP_SEQUENCER }
-      ],
+      // Step Sequencers: parser les steps à partir des NRPN reçus (MSB=2/3, LSB=0-15)
+      stepSequencers: (() => {
+        const arr = [0, 1].map(seqIdx => {
+          const steps: number[] = [];
+          for (let i = 0; i < 16; i++) {
+            // NRPN: MSB=2 (Seq1) ou 3 (Seq2), LSB=0-15
+            const value = this.getValue(seqIdx + 2, i);
+            // Sur le PreenFM3, la valeur brute va de 0 à 15, il faut la remapper sur 0-100
+            if (typeof value === 'number') {
+              steps.push(Math.round((value * 100) / 15));
+            } else {
+              steps.push(50);
+            }
+          }
+          // Gate et BPM (MSB=1, LSB=61/62 et 60/64)
+          const gate = (this.getValue(1, seqIdx === 0 ? 61 : 62) ?? 50) / 100;
+          const bpm = this.getValue(1, seqIdx === 0 ? 60 : 64) ?? 120;
+          // SyncMode et midiClockMode non parsés ici (à compléter si besoin)
+          return {
+            steps,
+            gate,
+            bpm,
+            syncMode: 'Int', // valeur par défaut, à parser si possible
+            midiClockMode: 'Ck/4', // valeur par défaut, à parser si besoin
+          };
+        });
+        return [arr[0], arr[1]] as [import('../types/modulation').StepSequencer, import('../types/modulation').StepSequencer];
+      })(),
       
       global: {
         volume: 0.8,
@@ -458,8 +480,7 @@ export class PreenFM3Parser {
         chorus: { enabled: false, rate: 0.5, depth: 0.3, level: 0.3 },
       },
       arpeggiator: {
-        enabled: false,
-        pattern: 'UP',
+        pattern: 'Pattern1',
         rate: 0.25,
         gate: 0.8,
         octaves: 1,
