@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import { usePreenFM3Midi } from '../midi/usePreenFM3Midi';
 import { requestPatchDump } from '../midi/midiService';
-import { useCurrentPatch, usePatchStore, updateOperator } from '../stores/patchStore';
+import { useCurrentPatch, usePatchStore } from '../stores/patchStore';
 import { PreenFM3Parser } from '../midi/preenFM3Parser';
 import { useState, useRef } from 'react';
 
@@ -57,7 +57,7 @@ const MidiActions = styled.div`
 
 const MidiButton = styled.button`
   flex: 1;
-  padding: 0.5rem 1rem;
+  padding: 0.25rem 1rem;
   border-radius: 0.25rem;
   background: ${props => props.theme.colors.primary};
   color: ${props => props.theme.colors.background};

@@ -1,4 +1,7 @@
 
+import React from 'react';
+import { cn } from '../../utils/cn';
+
 // components/fmEngine/ParameterSlider.tsx
 
 interface ParameterSliderProps {
@@ -26,8 +29,6 @@ const ParameterSlider: React.FC<ParameterSliderProps> = ({
   onChange,
   disabled = false
 }) => {
-  const normalizedValue = (value - min) / (max - min);
-
   const formatValue = (val: number): string => {
     if (unit === 'Hz' && val >= 1000) {
       return `${(val / 1000).toFixed(1)}k${unit}`;

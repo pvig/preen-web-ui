@@ -1,4 +1,8 @@
 
+import React from 'react';
+import { cn } from '../../utils/cn';
+import ParameterKnob from './ParameterKnob';
+
 // components/fmEngine/FrequencyControl.tsx
 
 interface FrequencyControlProps {

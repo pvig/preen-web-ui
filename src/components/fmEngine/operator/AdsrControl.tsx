@@ -109,30 +109,6 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
     return fullPath;
   };
 
-  // Contraint les positions X en fonction des autres points actuels
-  // Chaque segment (différence entre deux points consécutifs) est limité à maxSegmentSize
-  // qui peut être augmenté dynamiquement
-  const constrainXPosition = (key: string, newX: number): number => {
-    const [, attack, decay, sustain, release] = currentPoints.current;
-
-    switch (key) {
-      case 'attack':
-        // Attack segment: 0 à maxSegmentSize max, et doit rester avant decay
-        return Math.max(0, Math.min(newX, maxSegmentSize, decay.x));
-      case 'decay':
-        // Decay segment: attack à attack+maxSegmentSize max, et doit rester avant sustain
-        return Math.max(attack.x, Math.min(newX, attack.x + maxSegmentSize, sustain.x));
-      case 'sustain':
-        // Sustain segment: decay à decay+maxSegmentSize max, et bloqué par release
-        return Math.max(decay.x, Math.min(newX, decay.x + maxSegmentSize, release.x));
-      case 'release':
-        // Release segment: sustain à sustain+maxSegmentSize max
-        return Math.max(sustain.x, Math.min(newX, sustain.x + maxSegmentSize));
-      default:
-        return newX;
-    }
-  };
-
   // Initialise et met à jour les points  
   useEffect(() => {
     currentPoints.current = [

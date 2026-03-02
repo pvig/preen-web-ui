@@ -1,8 +1,6 @@
 // src/components/fmEngine/FMSynthContext.tsx
 import React, { createContext, useContext, useMemo, useState } from 'react';
 //import { usePatchStore, useSelectedOperatorId, usePatchActions } from '../../stores/patchStore';
-import { useStore } from 'zustand';
-import { useCurrentPatch } from '../../stores/patchStore';
 import { Patch } from "../../types/patch";
 //import { type Algorithm, type Envelope, type Patch } from '../../types/patch';
 
@@ -32,7 +30,7 @@ export const FMSynthProvider = ({ patch, children }: { patch: Patch, children: R
     () => ({
       patch,
       getOperator: (id) => patch.operators.find((op) => op.id === id),
-      updateOperator: (id, changes) => {
+      updateOperator: () => {
         // ⚠️ Ici : soit tu relies directement à usePatchStore.updateOscillator/updateOperator
         //console.log("Update operator", id, changes);
       },
