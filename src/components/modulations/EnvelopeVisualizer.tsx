@@ -129,8 +129,12 @@ export const EnvelopeVisualizer: React.FC<Props> = ({ envelope, onChange, type }
         (envelope as EnvelopeDataSAR).attack.time +
         (envelope as EnvelopeDataSAR).release.time;
     
-    // Ensure minimum scale for visibility
-    const maxTime = Math.max(totalTime, 4);
+    // Pour Env1, ajouter le décalage de sustain au temps total pour l'échelle
+    const sustainOffset = isEnv1 ? Math.max(totalTime, 4) * 0.05 : 0;
+    const adjustedTotalTime = totalTime + sustainOffset;
+    
+    // Ensure minimum scale for visibility  
+    const maxTime = Math.max(adjustedTotalTime, 4);
     
     const x = MARGIN.left + (time / maxTime) * graphWidth;
     const y = MARGIN.top + graphHeight - (level * graphHeight);
@@ -148,7 +152,11 @@ export const EnvelopeVisualizer: React.FC<Props> = ({ envelope, onChange, type }
       : (envelope as EnvelopeDataSAR).silence.time +
         (envelope as EnvelopeDataSAR).attack.time +
         (envelope as EnvelopeDataSAR).release.time;
-    const maxTime = Math.max(totalTime, 4);
+    
+    // Pour Env1, ajouter le décalage de sustain au temps total pour l'échelle
+    const sustainOffset = isEnv1 ? Math.max(totalTime, 4) * 0.05 : 0;
+    const adjustedTotalTime = totalTime + sustainOffset;
+    const maxTime = Math.max(adjustedTotalTime, 4);
 
     const time = Math.max(0, Math.min(16, ((screenX - MARGIN.left) / graphWidth) * maxTime));
     const level = Math.max(0, Math.min(1, 1 - ((screenY - MARGIN.top) / graphHeight)));
@@ -179,19 +187,31 @@ export const EnvelopeVisualizer: React.FC<Props> = ({ envelope, onChange, type }
       (envelope as EnvelopeDataADSR).attack.time + (envelope as EnvelopeDataADSR).decay.time,
       (envelope as EnvelopeDataADSR).decay.level
     ),
-    // Ajoute un décalage visuel de 5% de la durée totale pour S (sustain)
-    sustain: getScreenPosition(
-      (envelope as EnvelopeDataADSR).attack.time + (envelope as EnvelopeDataADSR).decay.time + Math.max(0.05 * (
-        (envelope as EnvelopeDataADSR).attack.time +
-        (envelope as EnvelopeDataADSR).decay.time +
-        (envelope as EnvelopeDataADSR).release.time
-      ), 0.1),
-      (envelope as EnvelopeDataADSR).decay.level  // Sustain level is same as decay level
-    ),
-    release: getScreenPosition(
-      (envelope as EnvelopeDataADSR).attack.time + (envelope as EnvelopeDataADSR).decay.time + (envelope as EnvelopeDataADSR).sustain.time + (envelope as EnvelopeDataADSR).release.time,
-      (envelope as EnvelopeDataADSR).release.level
-    ),
+    // Point S à 5% de la largeur graphique depuis D
+    sustain: (() => {
+      const totalTime = (envelope as EnvelopeDataADSR).attack.time + 
+        (envelope as EnvelopeDataADSR).decay.time + 
+        (envelope as EnvelopeDataADSR).sustain.time + 
+        (envelope as EnvelopeDataADSR).release.time;
+      const maxTime = Math.max(totalTime, 4);
+      const sustainOffset = maxTime * 0.05; // 5% de la largeur d'affichage en temps
+      return getScreenPosition(
+        (envelope as EnvelopeDataADSR).attack.time + (envelope as EnvelopeDataADSR).decay.time + sustainOffset,
+        (envelope as EnvelopeDataADSR).decay.level
+      );
+    })(),
+    release: (() => {
+      const totalTime = (envelope as EnvelopeDataADSR).attack.time + 
+        (envelope as EnvelopeDataADSR).decay.time + 
+        (envelope as EnvelopeDataADSR).sustain.time + 
+        (envelope as EnvelopeDataADSR).release.time;
+      const maxTime = Math.max(totalTime, 4);
+      const sustainOffset = maxTime * 0.05;
+      return getScreenPosition(
+        (envelope as EnvelopeDataADSR).attack.time + (envelope as EnvelopeDataADSR).decay.time + sustainOffset + (envelope as EnvelopeDataADSR).release.time,
+        (envelope as EnvelopeDataADSR).release.level
+      );
+    })(),
   } : null;
 
   const pointsEnv2: PointsEnv2 | null = !isEnv1 ? {
@@ -320,14 +340,14 @@ export const EnvelopeVisualizer: React.FC<Props> = ({ envelope, onChange, type }
           break;
         }
         case 'release': {
-          // Empêche R d'être placé avant S (décalage visuel inclus)
-          const prevTime = env.attack.time + env.decay.time + env.sustain.time;
-          // Décalage visuel de S (doit matcher celui du point S)
-          const sustainVisualOffset = Math.max(0.05 * (env.attack.time + env.decay.time + env.release.time), 0.1);
-          const minReleaseTime = prevTime + sustainVisualOffset;
-          const releaseTime = Math.max(minReleaseTime, time);
+          // Empêche R d'être placé avant S (5% de la largeur d'affichage)
+          const totalTime = env.attack.time + env.decay.time + env.sustain.time + env.release.time;
+          const maxTime = Math.max(totalTime, 4);
+          const sustainOffset = maxTime * 0.05;
+          const minTime = env.attack.time + env.decay.time + sustainOffset;
+          const releaseTime = Math.max(0, time - minTime);
           newEnvelope.release = {
-            time: releaseTime - prevTime,
+            time: releaseTime,
             level: Math.max(0, Math.min(1, level))
           };
           break;
@@ -405,7 +425,11 @@ export const EnvelopeVisualizer: React.FC<Props> = ({ envelope, onChange, type }
     : (envelope as EnvelopeDataSAR).silence.time +
       (envelope as EnvelopeDataSAR).attack.time +
       (envelope as EnvelopeDataSAR).release.time;
-  const maxTime = Math.max(totalTime, 4);
+  
+  // Pour Env1, ajouter le décalage de sustain au temps total pour l'échelle
+  const sustainOffset = isEnv1 ? Math.max(totalTime, 4) * 0.05 : 0;
+  const adjustedTotalTime = totalTime + sustainOffset;
+  const maxTime = Math.max(adjustedTotalTime, 4);
   // 1 vertical line per second, min 2, max 16
   const numVerticalLines = Math.max(2, Math.min(16, Math.round(maxTime)));
   for (let i = 0; i <= numVerticalLines; i++) {
