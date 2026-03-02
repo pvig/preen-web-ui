@@ -26,8 +26,8 @@ const Header = styled.header`
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 1rem;
-  background-color: ${props => props.theme.colors.backgroundSecondary};
-  border-bottom: 1px solid ${props => props.theme.colors.border};
+  background-color: none;
+  border-bottom: 0;
 `;
 
 const HeaderRight = styled.div`
@@ -37,6 +37,7 @@ const HeaderRight = styled.div`
 `;
 
 const TestButton = styled.button`
+  display: none;
   background: ${props => props.theme.colors.primary};
   color: white;
   border: none;
@@ -51,11 +52,14 @@ const TestButton = styled.button`
 `;
 
 const Nav = styled.nav`
-  background-color: ${props => props.theme.colors.nav};
+  background-color: none;
   display: flex;
+  justify-content: flex-start;
   gap: 0.5rem;
-  padding: 0.5rem;
+  padding: 0 0.5rem;
   border-bottom: 1px solid ${props => props.theme.colors.border};
+  max-width: 900px;
+  margin: 0 auto;
   
   button {
     background-color: ${props => props.theme.colors.button};
@@ -87,6 +91,7 @@ const Nav = styled.nav`
 
 const Main = styled.main`
   padding: 0.5rem 0 0 0;
+  margin: 0 auto;
 `;
 
 export default function App() {

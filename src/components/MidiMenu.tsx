@@ -6,10 +6,12 @@ import { PreenFM3Parser } from '../midi/preenFM3Parser';
 import { useState, useRef } from 'react';
 
 const MidiMenuContainer = styled.div`
-  background: ${props => props.theme.colors.panel};
-  display: flex;
+  background: none;
+  display: inline-flex;
+  margin: auto;
   justify-content: space-between;
   flex-wrap: wrap;
+  max-width: 1200px;
 `;
 
 const MidiPorts = styled.div`
@@ -31,13 +33,14 @@ const MidiPortSelect = styled.div`
   }
   
   select {
-    width: 100%;
+    width: 10em;
     padding: 0.5rem;
     border-radius: 0.25rem;
     background: ${props => props.theme.colors.button};
     color: ${props => props.theme.colors.text};
     border: 1px solid ${props => props.theme.colors.border};
     cursor: pointer;
+    display: block;
     
     &:focus {
       outline: none;
@@ -48,7 +51,7 @@ const MidiPortSelect = styled.div`
 
 const MidiActions = styled.div`
   display: flex;
-  gap: 0.5rem;
+  gap: 0.25rem;
   margin: 1rem;
 `;
 
@@ -74,20 +77,6 @@ const MidiButton = styled.button`
   }
 `;
 
-const MidiStatus = styled.div`
-  display: flex;
-  align-items: center;
-  margin: 0.5rem;
-`;
-
-const StatusIndicator = styled.div<{ $connected?: boolean }>`
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  background: ${props => props.$connected ? '#065f46' : props.theme.colors.button};
-  color: ${props => props.$connected ? '#d1fae5' : props.theme.colors.text};
-`;
 
 const ErrorMessage = styled.p`
   color: ${props => props.theme.colors.accent};
@@ -399,13 +388,6 @@ export const MidiMenu = () => {
         </MidiButton>
       </MidiActions>
 
-      {midi.enabled && (midi.selectedInput || midi.selectedOutput) && (
-        <MidiStatus>
-          <StatusIndicator $connected>
-            ● Connecté
-          </StatusIndicator>
-        </MidiStatus>
-      )}
     </MidiMenuContainer>
   );
 };
