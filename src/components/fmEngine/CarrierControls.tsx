@@ -4,6 +4,26 @@ import styled from 'styled-components';
 import { useFMSynthContext } from './FMSynthContext';
 import { useThemeStore } from '../../theme/themeStore';
 
+const CarrierContainer = styled.div`
+  margin: auto;
+  background: ${props => props.theme.colors.background};
+  border-radius: 8px;
+  border: 1px solid ${props => props.theme.colors.border};
+  overflow: hidden;
+  max-width: 900px;
+`;
+
+const CarrierTitle = styled.h3`
+  margin: 0;
+  padding: 12px 20px;
+  background: ${props => props.theme.colors.panel};
+  color: ${props => props.theme.colors.text};
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid ${props => props.theme.colors.border};
+`;
+
 const ControlsContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -69,16 +89,21 @@ const CarrierControls = () => {
 
   if (carriers.length === 0) {
     return (
-      <ControlsContainer>
-        <div style={{ color: theme.colors.textMuted, textAlign: 'center' }}>
-          No carrier operators in current algorithm
-        </div>
-      </ControlsContainer>
+      <CarrierContainer>
+        <CarrierTitle>Carrier</CarrierTitle>
+        <ControlsContainer>
+          <div style={{ color: theme.colors.textMuted, textAlign: 'center' }}>
+            No carrier operators in current algorithm
+          </div>
+        </ControlsContainer>
+      </CarrierContainer>
     );
   }
 
   return (
-    <ControlsContainer>
+    <CarrierContainer>
+      <CarrierTitle>Carrier</CarrierTitle>
+      <ControlsContainer>
       {carriers.map(({ id }) => {
         const operator = currentPatch.operators.find(op => op.id === id);
         return (
@@ -122,6 +147,7 @@ const CarrierControls = () => {
         );
       })}
     </ControlsContainer>
+    </CarrierContainer>
   );
 };
 
