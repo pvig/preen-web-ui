@@ -7,7 +7,7 @@ const ArpFilterContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  padding: 10px;
+  padding: 0;
   max-width: 900px;
   margin: 0 auto;
   

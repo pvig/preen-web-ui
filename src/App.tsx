@@ -137,9 +137,6 @@ export default function App() {
           <button onClick={() => setCurrentScreen('arpfilter')} className={currentScreen === 'arpfilter' ? 'active' : ''}>
             Arp/Filter
           </button>
-          <button onClick={() => setCurrentScreen('effects')} className={currentScreen === 'effects' ? 'active' : ''}>
-            Effets
-          </button>
           <button onClick={() => setCurrentScreen('library')} className={currentScreen === 'library' ? 'active' : ''}>
             Librairie
           </button>

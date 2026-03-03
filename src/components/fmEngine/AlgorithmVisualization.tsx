@@ -12,7 +12,7 @@ const VisualizationContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px; /* Espacement autour du SVG */
+  padding: 0; /* Espacement autour du SVG */
   background: ${props => props.theme.colors.background};
   
   svg {
