@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { WaveformType, getWaveformId } from '../types/waveform';
-import { sendOperatorMix, sendOperatorPan, sendOperatorFrequency, sendOperatorDetune, sendOperatorWaveform, sendOperatorKeyboardTracking, sendOperatorADSR, sendModulationIM, sendModulationVelo, calculateIMIndex, sendStepSequencerStep, sendStepSequencerBpm, sendStepSequencerGate } from '../midi/midiService';
+import { sendOperatorMix, sendOperatorPan, sendOperatorFrequency, sendOperatorDetune, sendOperatorWaveform, sendOperatorKeyboardTracking, sendOperatorADSR, sendModulationIM, sendModulationVelo, calculateIMIndex, sendStepSequencerStep, sendStepSequencerBpm, sendStepSequencerGate, sendAlgorithmChange, sendGlobalVelocitySensitivity, sendPlayMode, sendGlideTime } from '../midi/midiService';
 
 
 
@@ -809,8 +809,11 @@ export const updateOperator = (operatorId: number, changes: Partial<Operator>, s
   usePatchStore.getState().updateOperator(operatorId, changes);
 };
 
-export const selectAlgorithm = (algorithm: Algorithm) =>
+export const selectAlgorithm = (algorithm: Algorithm) => {
   usePatchStore.getState().selectAlgorithm(algorithm);
+  // Envoyer le changement d'algorithme au preenfm via MIDI
+  sendAlgorithmChange(algorithm.id);
+};
 
 export const useOperatorEnvelope = (operatorId: number) => usePatchStore(state => {
   const { currentPatch } = state;
@@ -904,8 +907,19 @@ export const updateModulationVelo = (sourceId: number, targetId: number, velo: n
 export const updateModulationMatrixRow = (rowIndex: number, changes: Partial<ModulationMatrixRow>) =>
   usePatchStore.getState().updateModulationMatrixRow(rowIndex, changes);
 
-export const updateGlobal = (changes: Partial<Patch['global']>) =>
+export const updateGlobal = (changes: Partial<Patch['global']>) => {
   usePatchStore.getState().updateGlobal(changes);
+  // Envoyer les changements globaux au preenfm via MIDI
+  if (changes.velocitySensitivity !== undefined) {
+    sendGlobalVelocitySensitivity(changes.velocitySensitivity);
+  }
+  if (changes.polyphony !== undefined) {
+    sendPlayMode(changes.polyphony);
+  }
+  if (changes.glideTime !== undefined) {
+    sendGlideTime(changes.glideTime);
+  }
+};
 
 export const useFilter = (filterIndex: 0 | 1) => usePatchStore(state => {
   return state.currentPatch.filters?.[filterIndex] ?? DEFAULT_FILTER;

@@ -25,7 +25,7 @@ export const MIDI_CC = {
 // Note: Mix and Pan are INTERLEAVED (not sequential)
 export const PREENFM3_CC = {
   // Engine
-  ALGO: 20,  // Algorithm selection (0-31 for 32 algorithms)
+  ALGO: 16,  // Algorithm selection (0-31 for 32 algorithms) - Confirmed from firmware CC_ALGO
   
   // Modulation Indices
   IM1: 21,

@@ -382,7 +382,65 @@ export function requestPatchDump(timbre: number = 0, channel: number = currentCh
 }
 
 /**
- * Send algorithm change (CC 20)
+ * Send global velocity sensitivity via NRPN
+ */
+export function sendGlobalVelocitySensitivity(velocity: number, channel: number = currentChannel) {
+  // Global velocity sensitivity uses NRPN [0,1] with value 0-16
+  const clampedVelocity = Math.max(0, Math.min(16, Math.round(velocity)));
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: 1,
+    valueMSB: (clampedVelocity >> 7) & 0x7F,
+    valueLSB: clampedVelocity & 0x7F
+  };
+  console.log('📤 Sending Global Velocity Sensitivity via NRPN:', { velocity: clampedVelocity, nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send play mode (Voices) via NRPN
+ * Note: PreenFM3 uses NRPN [0,2] for Play Mode (not voice count like PreenFM2)
+ * - 1 voice = Mono (0)
+ * - 2-16 voices = Poly (1) 
+ * - Unison (2) not supported in current interface
+ */
+export function sendPlayMode(polyphony: number, channel: number = currentChannel) {
+  // Convert polyphony count to play mode
+  let playMode: number;
+  if (polyphony === 1) {
+    playMode = 0; // Mono
+  } else {
+    playMode = 1; // Poly (2-16 voices) 
+  }
+  
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: 2,
+    valueMSB: (playMode >> 7) & 0x7F,
+    valueLSB: playMode & 0x7F
+  };
+  console.log('📤 Sending Play Mode via NRPN:', { polyphony, playMode: playMode === 0 ? 'Mono' : 'Poly', nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send glide time via NRPN
+ */
+export function sendGlideTime(glideTime: number, channel: number = currentChannel) {
+  // Glide uses NRPN [0,3] with value 0-10 (clamp from UI's 0-12 range)
+  const clampedGlide = Math.max(0, Math.min(10, Math.round(glideTime)));
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: 3,
+    valueMSB: (clampedGlide >> 7) & 0x7F,
+    valueLSB: clampedGlide & 0x7F
+  };
+  console.log('📤 Sending Glide Time via NRPN:', { glideTime: clampedGlide, nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send algorithm change (CC 16)
  */
 export function sendAlgorithmChange(algoId: number | string, channel: number = currentChannel) {
   // Algorithm IDs are 0-31 for 32 algorithms
