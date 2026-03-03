@@ -77,7 +77,7 @@ export function renderAlgoSvg(diagram: AlgoDiagram, opts: RenderOptions = {}): s
     return 0; // Fallback
   };
 
-  const edges = diagram.edges.map((e, i) => {
+  const edges = diagram.edges.map((e) => {
     const a = byId.get(e.from)!;
     const b = byId.get(e.to)!;
 

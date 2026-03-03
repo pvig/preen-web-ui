@@ -80,14 +80,6 @@ export const NoteCurveEditor: React.FC<NoteCurveEditorProps> = ({ curveIndex }) 
   const curve = useNoteCurve(curveIndex);
   const { theme } = useThemeStore();
 
-  // Helper to convert MIDI note number to note name
-  const noteToName = (note: number): string => {
-    const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    const octave = Math.floor(note / 12) - 1;
-    const noteName = noteNames[note % 12];
-    return `${noteName}${octave}`;
-  };
-
   return (
     <NoteCurveContainer>
       <NoteCurveHeader>

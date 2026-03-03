@@ -141,15 +141,17 @@ export interface ArpeggiatorSettings {
 // ===== NOTE CURVE SYSTEM CENTRALISÉ =====
 // D'après le code officiel PreenFM2Controller: indices NRPN 1-7
 
-export enum NoteCurveType {
-  Flat = 'Flat',           // 1
-  PlusLinear = '+Linear',  // 2  
-  PlusLinearx8 = '+Linear*8', // 3
-  PlusExp = '+Exp',        // 4
-  MinusLinear = '-Linear', // 5
-  MinusLinearx8 = '-Linear*8', // 6
-  MinusExp = '-Exp'        // 7
-}
+export const NoteCurveType = {
+  Flat: 'Flat',           // 1
+  PlusLinear: '+Linear',  // 2  
+  PlusLinearx8: '+Linear*8', // 3
+  PlusExp: '+Exp',        // 4
+  MinusLinear: '-Linear', // 5
+  MinusLinearx8: '-Linear*8', // 6
+  MinusExp: '-Exp'        // 7
+} as const;
+
+export type NoteCurveType = typeof NoteCurveType[keyof typeof NoteCurveType];
 
 /**
  * Mapping officiel PreenFM2Controller : INDEX NRPN → TYPE

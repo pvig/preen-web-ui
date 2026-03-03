@@ -23,7 +23,8 @@ import {
   DEFAULT_FILTER,
   DEFAULT_ARPEGGIATOR,
   DEFAULT_NOTE_CURVE,
-  DEFAULT_MIDI_SETTINGS
+  DEFAULT_MIDI_SETTINGS,
+  NoteCurveType
 } from '../types/patch';
 import {
   AdsrState,
@@ -122,14 +123,14 @@ const createDefaultPatch = (): Patch => ({
 
   noteCurves: [
     {
-      before: 'Flat',
+      before: NoteCurveType.Flat,
       breakNote: 60,  // Note C3/C4 (MIDI middle C)
-      after: 'Flat'
+      after: NoteCurveType.Flat
     },
     {
-      before: 'Flat',
+      before: NoteCurveType.Flat,
       breakNote: 60,
-      after: 'Flat'
+      after: NoteCurveType.Flat
     }
   ],
 
@@ -818,7 +819,7 @@ export const updateOperator = (operatorId: number, changes: Partial<Operator>, s
 export const selectAlgorithm = (algorithm: Algorithm) => {
   usePatchStore.getState().selectAlgorithm(algorithm);
   // Envoyer le changement d'algorithme au preenfm via MIDI
-  sendAlgorithmChange(algorithm.id);
+  sendAlgorithmChange(String(algorithm.id));
 };
 
 export const useOperatorEnvelope = (operatorId: number) => usePatchStore(state => {
