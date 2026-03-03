@@ -11,7 +11,8 @@ const CarrierContainer = styled.div`
   border-radius: 8px;
   border: 1px solid ${props => props.theme.colors.border};
   overflow: hidden;
-  width: 100%;
+  width: 900px;
+  max-width: 900px;
 `;
 
 const CarrierTitle = styled.h3`

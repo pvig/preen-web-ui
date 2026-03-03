@@ -97,7 +97,7 @@ const AlgorithmSelect = styled.select`
 const VisualizationWrapper = styled.div`
   background: ${props => props.theme.colors.background};
   border-radius: 8px;
-  padding: 15px;
+  padding: 0;
   position: relative;
   min-height: 220px;
   display: flex;

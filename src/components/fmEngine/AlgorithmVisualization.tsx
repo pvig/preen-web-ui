@@ -14,7 +14,8 @@ const VisualizationContainer = styled.div`
   justify-content: center;
   padding: 0; /* Espacement autour du SVG */
   background: ${props => props.theme.colors.background};
-  
+  zoom:1.4;
+
   svg {
     max-width: 100%;
     max-height: 100%;

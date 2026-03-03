@@ -30,6 +30,10 @@ const OperatorGrid = styled.div`
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  margin: 10px auto;
+  max-width: 900px;
+  background: ${props => props.theme.colors.panel};
+  border-radius: 8px;
 `;
 
 const GlobalKnobWrapper = styled.div`
@@ -117,7 +121,6 @@ export function PatchEditor() {
         <Row width="900px">
           <FMAlgorithmSelector />
           <ModulationIndexesEditor algorithm={currentPatch.algorithm} globalKnobs={globalKnobs} />
-          <CarrierControls />
         </Row>
         
 
@@ -128,6 +131,11 @@ export function PatchEditor() {
             ))}
           </OperatorGrid>
         </Row>
+        
+        <Row>
+          <CarrierControls />
+        </Row>
+
       </FMSynthProvider>
     </div>
   );
