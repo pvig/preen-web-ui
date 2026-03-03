@@ -1,4 +1,5 @@
 import { encodeLfoBias } from '../types/lfo';
+import { NoteCurveUtils } from '../types/patch';
 /**
  * Envoie le mode midiClockMode du step sequencer via NRPN
  * @param seqIndex 0 ou 1 (Seq1 ou Seq2)
@@ -437,6 +438,83 @@ export function sendGlideTime(glideTime: number, channel: number = currentChanne
   };
   console.log('📤 Sending Glide Time via NRPN:', { glideTime: clampedGlide, nrpn, channel });
   sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send Note Curve parameters via NRPN
+ */
+export function sendNoteCurve(curveIndex: 0 | 1, noteCurve: import('../types/patch').NoteCurve, channel: number = currentChannel) {
+  console.log(`🚀 === DÉBUT ENVOI Note Curve ${curveIndex + 1} ===`);
+  console.log(`📋 Input: before="${noteCurve.before}", breakNote=${noteCurve.breakNote}, after="${noteCurve.after}"`);
+  
+  // Vérifier si MIDI output est disponible
+  if (!midiOutput) {
+    console.error('❌ Pas de sortie MIDI connectée !');
+    return;
+  }
+  console.log(`✅ MIDI Output connecté: ${midiOutput.name}`);
+  
+  // ✅ VRAIS MAPPINGS NRPN d'après le code source officiel PreenFM :
+  // Note1: MSB=0, LSB=200 (before), LSB=201 (breakNote), LSB=202 (after)
+  // Note2: MSB=0, LSB=204 (before), LSB=205 (breakNote), LSB=206 (after) 
+  // 🧪 TEST: Essayer MSB=1 pour l'envoi (comme Step Sequencers qui fonctionnent)
+  
+  const baseLSB = 200 + (curveIndex * 4);
+  console.log(`📍 Base LSB calculé: ${baseLSB} (pour Note Curve ${curveIndex + 1})`);
+  console.log(`🧪 TEST MSB: Essai avec MSB=1 au lieu de MSB=0 (comme Step Sequencers)`);
+  
+  // ✅ Utiliser le système centralisé NoteCurveUtils au lieu du mapping manuel
+  const beforeIndex = NoteCurveUtils.toNrpnIndex(noteCurve.before);
+  const afterIndex = NoteCurveUtils.toNrpnIndex(noteCurve.after);
+  
+  // 🎯 SOLUTION TROUVÉE: MSB=1 avec indices 0-6 (pas de +1 nécessaire)
+  // Les Step Sequencers utilisent MSB=1 et ça fonctionne
+  
+  // 🐛 DEBUG: Afficher les indices utilisés pour l'envoi
+  console.log(`🔍 DEBUG sendNoteCurve: before="${noteCurve.before}" → ${beforeIndex}, after="${noteCurve.after}" → ${afterIndex}`);
+  
+  // ✅ Validation corrigée (0 est maintenant un index valide)
+  if (typeof beforeIndex !== 'number' || typeof afterIndex !== 'number') {
+    console.error(`❌ Note Curve ${curveIndex + 1}: Type de courbe non supporté - before: ${noteCurve.before}(${beforeIndex}), after: ${noteCurve.after}(${afterIndex})`);
+    return;
+  }
+  
+console.log(`📤 Note Curve ${curveIndex + 1} - Envoi NRPN [MSB=1, LSB=${baseLSB}]:`);
+  console.log(`  Before: ${noteCurve.before} → ${beforeIndex} (MSB=1)`);
+  console.log(`  Break: ${noteCurve.breakNote}`);
+  console.log(`  After: ${noteCurve.after} → ${afterIndex} (MSB=1)`);
+  
+  // ✅ SOLUTION CONFIRMÉE: MSB=1 avec indices 0-6 (correction du décalage)
+  // Send before curve type
+  const beforeNRPN = {
+    paramMSB: 1,  // MSB=1 pour l'envoi (fonctionnel)
+    paramLSB: baseLSB + 0,
+    valueMSB: (beforeIndex >> 7) & 0x7F,  // indices 0-6 directement
+    valueLSB: beforeIndex & 0x7F
+  };
+  sendNRPN(beforeNRPN, channel);
+
+  // Send break note (direct, pas de scaling)
+  const breakNote = Math.max(0, Math.min(127, noteCurve.breakNote));
+  const breakNRPN = {
+    paramMSB: 1,  // MSB=1 pour l'envoi
+    paramLSB: baseLSB + 1,
+    valueMSB: (breakNote >> 7) & 0x7F,
+    valueLSB: breakNote & 0x7F
+  };
+  sendNRPN(breakNRPN, channel);
+
+  // Send after curve type  
+  const afterNRPN = {
+    paramMSB: 1,  // MSB=1 pour l'envoi
+    paramLSB: baseLSB + 2,
+    valueMSB: (afterIndex >> 7) & 0x7F,  // indices 0-6 directement
+    valueLSB: afterIndex & 0x7F
+  };
+  sendNRPN(afterNRPN, channel);
+  
+  console.log(`✅ Note Curve ${curveIndex + 1} envoyée avec succès !`);
+  console.log(`🏁 === FIN ENVOI Note Curve ${curveIndex + 1} ===`);
 }
 
 /**

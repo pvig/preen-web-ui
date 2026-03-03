@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import KnobBase from '../knobs/KnobBase';
 import { useNoteCurve, updateNoteCurve } from '../../stores/patchStore';
 import type { NoteCurveType } from '../../types/patch';
+import { NOTE_CURVE_TYPES_LIST } from '../../types/patch';
 import { useThemeStore } from '../../theme/themeStore';
 import { NoteCurveVisualizer } from './NoteCurveVisualizer';
 
@@ -79,12 +80,6 @@ export const NoteCurveEditor: React.FC<NoteCurveEditorProps> = ({ curveIndex }) 
   const curve = useNoteCurve(curveIndex);
   const { theme } = useThemeStore();
 
-  const curveTypes: NoteCurveType[] = [
-    'Flat', 'M Lin1', 'M Lin2', 'M Lin3',
-    'M Exp1', 'M Exp2', 'P Lin1', 'P Lin2',
-    'P Lin3', 'P Exp1', 'P Exp2'
-  ];
-
   // Helper to convert MIDI note number to note name
   const noteToName = (note: number): string => {
     const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -113,7 +108,7 @@ export const NoteCurveEditor: React.FC<NoteCurveEditorProps> = ({ curveIndex }) 
             value={curve.before}
             onChange={(e) => updateNoteCurve(curveIndex, { before: e.target.value as NoteCurveType })}
           >
-            {curveTypes.map((type) => (
+            {NOTE_CURVE_TYPES_LIST.map((type) => (
               <option key={type} value={type}>
                 {type}
               </option>
@@ -133,7 +128,7 @@ export const NoteCurveEditor: React.FC<NoteCurveEditorProps> = ({ curveIndex }) 
             color={theme.colors.knobLfo}
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
-            renderLabel={(v) => noteToName(Math.round(v))}
+            renderLabel={(v) => Math.round(v).toString()}
             label={t('modulation.break')}
             labelPosition="left"
           />
@@ -146,7 +141,7 @@ export const NoteCurveEditor: React.FC<NoteCurveEditorProps> = ({ curveIndex }) 
             value={curve.after}
             onChange={(e) => updateNoteCurve(curveIndex, { after: e.target.value as NoteCurveType })}
           >
-            {curveTypes.map((type) => (
+            {NOTE_CURVE_TYPES_LIST.map((type) => (
               <option key={type} value={type}>
                 {type}
               </option>

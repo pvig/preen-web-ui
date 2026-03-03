@@ -138,11 +138,96 @@ export interface ArpeggiatorSettings {
   latch: ArpLatch;       // NRPN 6 (0-1)
 }
 
-// Note Curve types (courbes de scaling des notes)
-export type NoteCurveType = 
-  | 'Flat' | 'M Lin1' | 'M Lin2' | 'M Lin3' 
-  | 'M Exp1' | 'M Exp2' | 'P Lin1' | 'P Lin2' 
-  | 'P Lin3' | 'P Exp1' | 'P Exp2';
+// ===== NOTE CURVE SYSTEM CENTRALISÉ =====
+// D'après le code officiel PreenFM2Controller: indices NRPN 1-7
+
+export enum NoteCurveType {
+  Flat = 'Flat',           // 1
+  PlusLinear = '+Linear',  // 2  
+  PlusLinearx8 = '+Linear*8', // 3
+  PlusExp = '+Exp',        // 4
+  MinusLinear = '-Linear', // 5
+  MinusLinearx8 = '-Linear*8', // 6
+  MinusExp = '-Exp'        // 7
+}
+
+/**
+ * Mapping officiel PreenFM2Controller : INDEX NRPN → TYPE
+ * ✅ SOLUTION CONFIRMÉE: 
+ * - RÉCEPTION (MSB=0): indices 0-6 
+ * - ENVOI (MSB=1): indices 0-6 (même mapping, MSB différent)
+ */
+export const NOTE_CURVE_NRPN_MAPPING: Record<number, NoteCurveType> = {
+  0: NoteCurveType.Flat,           // Index 0 = Flat
+  1: NoteCurveType.PlusLinear,     // Index 1 = +Linear  
+  2: NoteCurveType.PlusLinearx8,   // Index 2 = +Linear*8
+  3: NoteCurveType.PlusExp,        // Index 3 = +Exp
+  4: NoteCurveType.MinusLinear,    // Index 4 = -Linear
+  5: NoteCurveType.MinusLinearx8,  // Index 5 = -Linear*8
+  6: NoteCurveType.MinusExp        // Index 6 = -Exp
+};
+
+/**
+ * Mapping inverse : TYPE → INDEX NRPN (pour l'envoi MIDI)
+ * ✅ SOLUTION CONFIRMÉE: Indices 0-6 pour MSB=1 (envoi), MSB=0 (réception)
+ */
+export const NOTE_CURVE_TYPE_TO_NRPN: Record<NoteCurveType, number> = {
+  [NoteCurveType.Flat]: 0,           // ENVOI & RÉCEPTION: index 0
+  [NoteCurveType.PlusLinear]: 1,     // ENVOI & RÉCEPTION: index 1
+  [NoteCurveType.PlusLinearx8]: 2,   // ENVOI & RÉCEPTION: index 2
+  [NoteCurveType.PlusExp]: 3,        // ENVOI & RÉCEPTION: index 3
+  [NoteCurveType.MinusLinear]: 4,    // ENVOI & RÉCEPTION: index 4
+  [NoteCurveType.MinusLinearx8]: 5,  // ENVOI & RÉCEPTION: index 5
+  [NoteCurveType.MinusExp]: 6        // ENVOI & RÉCEPTION: index 6
+};
+
+/**
+ * Liste des types pour les interfaces (sélecteurs, etc.)
+ */
+export const NOTE_CURVE_TYPES_LIST: NoteCurveType[] = [
+  NoteCurveType.Flat,
+  NoteCurveType.PlusLinear,
+  NoteCurveType.PlusLinearx8,
+  NoteCurveType.PlusExp,
+  NoteCurveType.MinusLinear,
+  NoteCurveType.MinusLinearx8,
+  NoteCurveType.MinusExp
+];
+
+/**
+ * Fonctions utilitaires pour les Note Curves
+ */
+export const NoteCurveUtils = {
+  /**
+   * Convertir un index NRPN en type de courbe
+   * ✅ RÉCEPTION: indices 0-6 avec MSB=0
+   */
+  fromNrpnIndex: (index: number): NoteCurveType => {
+    return NOTE_CURVE_NRPN_MAPPING[index] || NoteCurveType.Flat;
+  },
+
+  /**
+   * Convertir un type de courbe en index NRPN
+   * ✅ ENVOI: indices 0-6 avec MSB=1
+   */
+  toNrpnIndex: (type: NoteCurveType): number => {
+    return NOTE_CURVE_TYPE_TO_NRPN[type] ?? 0;
+  },
+
+  /**
+   * Vérifier si un type de courbe est valide
+   */
+  isValidType: (type: string): type is NoteCurveType => {
+    return Object.values(NoteCurveType).includes(type as NoteCurveType);
+  },
+
+  /**
+   * Obtenir tous les types disponibles
+   */
+  getAllTypes: (): NoteCurveType[] => {
+    return NOTE_CURVE_TYPES_LIST;
+  }
+};
 
 export interface NoteCurve {
   before: NoteCurveType;  // Courbe avant le breakpoint
@@ -299,9 +384,9 @@ export const DEFAULT_ARPEGGIATOR: ArpeggiatorSettings = {
 };
 
 export const DEFAULT_NOTE_CURVE: NoteCurve = {
-  before: 'Flat',
+  before: NoteCurveType.Flat,
   breakNote: 60,
-  after: 'Flat'
+  after: NoteCurveType.Flat
 };
 
 export const DEFAULT_MIDI_SETTINGS: MIDISettings = {

@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import type { NoteCurveType } from '../../types/patch';
+import { NoteCurveType } from '../../types/patch';
 
 const VisualizerContainer = styled.div`
   width: 100%;
@@ -51,51 +51,37 @@ function generateCurvePoints(
     const progress = isBeforeCurve ? t : t;
     
     switch (type) {
-      case 'Flat':
+      case NoteCurveType.Flat:
         value = 0; // Toujours neutre
         break;
         
-      case 'M Lin1': // Minus Linear 1 (pente douce négative)
+      // ✅ TYPES OFFICIELS PreenFM2Controller via enum centralisé
+      case NoteCurveType.MinusLinear: // -Linear (pente douce négative)
         value = isBeforeCurve ? -0.3 * (1 - progress) : -0.3 * progress;
         break;
         
-      case 'M Lin2': // Minus Linear 2 (pente moyenne négative)
-        value = isBeforeCurve ? -0.6 * (1 - progress) : -0.6 * progress;
-        break;
-        
-      case 'M Lin3': // Minus Linear 3 (pente forte négative)
+      case NoteCurveType.MinusLinearx8: // -Linear*8 (pente forte négative)
         value = isBeforeCurve ? -1.0 * (1 - progress) : -1.0 * progress;
         break;
         
-      case 'M Exp1': // Minus Exponential 1
+      case NoteCurveType.MinusExp: // -Exp (exponentiel négatif)
         value = isBeforeCurve ? -0.5 * Math.pow(1 - progress, 1.5) : -0.5 * (1 - Math.pow(1 - progress, 1.5));
         break;
         
-      case 'M Exp2': // Minus Exponential 2
-        value = isBeforeCurve ? -1.0 * Math.pow(1 - progress, 2.5) : -1.0 * (1 - Math.pow(1 - progress, 2.5));
-        break;
-        
-      case 'P Lin1': // Plus Linear 1 (pente douce positive)
+      case NoteCurveType.PlusLinear: // +Linear (pente douce positive)
         value = isBeforeCurve ? 0.3 * (1 - progress) : 0.3 * progress;
         break;
         
-      case 'P Lin2': // Plus Linear 2 (pente moyenne positive)
-        value = isBeforeCurve ? 0.6 * (1 - progress) : 0.6 * progress;
-        break;
-        
-      case 'P Lin3': // Plus Linear 3 (pente forte positive)
+      case NoteCurveType.PlusLinearx8: // +Linear*8 (pente forte positive)
         value = isBeforeCurve ? 1.0 * (1 - progress) : 1.0 * progress;
         break;
         
-      case 'P Exp1': // Plus Exponential 1
+      case NoteCurveType.PlusExp: // +Exp (exponentiel positif)
         value = isBeforeCurve ? 0.5 * Math.pow(1 - progress, 1.5) : 0.5 * (1 - Math.pow(1 - progress, 1.5));
         break;
         
-      case 'P Exp2': // Plus Exponential 2
-        value = isBeforeCurve ? 1.0 * Math.pow(1 - progress, 2.5) : 1.0 * (1 - Math.pow(1 - progress, 2.5));
-        break;
-        
       default:
+        console.warn(`⚠️ NoteCurveVisualizer: Type de courbe non reconnu: ${type}`);
         value = 0;
     }
     

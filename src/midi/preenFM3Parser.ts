@@ -4,7 +4,7 @@
  */
 
 import type { Patch } from '../types/patch';
-import { FILTER1_TYPE_LIST } from '../types/patch';
+import { FILTER1_TYPE_LIST, NoteCurveUtils } from '../types/patch';
 // import type { Filter1Type, Filter2Type } from '../types/patch';
 import type { NRPNMessage } from './preenFM3MidiMap';
 import { DEFAULT_ALGORITHMS, DEFAULT_LFO_ENVELOPE } from '../types/patch';
@@ -48,6 +48,34 @@ export class PreenFM3Parser {
     }
   }
   
+  /**
+   * Parse Note Curve parameters from NRPN data
+   */
+  private parseNoteCurve(curveIndex: 0 | 1): import('../types/patch').NoteCurve {
+    // ✅ SOLUTION CONFIRMÉE - NRPN Note Curves :
+    // RÉCEPTION: MSB=0, LSB=200-206, indices 0-6 ✅
+    // ENVOI: MSB=1, LSB=200-206, indices 0-6 ✅
+    // Note1: MSB=0, LSB=200 (before), LSB=201 (breakNote), LSB=202 (after)
+    // Note2: MSB=0, LSB=204 (before), LSB=205 (breakNote), LSB=206 (after)
+    
+    const baseLSB = 200 + (curveIndex * 4);
+    const beforeRaw = this.getValue(0, baseLSB + 0);     // before type
+    const breakNoteRaw = this.getValue(0, baseLSB + 1);  // break note  
+    const afterRaw = this.getValue(0, baseLSB + 2);      // after type
+    
+    // ✅ Utiliser le système centralisé NoteCurveUtils (indices 0-6)
+    const before = NoteCurveUtils.fromNrpnIndex(beforeRaw ?? 0);
+    const after = NoteCurveUtils.fromNrpnIndex(afterRaw ?? 0);
+    
+    // ✅ Break note direct (pas de scaling nécessaire, déjà en 0-127)
+    let breakNote = 60;
+    if (breakNoteRaw !== undefined) {
+      breakNote = Math.max(0, Math.min(127, breakNoteRaw));
+    }
+    
+    return { before, breakNote, after };
+  }
+
   /**
    * Obtenir le nom du preset
    */
@@ -509,8 +537,8 @@ export class PreenFM3Parser {
         return { type, param1, param2, gain };
       }) as unknown as [import('../types/patch').Filter, import('../types/patch').Filter]),
         noteCurves: [
-          { before: 'Flat', breakNote: 60, after: 'Flat' },
-          { before: 'Flat', breakNote: 60, after: 'Flat' }
+          this.parseNoteCurve(0), // Note1  
+          this.parseNoteCurve(1)  // Note2
         ],
       // import type { Filter1Type, Filter2Type } from '../types/patch';
       global: {

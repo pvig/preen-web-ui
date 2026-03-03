@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { WaveformType, getWaveformId } from '../types/waveform';
-import { sendOperatorMix, sendOperatorPan, sendOperatorFrequency, sendOperatorDetune, sendOperatorWaveform, sendOperatorKeyboardTracking, sendOperatorADSR, sendModulationIM, sendModulationVelo, calculateIMIndex, sendStepSequencerStep, sendStepSequencerBpm, sendStepSequencerGate, sendAlgorithmChange, sendGlobalVelocitySensitivity, sendPlayMode, sendGlideTime } from '../midi/midiService';
+import { sendOperatorMix, sendOperatorPan, sendOperatorFrequency, sendOperatorDetune, sendOperatorWaveform, sendOperatorKeyboardTracking, sendOperatorADSR, sendModulationIM, sendModulationVelo, calculateIMIndex, sendStepSequencerStep, sendStepSequencerBpm, sendStepSequencerGate, sendAlgorithmChange, sendGlobalVelocitySensitivity, sendPlayMode, sendGlideTime, sendNoteCurve } from '../midi/midiService';
 
 
 
@@ -527,6 +527,12 @@ export const usePatchStore = create<PatchStore>()(
           Object.assign(state.currentPatch.noteCurves[curveIndex], changes);
           state.isModified = true;
           updateLastModified(state.currentPatch);
+          
+          // MIDI : envoyer les changements de Note Curve au PreenFM3 via NRPN
+          const noteCurve = state.currentPatch.noteCurves[curveIndex];
+          if (noteCurve) {
+            sendNoteCurve(curveIndex, noteCurve);
+          }
         }
       }),
 
@@ -936,8 +942,10 @@ export const updateArpeggiator = (changes: Partial<import('../types/patch').Arpe
 export const useNoteCurve = (curveIndex: 0 | 1) => usePatchStore(state => {
   return state.currentPatch.noteCurves?.[curveIndex] ?? DEFAULT_NOTE_CURVE;
 });
-export const updateNoteCurve = (curveIndex: 0 | 1, changes: Partial<import('../types/patch').NoteCurve>) =>
+export const updateNoteCurve = (curveIndex: 0 | 1, changes: Partial<import('../types/patch').NoteCurve>) => {
+  // Utiliser directement la méthode du store qui gère déjà l'envoi MIDI
   usePatchStore.getState().updateNoteCurve(curveIndex, changes);
+};
 
 export const useIsModified = () => usePatchStore(state => state.isModified);
 export const useActiveTab = () => usePatchStore(state => state.ui.activeTab);
