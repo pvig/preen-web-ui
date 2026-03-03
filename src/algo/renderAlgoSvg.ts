@@ -38,6 +38,45 @@ export function renderAlgoSvg(diagram: AlgoDiagram, opts: RenderOptions = {}): s
 
   const byId = new Map(diagram.nodes.map((n) => [n.id, n]));
 
+  // Helper function to calculate IM index exactly like in ModulationIndexesEditor
+  const calculateEdgeIMIndex = (fromOpId: string, toOpId: string): number => {
+    const fromId = parseInt(fromOpId.replace(/\D/g, ''));
+    const toId = parseInt(toOpId.replace(/\D/g, ''));
+    
+    // Create a structure similar to patch operators, ordered by ID
+    const operators = diagram.nodes
+      .sort((a, b) => parseInt(a.id.replace(/\D/g, '')) - parseInt(b.id.replace(/\D/g, '')))
+      .map(node => {
+        const opId = parseInt(node.id.replace(/\D/g, ''));
+        const targets = diagram.edges
+          .filter(e => parseInt(e.from.replace(/\D/g, '')) === opId)
+          .sort((a, b) => parseInt(a.to.replace(/\D/g, '')) - parseInt(b.to.replace(/\D/g, '')))
+          .map(e => parseInt(e.to.replace(/\D/g, '')));
+        return { id: opId, targets };
+      });
+    
+    // Find the operator and target that match our edge
+    let imIndex = 0;
+    for (let opIndex = 0; opIndex < operators.length; opIndex++) {
+      const op = operators[opIndex];
+      
+      if (op.id === fromId) {
+        // Found the source operator, now find target index
+        const targetIndex = op.targets.findIndex(targetId => targetId === toId);
+        if (targetIndex >= 0) {
+          return imIndex + targetIndex;
+        }
+      }
+      
+      // Add counts from previous operators (like ModulationIndexesEditor does)
+      imIndex += op.targets.filter(targetId => 
+        diagram.nodes.some(n => parseInt(n.id.replace(/\D/g, '')) === targetId)
+      ).length;
+    }
+    
+    return 0; // Fallback
+  };
+
   const edges = diagram.edges.map((e, i) => {
     const a = byId.get(e.from)!;
     const b = byId.get(e.to)!;
@@ -61,7 +100,7 @@ export function renderAlgoSvg(diagram: AlgoDiagram, opts: RenderOptions = {}): s
       baseColor = b.type === "CARRIER" ? (opts.theme?.colors.primary || "#0ea5e9") : "#7c3aed";
     }
     
-    const imLabel = `IM${i + 1}`;
+    const imLabel = `IM${calculateEdgeIMIndex(e.from, e.to) + 1}`;
     
     // Cas spécial : feedback (self-loop) - dessiner un arc au-dessus du nœud
     if (e.from === e.to) {
@@ -77,19 +116,38 @@ export function renderAlgoSvg(diagram: AlgoDiagram, opts: RenderOptions = {}): s
       return `
         <g class="edge-group feedback" data-source="${sourceId}" data-target="${targetId}" data-base-color="${baseColor}">
           <path class="edge" d="${arcPath}" stroke="${baseColor}" stroke-width="2" fill="none" />
-          <text class="edge-label" x="${loopCenterX}" y="${loopCenterY - 8}" text-anchor="middle" font-size="10" font-weight="bold" fill="${opts.theme?.colors.textMuted || '#0c0d0e'}" style="pointer-events: none;">${imLabel}</text>
+          <text class="edge-label" x="${loopCenterX}" y="${loopCenterY - 8}" text-anchor="middle" font-size="10" font-weight="bold" style="pointer-events: none;">${imLabel}</text>
         </g>
       `;
     }
     
     // Cas normal : ligne droite entre deux nœuds
-    const midX = (x1 + x2) / 2;
-    const midY = (y1 + y2) / 2;
+    let midX = (x1 + x2) / 2;
+    let midY = (y1 + y2) / 2;
+    
+    // Vérifier si le label est trop proche d'un node et le décaler si nécessaire
+    const minDistanceFromNode = 20; // Distance minimale d'un node
+    for (const node of diagram.nodes) {
+      const nodeX = offsetX + node.x * cell;
+      const nodeY = offsetY + node.y * cell;
+      const nodeRadius = node.type === "CARRIER" ? 16 : 12;
+      const distanceToNode = Math.sqrt((midX - nodeX) ** 2 + (midY - nodeY) ** 2);
+      
+      if (distanceToNode < minDistanceFromNode + nodeRadius) {
+        // Décaler le label perpendiculairement à la ligne
+        const lineAngle = Math.atan2(y2 - y1, x2 - x1);
+        const perpAngle = lineAngle + Math.PI / 2;
+        const offsetDistance = 15;
+        midX += Math.cos(perpAngle) * offsetDistance;
+        midY += Math.sin(perpAngle) * offsetDistance;
+        break;
+      }
+    }
     
     return `
       <g class="edge-group" data-source="${sourceId}" data-target="${targetId}" data-base-color="${baseColor}">
         <line class="edge" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${baseColor}" stroke-width="2" />
-        <text class="edge-label" x="${midX}" y="${midY - 6}" text-anchor="middle" font-size="10" font-weight="bold" fill="${opts.theme?.colors.textMuted || '#a0aec0'}" style="pointer-events: none;">${imLabel}</text>
+        <text class="edge-label" x="${midX}" y="${midY - 4}" text-anchor="middle" font-size="10" font-weight="bold" style="pointer-events: none;">${imLabel}</text>
       </g>
     `;
   });
@@ -101,13 +159,19 @@ export function renderAlgoSvg(diagram: AlgoDiagram, opts: RenderOptions = {}): s
     const nodeId = parseInt(n.id.replace(/\D/g, '')); // "op1" -> 1
     
     const radius = isCarrier ? 16 : 12;
-    const fillColor = isCarrier ? "#68D391" : (opts.theme?.colors.primary || "#63B3ED");
+    const gradientId = isCarrier ? "carrierGradient" : "modulatorGradient";
     const strokeColor = opts.theme?.colors.border || "#2D3748";
-    const textColor = opts.theme?.colors.text || "#1a202c";
+    const textColor = "#1A202C"; // Texte sombre pour lisibilité sur les billes colorées
+    
+    // Calcul du reflet brillant (petit ellipse blanc en haut à gauche)
+    const shineRadius = radius * 0.4;
+    const shineCx = cx - radius * 0.3;
+    const shineCy = cy - radius * 0.3;
     
     return `
       <g id="node-${i}" class="node" data-node-id="${nodeId}">
-        <circle cx="${cx}" cy="${cy}" r="${radius}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="2" />
+        <circle cx="${cx}" cy="${cy}" r="${radius}" fill="url(#${gradientId})" stroke="${strokeColor}" stroke-width="1.5" />
+        <ellipse class="highlight-shine" cx="${shineCx}" cy="${shineCy}" rx="${shineRadius}" ry="${shineRadius * 0.7}" fill="white" opacity="0.6" />
         <text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="11" font-weight="bold" fill="${textColor}">${n.label}</text>
       </g>
     `;
@@ -116,17 +180,54 @@ export function renderAlgoSvg(diagram: AlgoDiagram, opts: RenderOptions = {}): s
   const highlightColor = opts.theme?.colors.highlight || "#fbbf24";
   const backgroundColor = opts.theme?.colors.background || "#0b1020";
   
+  // Déterminer si on est en mode sombre ou clair
+  const isDarkMode = backgroundColor.length === 7 ? 
+    parseInt(backgroundColor.slice(1), 16) < 0x888888 : true;
+  
+  // Couleurs adaptées au thème
+  const labelTextColor = isDarkMode ? "#e2e8f0" : "#2d3748";
+  const labelShadowColor = isDarkMode ? "rgba(0, 0, 0, 0.8)" : "rgba(255, 255, 255, 0.8)";
+  const labelStrokeColor = isDarkMode ? "rgba(0, 0, 0, 0.6)" : "rgba(255, 255, 255, 0.6)";
+  
   return `
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <defs>
+    <!-- Gradients pour effet bille - Carrier (vert) -->
+    <radialGradient id="carrierGradient" cx="25%" cy="25%" r="75%">
+      <stop offset="0%" style="stop-color:#D1E7DD;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#75B798;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#52796F;stop-opacity:1" />
+    </radialGradient>
+    
+    <!-- Gradients pour effet bille - Modulator (bleu) -->
+    <radialGradient id="modulatorGradient" cx="25%" cy="25%" r="75%">
+      <stop offset="0%" style="stop-color:#BFDBFE;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#63B3ED;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3182CE;stop-opacity:1" />
+    </radialGradient>
+    
+    <!-- Filtres pour ombres -->
+    <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="3" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+    
     <style>
       .node circle {
-        transition: stroke 0.5s ease, stroke-width 0.5s ease;
+        transition: stroke 0.5s ease, stroke-width 0.5s ease, filter 0.3s ease;
+        filter: url(#dropShadow);
       }
       .node-highlighted circle {
         stroke: ${highlightColor};
         stroke-width: 4;
         transition: stroke 0.03s ease, stroke-width 0.3s ease;
+        filter: url(#dropShadow) brightness(1.2);
+      }
+      .node .highlight-shine {
+        opacity: 0.6;
+        transition: opacity 0.3s ease;
+      }
+      .node-highlighted .highlight-shine {
+        opacity: 0.9;
       }
       .edge {
         transition: stroke 0.5s ease, stroke-width 0.5s ease;
@@ -138,10 +239,18 @@ export function renderAlgoSvg(diagram: AlgoDiagram, opts: RenderOptions = {}): s
       }
       .edge-label {
         transition: fill 1s ease;
+        fill: ${labelTextColor};
+        text-shadow: 0 1px 2px ${labelShadowColor};
+        paint-order: stroke fill;
+        stroke: ${labelStrokeColor};
+        stroke-width: 1px;
+        stroke-linejoin: round;
       }
       .edge-highlighted .edge-label {
         fill: ${highlightColor};
         transition: fill 0.03s ease;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+        stroke: rgba(0, 0, 0, 0.5);
       }
     </style>
   </defs>

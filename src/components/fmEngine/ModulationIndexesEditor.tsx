@@ -221,12 +221,12 @@ export const ModulationIndexesEditor: React.FC<ModulationIndexesEditorProps> = (
         let label: string;
         let imMin = 0, imMax = 16, imStep = 0.01, imValue = 0;
         if (isFeedback) {
-          label = `IM${link.imIndex}: Op${link.sourceId} feedback `;
+          label = `IM${link.imIndex + 1}: Op${link.sourceId} feedback `;
           imMax = 1;
           imStep = 0.001;
           imValue = typeof link.im === 'number' ? Math.max(0, Math.min(1, link.im)) : 0;
         } else {
-          label = `IM${link.imIndex}: Op${link.sourceId} → Op${link.targetId}`;
+          label = `IM${link.imIndex + 1}: Op${link.sourceId} → Op${link.targetId}`;
           imValue = typeof link.im === 'number' ? Math.max(0, Math.min(16, link.im)) : 0;
         }
         let veloMin = 0, veloMax = 16, veloStep = 0.01, veloValue = 0;

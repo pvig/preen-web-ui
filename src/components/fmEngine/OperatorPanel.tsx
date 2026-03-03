@@ -16,7 +16,7 @@ const PanelContainer = styled.div<{ $isHighlighted?: boolean }>`
   border: 2px solid ${props => props.$isHighlighted ? props.theme.colors.highlight : props.theme.colors.border};
   box-shadow: ${props => props.$isHighlighted ? `0 0 20px ${props.theme.colors.highlightGlow}` : 'none'};
   transition: ${props => props.$isHighlighted ? 'border-color 0.03s ease, box-shadow 0.03s ease' : 'border-color 0.5s ease, box-shadow 0.5s ease'};
-  margin: 10px;
+  margin: 14px;
   width:270px;
   h3 {
     margin: 0 0 15px 0;

@@ -29,7 +29,7 @@ const LfoTitle = styled.h3`
 const HeaderRow = styled.div`
   display: flex;
   align-items: flex-start;
-  gap: 16px;
+  gap: 0;
   margin-bottom: 12px;
 `;
 

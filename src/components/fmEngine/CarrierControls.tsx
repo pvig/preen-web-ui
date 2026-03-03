@@ -13,6 +13,10 @@ const CarrierContainer = styled.div`
   overflow: hidden;
   width: 900px;
   max-width: 900px;
+  @media (max-width: 900px) {
+    max-width: 100%;
+    width: 100%;
+  }
 `;
 
 const CarrierTitle = styled.h3`
@@ -120,7 +124,7 @@ const CarrierControls = () => {
           <ControlGroup>
             <KnobBase
               size={60}
-              knobRadius={16}
+              knobRadius={20}
               min={0}
               max={1}
               step={0.01}
