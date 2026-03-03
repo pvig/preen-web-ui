@@ -8,15 +8,21 @@ import ModulationIndexesEditor from '../components/fmEngine/ModulationIndexesEdi
 import KnobBase from '../components/knobs/KnobBase';
 import { useThemeStore } from '../theme/themeStore';
 
-const Row = styled.div`
+interface RowProps {
+  width?: string | number;
+}
+
+const Row = styled.div<RowProps>`
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  margin: 0 auto;
   height: auto;
+  width: ${(props) => (props.width ? props.width : '100%')};
   background: ${props => props.theme.colors.background};
-
   @media (max-width: 768px) {
     flex-direction: column;
+    width: 100%;
   }
 `;
 
@@ -46,6 +52,7 @@ export function PatchEditor() {
       <GlobalKnobWrapper>
         <KnobBase
           size={55}
+          knobRadius={16}
           min={0}
           max={16}
           step={1}
@@ -67,6 +74,7 @@ export function PatchEditor() {
             Valeur par défaut : 8 voix (à ajuster manuellement si besoin). */}
         <KnobBase
           size={55}
+          knobRadius={16}
           min={1}
           max={16}
           step={1}
@@ -85,6 +93,7 @@ export function PatchEditor() {
       <GlobalKnobWrapper>
         <KnobBase
           size={55}
+          knobRadius={16}
           min={0}
           max={12}
           step={1}
@@ -105,12 +114,12 @@ export function PatchEditor() {
   return (
     <div className="editor-container">
       <FMSynthProvider patch={currentPatch}>
-        <Row>
+        <Row width="900px">
           <FMAlgorithmSelector />
           <ModulationIndexesEditor algorithm={currentPatch.algorithm} globalKnobs={globalKnobs} />
+          <CarrierControls />
         </Row>
         
-        <CarrierControls />
 
         <Row>
           <OperatorGrid>

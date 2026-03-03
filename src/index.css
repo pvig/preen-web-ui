@@ -53,7 +53,7 @@ button {
 }
 
 .editor-container, .matrix-container, .library-container {
-  padding: 0.5em 0 0 0;
+  padding: 0;
 }
 
 h3 {

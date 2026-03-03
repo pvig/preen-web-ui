@@ -8,8 +8,8 @@ const ModulationsContainer = styled.div`
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 20px;
-  padding: 20px;
-  max-width: 1400px;
+  padding: 0;
+  max-width: 900px;
   margin: 0 auto;
   
   @media (max-width: 1024px) {
@@ -20,7 +20,9 @@ const ModulationsContainer = styled.div`
 const LeftColumn = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
+  max-width: 550px;
+
 `;
 
 const RightColumn = styled.div`

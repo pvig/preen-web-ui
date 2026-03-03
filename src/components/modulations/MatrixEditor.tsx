@@ -9,7 +9,7 @@ import { sendModulationMatrixParam } from '../../midi/midiService';
 const MatrixContainer = styled.div`
   background: ${props => props.theme.colors.panel};
   border-radius: 8px;
-  padding: 20px;
+  padding: 10px;
   margin-bottom: 20px;
 `;
 
@@ -24,7 +24,7 @@ const MatrixTitle = styled.h3`
 const MatrixGrid = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 `;
 
 const MatrixRow = styled.div`
@@ -51,14 +51,11 @@ const AmountLabel = styled.label`
   text-transform: uppercase;
   margin-top: 8px;
   margin-bottom: -4px;
-  display: block;
-  margin-left: 64px;
+  margin-left: 30px;
 `;
 
 const KnobContainer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  max-width:100px;
 `;
 
 const MatrixSelect = styled.select`
@@ -66,10 +63,10 @@ const MatrixSelect = styled.select`
   border: 1px solid ${props => props.theme.colors.border};
   border-radius: 4px;
   color: ${props => props.theme.colors.text};
-  padding: 6px;
+  padding: 4px;
   font-size: 0.75rem;
-  width: 100%;
-  
+  width: 60px;
+
   &:focus {
     outline: none;
     border-color: ${props => props.theme.colors.primary};

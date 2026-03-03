@@ -11,7 +11,8 @@ const SelectorContainer = styled.div`
   background: ${props => props.theme.colors.panel};
   border-radius: 8px;
   min-width: 250px;
-  max-width: 420px;
+  max-width: 450px;
+  width: 450px;
   flex: 1;
 
   @media (max-width: 768px) {

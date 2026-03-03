@@ -363,13 +363,6 @@ export const MidiMenu = () => {
         </MidiPortSelect>
       </MidiPorts>
 
-      {receivedCount > 0 && (
-        <ReceptionStatus>
-          <p>📥 Réception: {receivedCount} paramètres</p>
-          {receivedName && <PatchName>Patch: "{receivedName}"</PatchName>}
-        </ReceptionStatus>
-      )}
-
       <MidiActions>
         <MidiButton 
           onClick={sendPatch}
@@ -388,6 +381,12 @@ export const MidiMenu = () => {
         </MidiButton>
       </MidiActions>
 
+      {receivedCount > 0 && (
+        <ReceptionStatus>
+          <p>📥 Réception: {receivedCount} paramètres</p>
+          {receivedName && <PatchName>Patch: "{receivedName}"</PatchName>}
+        </ReceptionStatus>
+      )}
     </MidiMenuContainer>
   );
 };

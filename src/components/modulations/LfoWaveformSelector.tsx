@@ -23,7 +23,7 @@ const WaveformVisualization = styled.div`
   background: ${props => props.theme.colors.background};
   border: 1px solid ${props => props.theme.colors.border};
   border-radius: 6px;
-  padding: 8px 12px;
+  padding: 0;
   min-height: 60px;
   display: flex;
   align-items: center;

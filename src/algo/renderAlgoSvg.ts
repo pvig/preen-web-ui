@@ -77,7 +77,7 @@ export function renderAlgoSvg(diagram: AlgoDiagram, opts: RenderOptions = {}): s
       return `
         <g class="edge-group feedback" data-source="${sourceId}" data-target="${targetId}" data-base-color="${baseColor}">
           <path class="edge" d="${arcPath}" stroke="${baseColor}" stroke-width="2" fill="none" />
-          <text class="edge-label" x="${loopCenterX}" y="${loopCenterY - 8}" text-anchor="middle" font-size="10" font-weight="bold" fill="${opts.theme?.colors.textMuted || '#a0aec0'}" style="pointer-events: none;">${imLabel}</text>
+          <text class="edge-label" x="${loopCenterX}" y="${loopCenterY - 8}" text-anchor="middle" font-size="10" font-weight="bold" fill="${opts.theme?.colors.textMuted || '#0c0d0e'}" style="pointer-events: none;">${imLabel}</text>
         </g>
       `;
     }

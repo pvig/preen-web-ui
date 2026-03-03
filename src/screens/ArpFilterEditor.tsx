@@ -7,8 +7,8 @@ const ArpFilterContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  padding: 20px;
-  max-width: 1400px;
+  padding: 10px;
+  max-width: 900px;
   margin: 0 auto;
   
   @media (max-width: 1024px) {
@@ -20,12 +20,14 @@ const LeftColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
+  max-width: 550px;
 `;
 
 const RightColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
+  max-width: 550px;
 `;
 
 /**
@@ -45,12 +47,12 @@ export function ArpFilterEditor() {
         <FilterEditor filterIndex={0} />
         {/* TODO: Gestion du filtre 2 à implémenter aussi sur le firmware */}
         {/* <FilterEditor filterIndex={1} /> */}
+        <NoteCurveEditor curveIndex={0} />
+        <NoteCurveEditor curveIndex={1} />
       </LeftColumn>
       
       <RightColumn>
         <ArpeggiatorEditor />
-        <NoteCurveEditor curveIndex={0} />
-        <NoteCurveEditor curveIndex={1} />
       </RightColumn>
     </ArpFilterContainer>
   );

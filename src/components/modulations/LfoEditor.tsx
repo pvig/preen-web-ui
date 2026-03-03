@@ -15,6 +15,7 @@ const LfoContainer = styled.div`
   padding: 12px;
   margin-bottom: 16px;
   border: 1px solid ${props => props.theme.colors.border};
+  width: 550px
 `;
 
 const LfoTitle = styled.h3`
@@ -41,7 +42,7 @@ const HeaderLeft = styled.div`
 
 const LfoTabs = styled.div`
   display: flex;
-  gap: 8px;
+  gap: 0px;
 `;
 
 const LfoTab = styled.button<{ $active: boolean }>`
@@ -168,6 +169,7 @@ export const LfoEditor: React.FC = () => {
           {lfo.syncMode === 'Int' ? (
             <KnobBase
               size={60}
+              knobRadius={16}
               min={0}
               max={99.9}
               step={0.1}
@@ -214,6 +216,7 @@ export const LfoEditor: React.FC = () => {
         <ControlGroup>
           <KnobBase
             size={60}
+            knobRadius={16}
             min={0}
             max={1.00}
             step={0.001}
@@ -234,6 +237,7 @@ export const LfoEditor: React.FC = () => {
         <ControlGroup>
           <KnobBase
             size={60}
+            knobRadius={16}
             min={-1}
             max={1}
             step={0.01}
@@ -254,6 +258,7 @@ export const LfoEditor: React.FC = () => {
         <ControlGroup>
           <KnobBase
             size={60}
+            knobRadius={16}
             min={-1}
             max={16}
             step={0.1}

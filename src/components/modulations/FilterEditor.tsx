@@ -12,6 +12,7 @@ const FilterContainer = styled.div`
   border-radius: 8px;
   padding: 16px;
   border: 1px solid ${props => props.theme.colors.border};
+  width: 550px;
 `;
 
 const FilterHeader = styled.div`

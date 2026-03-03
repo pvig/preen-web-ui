@@ -28,7 +28,7 @@ const PanelContainer = styled.div<{ $isHighlighted?: boolean }>`
 
 const ControlsRow = styled.div`
   display: flex;
-  gap: 16px;
+  gap: 6px;
   justify-content: center;
   margin-bottom: 10px;
 `;

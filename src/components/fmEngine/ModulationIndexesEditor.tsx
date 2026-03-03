@@ -16,7 +16,8 @@ const EditorContainer = styled.div`
   background: ${props => props.theme.colors.panel};
   border-radius: 8px;
   min-width: 250px;
-  max-width: 420px;
+  max-width: 450px;
+  width: 450px;
   flex: 1;
   box-sizing: border-box;
 
@@ -247,7 +248,7 @@ export const ModulationIndexesEditor: React.FC<ModulationIndexesEditorProps> = (
             <KnobsContainer>
               <KnobBase
                 size={50}
-                knobRadius={12}
+                knobRadius={16}
                 min={imMin}
                 max={imMax}
                 step={imStep}
@@ -262,7 +263,7 @@ export const ModulationIndexesEditor: React.FC<ModulationIndexesEditorProps> = (
               />
               <KnobBase
                 size={50}
-                knobRadius={12}
+                knobRadius={16}
                 min={veloMin}
                 max={veloMax}
                 step={veloStep}

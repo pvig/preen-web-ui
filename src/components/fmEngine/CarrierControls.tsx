@@ -6,11 +6,12 @@ import { useThemeStore } from '../../theme/themeStore';
 
 const CarrierContainer = styled.div`
   margin: auto;
+  margin-top: 10px;
   background: ${props => props.theme.colors.background};
   border-radius: 8px;
   border: 1px solid ${props => props.theme.colors.border};
   overflow: hidden;
-  max-width: 900px;
+  width: 100%;
 `;
 
 const CarrierTitle = styled.h3`
@@ -118,6 +119,7 @@ const CarrierControls = () => {
           <ControlGroup>
             <KnobBase
               size={60}
+              knobRadius={16}
               min={0}
               max={1}
               step={0.01}
