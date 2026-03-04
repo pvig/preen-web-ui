@@ -94,13 +94,17 @@ const MidiPortSelect = styled.div`
   
   select {
     width: 12em;
-    padding: 0.5rem;
+    max-width: 12em;
+    height: 40px;
+    padding: 0.5rem 2rem 0.5rem 0.5rem;
     border-radius: 0.25rem;
     background: ${props => props.theme.colors.button};
     color: ${props => props.theme.colors.text};
     border: 1px solid ${props => props.theme.colors.border};
     cursor: pointer;
     display: block;
+    font-size: 0.875rem;
+    box-sizing: border-box;
     
     &:focus {
       outline: none;

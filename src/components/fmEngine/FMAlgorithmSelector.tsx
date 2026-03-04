@@ -68,7 +68,8 @@ const NavButton = styled.button`
 
 const AlgorithmSelect = styled.select`
   width: 140px;
-  padding: 6px 10px;
+  height: 38px;
+  padding: 6px 30px 6px 10px;
   background: ${props => props.theme.colors.background};
   color: ${props => props.theme.colors.text};
   border: 2px solid ${props => props.theme.colors.border};
@@ -78,6 +79,7 @@ const AlgorithmSelect = styled.select`
   cursor: pointer;
   outline: none;
   transition: all 0.2s;
+  box-sizing: border-box;
 
   &:hover {
     border-color: #63b3ed;

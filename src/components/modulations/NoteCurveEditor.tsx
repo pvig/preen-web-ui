@@ -55,10 +55,12 @@ const Select = styled.select`
   border: 1px solid ${props => props.theme.colors.border};
   border-radius: 4px;
   color: ${props => props.theme.colors.text};
-  padding: 8px 12px;
+  padding: 8px 28px 8px 12px;
   font-size: 0.875rem;
-  width: 100%;
-  min-width: 120px;
+  width: 140px;
+  max-width: 140px;
+  height: 36px;
+  box-sizing: border-box;
   
   &:focus {
     outline: none;

@@ -25,7 +25,7 @@ const WaveformSelector: React.FC<WaveformSelectorProps> = ({
           value={value}
           onChange={(e) => onChange(e.target.value as WaveformType)}
           disabled={disabled}
-          className="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:border-blue-500 focus:outline-none"
+          className="w-32 max-w-32 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:border-blue-500 focus:outline-none"
         >
           {WAVEFORMS.map((waveform: WaveformItem) => (
             <option key={waveform.id} value={waveform.name}>

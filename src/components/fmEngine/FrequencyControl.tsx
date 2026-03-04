@@ -119,7 +119,7 @@ interface FrequencyControlProps {
             value={frequencyType}
             onChange={(e) => onTypeChange(e.target.value as 'FIXED' | 'KEYBOARD')}
             disabled={disabled}
-            className="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:border-blue-500 focus:outline-none"
+            className="w-24 max-w-24 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:border-blue-500 focus:outline-none"
           >
             <option value="KEYBOARD">Clavier</option>
             <option value="FIXED">Fixe</option>
