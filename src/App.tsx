@@ -90,7 +90,7 @@ const Nav = styled.nav`
 `;
 
 const Main = styled.main`
-  padding: 0.5rem 0 0 0;
+  padding: 20px 0 0 0;
   margin: 0 auto;
 `;
 

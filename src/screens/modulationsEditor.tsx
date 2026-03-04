@@ -21,7 +21,7 @@ const LeftColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-width: 550px;
+  max-width: 530px;
 
 `;
 

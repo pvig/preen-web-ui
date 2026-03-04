@@ -12,7 +12,7 @@ const FilterContainer = styled.div`
   border-radius: 8px;
   padding: 16px;
   border: 1px solid ${props => props.theme.colors.border};
-  width: 550px;
+  width: 520px;
 `;
 
 const FilterHeader = styled.div`
@@ -33,7 +33,7 @@ const FilterTitle = styled.h3`
 const FilterControls = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 20px;
+  gap: 0;
   align-items: start;
 `;
 

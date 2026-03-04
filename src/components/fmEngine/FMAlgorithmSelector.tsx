@@ -36,7 +36,7 @@ const AlgorithmSection = styled.div`
 
 const NavButtonsContainer = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row-reverse;
   gap: 4px;
 `;
 

@@ -9,7 +9,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALGO1: IM3<----, 2->1, 3*->1,2
   {
     id: "alg1",
-    name: "Stacked Mod",
+    name: "Algo DX 1",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 2, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 1, y: 1 },
@@ -26,7 +26,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALGO2: 3->1, 3->2
   {
     id: "alg2",
-    name: "2 Carriers",
+    name: "Algo DX 2",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 1, y: 3 },
       { id: "op2", type: "CARRIER", label: "2", x: 3, y: 3 },
@@ -41,7 +41,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALGO3: IM4<----, 2->1, 3->1, 4*->3
   {
     id: "alg3",
-    name: "Triple Stack",
+    name: "Algo DX 3",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 2, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 0, y: 2 },
@@ -59,7 +59,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALGO4: IM4<----, 3->1, 3->2, 4*->3
   {
     id: "alg4",
-    name: "Dual Mod Split",
+    name: "Algo DX 4",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 1, y: 3 },
       { id: "op2", type: "CARRIER", label: "2", x: 4, y: 3 },
@@ -77,7 +77,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALGO5: 4*->3->2->1
   {
     id: "alg5",
-    name: "4 Stack Chain",
+    name: "Algo DX 5",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 2, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 2, y: 2 },
@@ -95,7 +95,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALGO6: 4*->1,2,3
   {
     id: "alg6",
-    name: "3-Way Split", 
+    name: "Algo DX 6", 
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 0, y: 3 },
       { id: "op2", type: "CARRIER", label: "2", x: 2, y: 3 },
@@ -113,7 +113,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALGO7: 2->1, 4*->3, 6->5, 4<->6
   {
     id: "alg7",
-    name: "3 Pairs + Cross",
+    name: "Algo DX 7",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 0, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 0, y: 2 },
@@ -134,7 +134,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALGO8: 2,3,4*->1, 6->5
   {
     id: "alg8",
-    name: "3-to-1 + Pair",
+    name: "Algo DX 8",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 1, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 0, y: 1 },
@@ -155,7 +155,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALGO9: 2,3->1, 6*->5->4
   {
     id: "alg9",
-    name: "Split Stack",
+    name: "Algo DX 9",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 1, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 0, y: 2 },
@@ -173,12 +173,9 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
     ],
   },
 
-  // ========== DX7 INSPIRED ALGORITHMS (10-28) ==========
-
-  // ALG10: DX7 Algo 1 & 2: 2*->1, 6->5->4->3
   {
     id: "alg10",
-    name: "DX 1&2",
+    name: "Algo DX 10",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 1, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 1, y: 2 },
@@ -199,7 +196,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG11: DX7 Algo 3 & 4: 3->2->1, 6*->5->4
   {
     id: "alg11",
-    name: "DX 3&4",
+    name: "Algo DX 11",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 1, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 1, y: 2 },
@@ -220,7 +217,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG12: DX7 Algo 5 & 6: 2->1, 4->3, 6*->5
   {
     id: "alg12",
-    name: "DX 5&6",
+    name: "Algo DX 12",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 0, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 0, y: 2 },
@@ -240,7 +237,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG13: DX7 Algo 7, 8, 9: 2->1, 4*,5->3
   {
     id: "alg13",
-    name: "DX 7-9",
+    name: "Algo DX 13",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 1, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 1, y: 2 },
@@ -261,7 +258,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG14: DX7 Algo 10 & 11: 3->2->1, 5,6*->4
   {
     id: "alg14",
-    name: "DX 10&11",
+    name: "Algo DX 14",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 1, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 1, y: 2 },
@@ -282,7 +279,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG15: DX7 Algo 12 & 13: 2->1, 4,5,6*->3
   {
     id: "alg15",
-    name: "DX 12&13",
+    name: "Algo DX 15",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 1, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 1, y: 2 },
@@ -303,7 +300,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG16: DX7 Algo 14 & 15: 2*->1, 5,6->4->3
   {
     id: "alg16",
-    name: "DX 14&15",
+    name: "Algo DX 16",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 1, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 1, y: 2 },
@@ -324,7 +321,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG17: DX7 Algo 16 & 17: 4->2*,3,5->1, 6->5
   {
     id: "alg17",
-    name: "DX 16&17",
+    name: "Algo DX 17",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 2, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 1, y: 2 },
@@ -346,7 +343,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG18: DX7 Algo 18: 6->5->4,2,3*->1
   {
     id: "alg18",
-    name: "DX 18",
+    name: "Algo DX 18",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 2, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 1, y: 2 },
@@ -368,7 +365,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG19: DX7 Algo 19: 3->2->1, 6*->4,5
   {
     id: "alg19",
-    name: "DX 19",
+    name: "Algo DX 19",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 0, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 0, y: 2 },
@@ -389,7 +386,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG20: DX7 Algo 20, 26, 27: 3*->1,2, 5,6->4
   {
     id: "alg20",
-    name: "DX 20,26,27",
+    name: "Algo DX 20",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 0, y: 3 },
       { id: "op2", type: "CARRIER", label: "2", x: 2, y: 3 },
@@ -410,7 +407,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG21: DX7 Algo 21 & 23: 3*->1,2, 6->4,5
   {
     id: "alg21",
-    name: "DX 21&23",
+    name: "Algo DX 21",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 0, y: 3 },
       { id: "op2", type: "CARRIER", label: "2", x: 1, y: 3 },
@@ -431,7 +428,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG22: DX7 Algo 22: 2->1, 6*->3,4,5
   {
     id: "alg22",
-    name: "DX 22",
+    name: "Algo DX 22",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 0, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 0, y: 2 },
@@ -452,7 +449,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG23: DX7 Algo 24, 25, 31: 6*->1,2,3,4,5
   {
     id: "alg23",
-    name: "DX 24,25,31",
+    name: "Algo DX 23",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 0, y: 3 },
       { id: "op2", type: "CARRIER", label: "2", x: 1, y: 3 },
@@ -474,7 +471,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG24: DX7 Algo 28: 5*->4->2->1, 6
   {
     id: "alg24",
-    name: "DX 28",
+    name: "Algo DX 24",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 1, y: 3 },
       { id: "op2", type: "MODULATOR", label: "2", x: 1, y: 2 },
@@ -494,7 +491,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG25: DX7 Algo 29: 4->1, 6*->5
   {
     id: "alg25",
-    name: "DX 29",
+    name: "Algo DX 25",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 0, y: 3 },
       { id: "op2", type: "CARRIER", label: "2", x: 1, y: 3 },
@@ -513,7 +510,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG26: DX7 Algo 30: 5*->4->1
   {
     id: "alg26",
-    name: "DX 30",
+    name: "Algo DX 26",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 0, y: 3 },
       { id: "op2", type: "CARRIER", label: "2", x: 1, y: 3 },
@@ -532,7 +529,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG27: DX7 Algo 32: All Carriers
   {
     id: "alg27",
-    name: "DX 32 - 6 Carriers",
+    name: "Algo DX 27",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 0, y: 3 },
       { id: "op2", type: "CARRIER", label: "2", x: 1, y: 3 },
@@ -549,7 +546,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
   // ALG28: DX7 Algo 31: 6*->1,2,3,4,5
   {
     id: "alg28",
-    name: "DX 31",
+    name: "Algo DX 28",
     nodes: [
       { id: "op1", type: "CARRIER", label: "1", x: 0, y: 3 },
       { id: "op2", type: "CARRIER", label: "2", x: 1, y: 3 },

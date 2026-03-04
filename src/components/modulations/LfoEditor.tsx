@@ -15,7 +15,7 @@ const LfoContainer = styled.div`
   padding: 12px;
   margin-bottom: 16px;
   border: 1px solid ${props => props.theme.colors.border};
-  width: 550px
+  width: 520px
 `;
 
 const LfoTitle = styled.h3`
@@ -37,7 +37,7 @@ const HeaderLeft = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-width: 200px;
+  min-width: 186px;
 `;
 
 const LfoTabs = styled.div`
@@ -88,7 +88,7 @@ const Select = styled.select`
   color: ${props => props.theme.colors.text};
   padding: 6px 8px;
   font-size: 0.75rem;
-  min-width: 80px;
+  min-width: 70px;
   
   &:focus {
     outline: none;

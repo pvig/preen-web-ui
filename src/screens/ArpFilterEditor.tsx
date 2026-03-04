@@ -20,14 +20,14 @@ const LeftColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 550px;
+  max-width: 520px;
 `;
 
 const RightColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 550px;
+  max-width: 520px;
 `;
 
 /**

@@ -61,6 +61,7 @@ export function PatchEditor() {
           max={16}
           step={1}
           value={currentPatch.global.velocitySensitivity}
+          valuePosition="left"
           onChange={(val) =>
             updateGlobal({ velocitySensitivity: Math.round(val) })
           }
@@ -83,6 +84,7 @@ export function PatchEditor() {
           max={16}
           step={1}
           value={currentPatch.global.polyphony}
+          valuePosition='left'
           onChange={(val) =>
             updateGlobal({ polyphony: Math.round(val) })
           }
@@ -102,6 +104,7 @@ export function PatchEditor() {
           max={12}
           step={1}
           value={currentPatch.global.glideTime}
+          valuePosition='left'
           onChange={(val) =>
             updateGlobal({ glideTime: Math.round(val) })
           }

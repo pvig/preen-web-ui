@@ -6,8 +6,7 @@ import { useThemeStore } from '../../theme/themeStore';
 
 const CarrierContainer = styled.div`
   margin: auto;
-  margin-top: 10px;
-  background: ${props => props.theme.colors.background};
+  background: ${props => props.theme.colors.panel};
   border-radius: 8px;
   border: 1px solid ${props => props.theme.colors.border};
   overflow: hidden;
@@ -26,8 +25,7 @@ const CarrierTitle = styled.h3`
   color: ${props => props.theme.colors.text};
   font-size: 1rem;
   font-weight: 600;
-  text-align: center;
-  border-bottom: 1px solid ${props => props.theme.colors.border};
+  text-align: left;
 `;
 
 const ControlsContainer = styled.div`
@@ -35,8 +33,8 @@ const ControlsContainer = styled.div`
   flex-wrap: wrap;
   justify-content: center;
   gap: 20px;
-  padding: 20px;
-  background: ${props => props.theme.colors.background};
+  padding-bottom: 20px;
+  background: ${props => props.theme.colors.panel};
 `;
 
 const OperatorControl = styled.div<{ $isHighlighted?: boolean }>`

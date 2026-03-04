@@ -14,7 +14,7 @@ const EnvContainer = styled.div`
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 16px;
-  width: 550px;
+  width: 520px;
   border: 1px solid ${props => props.theme.colors.border};
 `;
 
