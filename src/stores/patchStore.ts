@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { WaveformType, getWaveformId } from '../types/waveform';
-import { sendOperatorMix, sendOperatorPan, sendOperatorFrequency, sendOperatorDetune, sendOperatorWaveform, sendOperatorKeyboardTracking, sendOperatorADSR, sendModulationIM, sendModulationVelo, calculateIMIndex, sendStepSequencerStep, sendStepSequencerBpm, sendStepSequencerGate, sendAlgorithmChange, sendGlobalVelocitySensitivity, sendPlayMode, sendGlideTime, sendNoteCurve } from '../midi/midiService';
+import { sendOperatorMix, sendOperatorPan, sendOperatorFrequency, sendOperatorDetune, sendOperatorWaveform, sendOperatorKeyboardTracking, sendOperatorADSR, sendModulationIM, sendModulationVelo, calculateIMIndex, sendStepSequencerStep, sendStepSequencerBpm, sendStepSequencerGate, sendAlgorithmChange, sendGlobalVelocitySensitivity, sendPlayMode, sendGlideTime, sendNoteCurve, sendPatchName, sendFilterType, sendFilterParam1, sendFilterParam2, sendFilterGain } from '../midi/midiService';
 
 
 
@@ -232,6 +232,7 @@ interface PatchStore extends EditorState {
   loadPatch: (patch: Patch) => void;
   savePatch: (patch: Patch) => void;
   resetPatch: () => void;
+  updatePatchName: (name: string) => void;
   copyOperator: (id: number) => void;
   pasteOperator: (id: number) => void;
 
@@ -507,9 +508,32 @@ export const usePatchStore = create<PatchStore>()(
     updateFilter: (filterIndex: 0 | 1, changes: Partial<import('../types/patch').Filter>) =>
       set((state) => {
         if (filterIndex >= 0 && filterIndex < 2) {
-          Object.assign(state.currentPatch.filters[filterIndex], changes);
+          const filter = state.currentPatch.filters[filterIndex];
+          const oldFilter = { ...filter };
+          
+          Object.assign(filter, changes);
           state.isModified = true;
           updateLastModified(state.currentPatch);
+          
+          // Send MIDI changes to PreenFM3 (only Filter1 for now, PreenFM3 NRPN spec is for one filter)
+          if (filterIndex === 0) {
+            try {
+              if (changes.type !== undefined && changes.type !== oldFilter.type) {
+                sendFilterType(changes.type);
+              }
+              if (changes.param1 !== undefined && changes.param1 !== oldFilter.param1) {
+                sendFilterParam1(changes.param1);
+              }
+              if (changes.param2 !== undefined && changes.param2 !== oldFilter.param2) {
+                sendFilterParam2(changes.param2);
+              }
+              if (changes.gain !== undefined && changes.gain !== oldFilter.gain) {
+                sendFilterGain(changes.gain);
+              }
+            } catch (error) {
+              console.warn('⚠️ Failed to send filter changes to PreenFM3:', error);
+            }
+          }
         }
       }),
 
@@ -669,6 +693,21 @@ export const usePatchStore = create<PatchStore>()(
         state.selectedOperator = 0;
         state.selectedParameter = null;
         state.clipboard = null;
+      }),
+
+    updatePatchName: (name: string) =>
+      set((state) => {
+        state.currentPatch.name = name;
+        state.isModified = true;
+        updateLastModified(state.currentPatch);
+        
+        // Send patch name to PreenFM3 via MIDI
+        try {
+          sendPatchName(name);
+          console.log('✅ Patch name sent to PreenFM3:', name);
+        } catch (error) {
+          console.warn('⚠️ Failed to send patch name to PreenFM3:', error);
+        }
       }),
 
     copyOperator: (id: number) =>
@@ -950,3 +989,5 @@ export const updateNoteCurve = (curveIndex: 0 | 1, changes: Partial<import('../t
 
 export const useIsModified = () => usePatchStore(state => state.isModified);
 export const useActiveTab = () => usePatchStore(state => state.ui.activeTab);
+
+export const updatePatchName = (name: string) => usePatchStore.getState().updatePatchName(name);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import { PatchEditor } from './screens/PatchEditor';
 import { ModulationsEditor } from './screens/modulationsEditor';
@@ -12,6 +12,7 @@ import { LanguageToggle } from './components/LanguageToggle';
 import { useThemeStore } from './theme/themeStore';
 import { GlobalStyles } from './theme/GlobalStyles';
 import { useMidiActions } from './midi/useMidiActions';
+import { useCurrentPatch, usePatchStore } from './stores/patchStore';
 
 type AppScreen = 'patch' | 'matrix' | 'arpfilter' | 'effects' | 'library';
 
@@ -54,14 +55,14 @@ const MidiQuickButtons = styled.div`
   margin-left: 4px;
 `;
 
-const QuickMidiButton = styled.button`
+const QuickMidiButton = styled.button<{ $isReceiving?: boolean }>`
   width: 24px !important;
   height: 30px !important;
   padding: 0 !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: ${props => props.theme.colors.primary};
+  background: ${props => props.$isReceiving ? '#10b981' : props.theme.colors.primary};
   color: ${props => props.theme.colors.background};
   border: 1px solid ${props => props.theme.colors.border};
   border-radius: 3px;
@@ -70,9 +71,29 @@ const QuickMidiButton = styled.button`
   cursor: pointer;
   transition: all 0.2s;
   
+  ${props => props.$isReceiving ? `
+    animation: pulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    
+    @keyframes pulse {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      }
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
+      }
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      }
+    }
+  ` : ''}
+  
   &:hover:not(:disabled) {
-    background: ${props => props.theme.colors.buttonHover || props.theme.colors.accent};
-    transform: scale(1.05);
+    background: ${props => props.$isReceiving ? '#059669' : (props.theme.colors.buttonHover || props.theme.colors.accent)};
+    transform: ${props => props.$isReceiving ? 'none' : 'scale(1.05)'};
   }
   
   &:disabled {
@@ -80,6 +101,8 @@ const QuickMidiButton = styled.button`
     color: ${props => props.theme.colors.textMuted};
     cursor: not-allowed;
     opacity: 0.5;
+    animation: none;
+    transform: none;
   }
 `;
 
@@ -137,11 +160,98 @@ const Main = styled.main`
   margin: 0 auto;
 `;
 
+const PatchNameEditor = styled.div`
+  display: flex;
+  align-items: center;
+  margin: 0 1rem;
+  cursor: pointer;
+  
+  input {
+    background: transparent;
+    border: none;
+    color: ${props => props.theme.colors.text};
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    min-width: 120px;
+    max-width: 200px;
+    
+    &:focus {
+      outline: 1px solid ${props => props.theme.colors.primary};
+      background: ${props => props.theme.colors.panel};
+    }
+    
+    &:hover:not(:focus) {
+      background: ${props => `${props.theme.colors.primary}10`};
+    }
+  }
+  
+  span {
+    color: ${props => props.theme.colors.text};
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    
+    &:hover {
+      background: ${props => `${props.theme.colors.primary}10`};
+    }
+  }
+`;
+
+const PatchNameEditorComponent: React.FC = () => {
+  const currentPatch = useCurrentPatch();
+  const { updatePatchName } = usePatchStore();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
+
+  const handleStartEdit = () => {
+    setEditValue(currentPatch.name);
+    setIsEditing(true);
+  };
+
+  const handleSave = () => {
+    if (editValue.trim() && editValue !== currentPatch.name) {
+      updatePatchName(editValue.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSave();
+    } else if (e.key === 'Escape') {
+      setIsEditing(false);
+    }
+  };
+
+  return (
+    <PatchNameEditor>
+      {isEditing ? (
+        <input
+          type="text"
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={handleSave}
+          onKeyDown={handleKeyDown}
+          autoFocus
+          placeholder="Nom du patch"
+        />
+      ) : (
+        <span onClick={handleStartEdit} title="Cliquer pour éditer le nom">
+          {currentPatch.name}
+        </span>
+      )}
+    </PatchNameEditor>
+  );
+};
+
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('patch');
   const [showCCTester, setShowCCTester] = useState(false);
   const { theme } = useThemeStore();
-  const { sendPatch, receivePatch, midi } = useMidiActions();
+  const { sendPatch, receivePatch, isReceiving, midi } = useMidiActions();
 
   // Keyboard shortcut: Ctrl+T to toggle CC Tester
   useEffect(() => {
@@ -181,6 +291,9 @@ export default function App() {
             </button>
           </div>
           
+          
+          <PatchNameEditorComponent />
+          
           <div className="nav-right">
             <TestButton onClick={() => setShowCCTester(prev => !prev)}>
               🧪 Test CC
@@ -196,8 +309,9 @@ export default function App() {
               </QuickMidiButton>
               <QuickMidiButton 
                 onClick={receivePatch}
-                disabled={!midi.selectedInput}
-                title="Pull depuis PreenFM3"
+                disabled={!midi.selectedInput || isReceiving}
+                $isReceiving={isReceiving}
+                title={isReceiving ? "Réception en cours..." : "Pull depuis PreenFM3"}
               >
                 ↓
               </QuickMidiButton>

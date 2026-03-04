@@ -8,6 +8,7 @@ import { FILTER1_TYPE_LIST, NoteCurveUtils } from '../types/patch';
 // import type { Filter1Type, Filter2Type } from '../types/patch';
 import type { NRPNMessage } from './preenFM3MidiMap';
 import { DEFAULT_ALGORITHMS, DEFAULT_LFO_ENVELOPE } from '../types/patch';
+import { ALGO_DIAGRAMS } from '../algo/algorithms.static';
 import { WaveformType } from '../types/waveform';
 import { 
   nrpnToLfoFrequency, 
@@ -87,9 +88,9 @@ export class PreenFM3Parser {
   }
   
   /**
-   * Obtenir une valeur NRPN brute
+   * Obtenir une valeur NRPN brute (méthode publique)
    */
-  getValue(paramMSB: number, paramLSB: number): number | undefined {
+  public getValue(paramMSB: number, paramLSB: number): number | undefined {
     const index = (paramMSB << 7) | paramLSB;
     return this.nrpnData.get(index);
   }
@@ -131,12 +132,34 @@ export class PreenFM3Parser {
   }
   
   /**
+   * Vérifier si les paramètres critiques ont été reçus
+   */
+  hasMinimalData(): boolean {
+    const algorithm = this.getValue(0, 0);
+    const hasAlgorithm = algorithm !== undefined;
+    const hasEnoughParams = this.nrpnData.size >= 10;
+    
+    console.log(`[PreenFM3Parser] Vérification minimale: algorithme=${hasAlgorithm}, paramètres=${this.nrpnData.size}`);
+    return hasAlgorithm && hasEnoughParams;
+  }
+  
+  /**
    * Logger tous les NRPN reçus (debug)
    */
   logAll(): void {
-    console.log('=== NRPN Data ===');
+    console.log('=== NRPN Data Analysis ===');
     console.log('Preset Name:', this.getPresetName());
     console.log('Total parameters:', this.nrpnData.size);
+    
+    // Paramètres critiques
+    const algorithm = this.getValue(0, 0);
+    const velocity = this.getValue(0, 1);
+    const voices = this.getValue(0, 2);
+    
+    console.log('--- Paramètres critiques ---');
+    console.log(`Algorithm [0,0]: ${algorithm}`);
+    console.log(`Velocity [0,1]: ${velocity}`);
+    console.log(`Voices [0,2]: ${voices}`);
     
     // Grouper par MSB
     const byMSB = new Map<number, Array<{ lsb: number; value: number }>>();
@@ -151,14 +174,15 @@ export class PreenFM3Parser {
       byMSB.get(msb)!.push({ lsb, value });
     });
     
-    // Afficher groupé
+    // Afficher groupé (limité pour éviter le spam)
+    console.log('--- Données NRPN par MSB (échantillon) ---');
     byMSB.forEach((params, msb) => {
-      console.log(`\nMSB ${msb}:`);
-      params.slice(0, 10).forEach(p => {
-        console.log(`  LSB ${p.lsb}: ${p.value} (0x${p.value.toString(16)})`);
+      console.log(`MSB ${msb} (${params.length} paramètres):`);
+      params.slice(0, 5).forEach(p => {
+        console.log(`  LSB ${p.lsb}: ${p.value}`);
       });
-      if (params.length > 10) {
-        console.log(`  ... et ${params.length - 10} autres`);
+      if (params.length > 5) {
+        console.log(`  ... et ${params.length - 5} autres`);
       }
     });
   }
@@ -167,17 +191,29 @@ export class PreenFM3Parser {
    * Convertir les données NRPN en objet Patch
    */
   toPatch(): Patch {
-        // DEBUG: Log NRPN Mix1-6 values reçues lors du patch pull
-        const mixDebug: number[] = [];
-        for (let i = 0; i < 6; i++) {
-          const mixLsb = 16 + i * 2;
-          const mixValue = this.getValue(0, mixLsb);
-          mixDebug.push(mixValue ?? -1);
-        }
-        console.log('[PreenFM3Parser] NRPN Mix1-6 (LSB 16,18,20,22,24,26) values:', mixDebug);
+    // DEBUG: Log NRPN Mix1-6 values reçues lors du patch pull
+    const mixDebug: number[] = [];
+    for (let i = 0; i < 6; i++) {
+      const mixLsb = 16 + i * 2;
+      const mixValue = this.getValue(0, mixLsb);
+      mixDebug.push(mixValue ?? -1);
+    }
+    console.log('[PreenFM3Parser] NRPN Mix1-6 (LSB 16,18,20,22,24,26) values:', mixDebug);
+    
     // Récupérer l'algorithme (index 0, valeur 0-31)
-    const algoIndex = this.getValue(0, 0) ?? 0;
+    const algoIndex = this.getValue(0, 0);
+    console.log(`[PreenFM3Parser] Algorithme NRPN value: ${algoIndex}`);
+    
+    if (algoIndex === undefined) {
+      throw new Error('Algorithme non reçu (NRPN [0,0] manquant). Le patch ne peut pas être chargé.');
+    }
+    
+    if (algoIndex < 0 || algoIndex >= DEFAULT_ALGORITHMS.length) {
+      console.warn(`[PreenFM3Parser] Index d'algorithme invalide: ${algoIndex}, utilisation de l'algorithme 0`);
+    }
+    
     const algorithm = DEFAULT_ALGORITHMS[algoIndex] || DEFAULT_ALGORITHMS[0];
+    console.log(`[PreenFM3Parser] Algorithme sélectionné: ${algorithm.id} (${algorithm.name})`);
     
     // Nom du preset
     const name = this.getPresetName() || 'MIDI Patch';
@@ -311,16 +347,38 @@ export class PreenFM3Parser {
     const ims = [im1, im2, im3, im4, im5, im6];
     const imVelos = [imVelo1, imVelo2, imVelo3, imVelo4, imVelo5, imVelo6];
     
-    // Appliquer les IMs aux targets (basé sur la topologie de l'algorithme)
-    // NOTE: Feedback (self-loop) always uses IM6/IMVelo6, regardless of sequential position
+    // Appliquer les IMs aux targets selon l'ORDER des edges dans la définition de l'algo.
+    // Le firmware PreenFM3 assigne IM1-IM5 dans l'ordre d'apparition des edges (hors feedback),
+    // pas en itérant les opérateurs par ID.
+    const algoDiagram = ALGO_DIAGRAMS[algoIndex];
+    if (algoDiagram) {
+      let imIdx = 0;
+      for (const edge of algoDiagram.edges) {
+        const srcId = parseInt(edge.from.replace(/\D/g, ''));
+        const tgtId = parseInt(edge.to.replace(/\D/g, ''));
+        const isFeedback = srcId === tgtId;
+        const op = operators.find(o => o.id === srcId);
+        if (op) {
+          const target = op.target.find(t => t.id === tgtId);
+          if (target) {
+            if (isFeedback) {
+              target.im = ims[5];
+              target.modulationIndexVelo = imVelos[5] ?? 0;
+            } else if (imIdx < 5) {
+              target.im = ims[imIdx];
+              target.modulationIndexVelo = imVelos[imIdx] ?? 0;
+              imIdx++;
+            }
+          }
+        }
+      }
+    } else {
+    // Fallback: iterate operators by id (should not happen)
     let imIndex = 0;
     operators.forEach(op => {
       op.target.forEach(target => {
-        // Check if this is a feedback (self-loop): target.id is the target operator's ID
         const isFeedback = target.id === op.id;
-        
         if (isFeedback) {
-          // Feedback always uses IM6 (index 5) and IMVelo6
           target.im = ims[5];
           target.modulationIndexVelo = imVelos[5] ?? 0;
         } else if (imIndex < 5) {
@@ -331,6 +389,7 @@ export class PreenFM3Parser {
         }
       });
     });
+    } // end else fallback
     
     // Paramètres globaux (NRPN MSB=0)
     const velocity = this.getValue(0, 1) ?? 8; // Index 1: Velocity (0-16)

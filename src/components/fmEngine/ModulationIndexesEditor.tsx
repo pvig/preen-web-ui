@@ -120,6 +120,19 @@ export const ModulationIndexesEditor: React.FC<ModulationIndexesEditorProps> = (
   // Trouver le diagramme de l'algorithme pour connaître les types d'edges
   const diagram = ALGO_DIAGRAMS.find(d => d.id === String(algorithm.id));
 
+  // Pré-calculer les IM indices dans l'ordre des edges (comme le firmware PreenFM3)
+  const edgeIMIndex = new Map<string, number>(); // key: "srcId-tgtId"
+  if (diagram) {
+    let idx = 0;
+    for (const edge of diagram.edges) {
+      const src = parseInt(edge.from.replace(/\D/g, ''));
+      const tgt = parseInt(edge.to.replace(/\D/g, ''));
+      const isFb = src === tgt;
+      edgeIMIndex.set(`${src}-${tgt}`, isFb ? 5 : idx);
+      if (!isFb) idx++;
+    }
+  }
+
   // Collecte toutes les liaisons avec leurs indices à partir des opérateurs du patch
   const modulationLinks: Array<{
     imIndex: number;
@@ -149,15 +162,9 @@ export const ModulationIndexesEditor: React.FC<ModulationIndexesEditorProps> = (
   }
 
   currentPatch.operators.forEach((op) => {
-    op.target.forEach((targetLink, targetIndex) => {
-      // Calculer l'index global de la liaison
-      let imIndex = 0;
-      for (let i = 0; i < currentPatch.operators.indexOf(op); i++) {
-        imIndex += currentPatch.operators[i].target.filter(tl =>
-          currentPatch.operators.some(o => o.id === tl.id)
-        ).length;
-      }
-      imIndex += targetIndex;
+    op.target.forEach((targetLink) => {
+      // Récupérer l'index IM depuis la map pré-calculée (ordre edges du firmware)
+      const imIndex = edgeIMIndex.get(`${op.id}-${targetLink.id}`) ?? 0;
 
       // Trouver le type d'edge dans le diagramme
       const edge = diagram?.edges.find(e => 
@@ -173,6 +180,13 @@ export const ModulationIndexesEditor: React.FC<ModulationIndexesEditorProps> = (
         edgeKind: edge?.kind
       });
     });
+  });
+
+  // Feedback toujours en dernier
+  modulationLinks.sort((a, b) => {
+    const aFb = a.sourceId === a.targetId ? 1 : 0;
+    const bFb = b.sourceId === b.targetId ? 1 : 0;
+    return aFb - bFb;
   });
 
   const handleIMChange = (sourceId: number, targetId: number, newValue: number) => {
@@ -221,7 +235,7 @@ export const ModulationIndexesEditor: React.FC<ModulationIndexesEditorProps> = (
         let label: string;
         let imMin = 0, imMax = 16, imStep = 0.01, imValue = 0;
         if (isFeedback) {
-          label = `IM${link.imIndex + 1}: Op${link.sourceId} feedback `;
+          label = `IM6: Op${link.sourceId} feedback `; // feedback always uses IM6 slot
           imMax = 1;
           imStep = 0.001;
           imValue = typeof link.im === 'number' ? Math.max(0, Math.min(1, link.im)) : 0;

@@ -636,7 +636,7 @@ export const ALL_PREENFM_ALGORITHMS: ReadonlyArray<AlgoDiagram> = Object.freeze(
       { from: "op3", to: "op1", kind: "modulation" }, // OP3 modulates OP1
       { from: "op3", to: "op3" }, // OP3 feedback
       { from: "op4", to: "op1", kind: "sync" }, // OP4 modulates OP1
-      { from: "op4", to: "op3", kind: "modulation" }, // OP4 modulates OP3
+      { from: "op3", to: "op4", kind: "modulation" }, // OP4 modulates OP3
     ],
   },
 ]);

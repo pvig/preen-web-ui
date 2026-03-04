@@ -1,5 +1,6 @@
 import { encodeLfoBias } from '../types/lfo';
 import { NoteCurveUtils } from '../types/patch';
+import { ALGO_DIAGRAMS } from '../algo/algorithms.static';
 /**
  * Envoie le mode midiClockMode du step sequencer via NRPN
  * @param seqIndex 0 ou 1 (Seq1 ou Seq2)
@@ -395,6 +396,179 @@ export function sendGlobalVelocitySensitivity(velocity: number, channel: number 
     valueLSB: clampedVelocity & 0x7F
   };
   console.log('📤 Sending Global Velocity Sensitivity via NRPN:', { velocity: clampedVelocity, nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send patch name to PreenFM3 via NRPN
+ * Each character is sent individually with NRPN [1, 100+n] where n is the character position
+ * and the value is the ASCII code of the character
+ */
+export function sendPatchName(name: string, channel: number = currentChannel) {
+  if (!midiOutput) {
+    console.warn('No MIDI output selected for patch name');
+    return;
+  }
+
+  // Limit name length to reasonable size (PreenFM3 typically supports 12 characters)
+  const maxLength = 12;
+  const truncatedName = name.slice(0, maxLength);
+  
+  console.log('📤 Sending Patch Name via NRPN:', { name: truncatedName, length: truncatedName.length, channel });
+  
+  // Send each character as NRPN
+  for (let i = 0; i < truncatedName.length; i++) {
+    const charCode = truncatedName.charCodeAt(i);
+    const nrpn = {
+      paramMSB: 1,
+      paramLSB: 100 + i,
+      valueMSB: (charCode >> 7) & 0x7F,
+      valueLSB: charCode & 0x7F
+    };
+    
+    console.log(`📤 Char ${i}: '${truncatedName[i]}' (${charCode}) -> NRPN [1,${100 + i}] = [${nrpn.valueMSB},${nrpn.valueLSB}]`);
+    sendNRPN(nrpn, channel);
+    
+    // Small delay between characters to avoid overwhelming the PreenFM3
+    // Note: In a real implementation, you might want to queue these instead
+  }
+  
+  // Send empty characters for remaining positions to clear the name
+  for (let i = truncatedName.length; i < maxLength; i++) {
+    const nrpn = {
+      paramMSB: 1,
+      paramLSB: 100 + i,
+      valueMSB: 0,
+      valueLSB: 0  // ASCII 0 (null character) to clear
+    };
+    sendNRPN(nrpn, channel);
+  }
+}
+
+/**
+ * Send filter type to PreenFM3 via NRPN
+ * Uses the index in FILTER1_TYPE_LIST/FILTER2_TYPE_LIST arrays which correspond to firmware values
+ */
+export function sendFilterType(type: string, channel: number = currentChannel) {
+  if (!midiOutput) {
+    console.warn('No MIDI output selected for filter type');
+    return;
+  }
+
+  // Import filter type lists at the top of the function
+  const FILTER1_TYPE_LIST = [
+    'OFF', 'MIXER', 'LP', 'HP', 'BASS', 'BP', 'CRUSHER',
+    'LP2', 'HP2', 'BP2', 'LP3', 'HP3', 'BP3',
+    'PEAK', 'NOTCH', 'BELL', 'LOWSHELF', 'HIGHSHELF',
+    'LPHP', 'BPds', 'LPWS', 'TILT', 'STEREO',
+    'SAT', 'SIGMOID', 'FOLD', 'WRAP', 'XOR',
+    'TEXTURE1', 'TEXTURE2', 'LPXOR', 'LPXOR2',
+    'LPSIN', 'HPSIN', 'QUADNOTCH',
+    'AP4', 'AP4B', 'AP4D',
+    'ORYX', 'ORYX2', 'ORYX3',
+    '18DB', 'LADDER', 'LADDER2', 'DIOD',
+    'KRMG', 'TEEBEE', 'SVFLH', 'CRUSH2'
+  ];
+  
+  const FILTER2_TYPE_LIST = [
+    'OFF', 'FLANGE', 'DIMENSION', 'CHORUS', 'WIDE',
+    'DOUBLER', 'TRIPLER', 'BODE', 'DELAYCRUNCH',
+    'PINGPONG', 'DIFFUSER', 'GRAIN1', 'GRAIN2',
+    'STEREO_BP', 'PLUCK', 'PLUCK2', 'RESONATORS'
+  ];
+  
+  // Try to find in Filter1 list first, then Filter2
+  let filterValue = FILTER1_TYPE_LIST.indexOf(type);
+  if (filterValue === -1) {
+    filterValue = FILTER2_TYPE_LIST.indexOf(type);
+  }
+  
+  // If not found, default to OFF (index 0)
+  if (filterValue === -1) {
+    console.warn(`Filter type '${type}' not found, using OFF`);
+    filterValue = 0;
+  }
+
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: 40,  // Filter Type
+    valueMSB: (filterValue >> 7) & 0x7F,
+    valueLSB: filterValue & 0x7F
+  };
+  
+  console.log(`📤 Sending Filter Type via NRPN: ${type} (${filterValue}) -> [${nrpn.paramMSB},${nrpn.paramLSB}] = [${nrpn.valueMSB},${nrpn.valueLSB}]`);
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send filter param1 (frequency/cutoff) to PreenFM3 via NRPN
+ * @param value - Value 0-1 (converted to 0-100 for NRPN)
+ */
+export function sendFilterParam1(value: number, channel: number = currentChannel) {
+  if (!midiOutput) {
+    console.warn('No MIDI output selected for filter param1');
+    return;
+  }
+
+  // Convert 0-1 to 0-100 for NRPN
+  const nrpnValue = Math.round(Math.max(0, Math.min(1, value)) * 100);
+  
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: 41,  // Filter Param1
+    valueMSB: (nrpnValue >> 7) & 0x7F,
+    valueLSB: nrpnValue & 0x7F
+  };
+  
+  console.log(`📤 Sending Filter Param1 via NRPN: ${value} -> ${nrpnValue} -> [${nrpn.paramMSB},${nrpn.paramLSB}] = [${nrpn.valueMSB},${nrpn.valueLSB}]`);
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send filter param2 (resonance/Q) to PreenFM3 via NRPN
+ * @param value - Value 0-1 (converted to 0-100 for NRPN)
+ */
+export function sendFilterParam2(value: number, channel: number = currentChannel) {
+  if (!midiOutput) {
+    console.warn('No MIDI output selected for filter param2');
+    return;
+  }
+
+  // Convert 0-1 to 0-100 for NRPN
+  const nrpnValue = Math.round(Math.max(0, Math.min(1, value)) * 100);
+  
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: 42,  // Filter Param2
+    valueMSB: (nrpnValue >> 7) & 0x7F,
+    valueLSB: nrpnValue & 0x7F
+  };
+  
+  console.log(`📤 Sending Filter Param2 via NRPN: ${value} -> ${nrpnValue} -> [${nrpn.paramMSB},${nrpn.paramLSB}] = [${nrpn.valueMSB},${nrpn.valueLSB}]`);
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send filter gain to PreenFM3 via NRPN
+ * @param value - Value 0-2 for Filter1 or 0-1 for Filter2 (converted to 0-200 for NRPN)
+ */
+export function sendFilterGain(value: number, channel: number = currentChannel) {
+  if (!midiOutput) {
+    console.warn('No MIDI output selected for filter gain');
+    return;
+  }
+
+  // Convert 0-2 range to 0-200 for NRPN (PreenFM3 expects 0-200)
+  const nrpnValue = Math.round(Math.max(0, Math.min(2, value)) * 100);
+  
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: 43,  // Filter Gain
+    valueMSB: (nrpnValue >> 7) & 0x7F,
+    valueLSB: nrpnValue & 0x7F
+  };
+  
+  console.log(`📤 Sending Filter Gain via NRPN: ${value} -> ${nrpnValue} -> [${nrpn.paramMSB},${nrpn.paramLSB}] = [${nrpn.valueMSB},${nrpn.valueLSB}]`);
   sendNRPN(nrpn, channel);
 }
 
@@ -923,34 +1097,39 @@ export function sendModulationVelo(imIndex: number, value: number, isFeedback: b
 }
 
 /**
- * Calculate the global IM index for a modulation link
- * Traverses operators in order to find the position of the source->target link
- * Returns -1 if link not found
+ * Calculate the global IM index for a modulation link, using the algorithm's edge ordering.
+ * The PreenFM3 firmware assigns IM1-IM5 in the order edges appear in the algorithm definition,
+ * not by iterating operators sorted by ID.
+ * Returns -1 if link not found, 5 if it's a feedback link.
  */
 export function calculateIMIndex(patch: import('../types/patch').Patch, sourceId: number, targetId: number): number {
+  const diagram = ALGO_DIAGRAMS.find((d) => d.id === patch.algorithm.id);
+  
+  if (!diagram) {
+    console.warn('⚠️ calculateIMIndex: diagram not found for algorithm', patch.algorithm.id);
+    return -1;
+  }
+  
+  console.log('🔍 calculateIMIndex (edge-order):', { sourceId, targetId, algoId: patch.algorithm.id });
+  
   let imIndex = 0;
-  
-  console.log('🔍 calculateIMIndex:', { sourceId, targetId, totalOperators: patch.operators.length });
-  
-  for (const op of patch.operators) {
-    console.log(`  Checking OP${op.id}, targets:`, op.target.map(t => `OP${t.id}`));
+  for (const edge of diagram.edges) {
+    const edgeSrc = parseInt(edge.from.replace(/\D/g, ''));
+    const edgeTgt = parseInt(edge.to.replace(/\D/g, ''));
+    const isFeedback = edgeSrc === edgeTgt;
     
-    for (const target of op.target) {
-      // Check if this is the link we're looking for
-      if (op.id === sourceId && target.id === targetId) {
-        const isFeedback = sourceId === targetId;
-        console.log(`  ✅ Found${isFeedback ? ' FEEDBACK' : ''} link OP${sourceId}→OP${targetId} at index ${imIndex}`);
-        return imIndex;
-      }
-      // Only count valid links (where target exists in operators)
-      if (patch.operators.some(o => o.id === target.id)) {
-        imIndex++;
-      }
+    if (edgeSrc === sourceId && edgeTgt === targetId) {
+      const result = isFeedback ? 5 : imIndex;
+      console.log(`  ✅ Found${isFeedback ? ' FEEDBACK' : ''} link OP${sourceId}→OP${targetId} at IM index ${result}`);
+      return result;
+    }
+    if (!isFeedback) {
+      imIndex++;
     }
   }
   
-  console.warn(`❌ Link OP${sourceId}→OP${targetId} not found!`);
-  return -1; // Link not found
+  console.warn(`❌ Link OP${sourceId}→OP${targetId} not found in diagram edges!`);
+  return -1;
 }
 
 /**
