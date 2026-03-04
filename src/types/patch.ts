@@ -123,9 +123,9 @@ export interface GlobalEffects {
 }
 
 export type ArpDirection = 'Up' | 'Down' | 'UpDown' | 'Played' | 'Random' | 'Chord' | 'Rotate U' | 'Rotate D' | 'Shift U' | 'Shift D';
-export type ArpPattern = 'Pattern1' | 'Pattern2' | 'Pattern3' | 'Pattern4' | 'Pattern5' | 'Pattern6' | 'Pattern7' | 'Pattern8';
-export type ArpDivision = '2/1' | '3/2' | '1/1' | '2/3' | '1/2' | '1/3' | '1/4' | '1/6' | '1/8' | '1/12' | '1/16' | '1/24' | '1/32' | '1/48' | '1/96';
-export type ArpDuration = '5%' | '10%' | '25%' | '50%' | '75%' | '85%' | '95%' | '100%';
+export type ArpPattern = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' | '20' | '21' | '22' | 'Usr1' | 'Usr2' | 'Usr3' | 'Usr4';
+export type ArpDivision = '2/1' | '3/2' | '1/1' | '3/4' | '2/3' | '1/2' | '3/8' | '1/3' | '1/4' | '1/6' | '1/8' | '1/12' | '1/16' | '1/24' | '1/32' | '1/48' | '1/96';
+export type ArpDuration = '2/1' | '3/2' | '1/1' | '3/4' | '2/3' | '1/2' | '3/8' | '1/3' | '1/4' | '1/6' | '1/8' | '1/12' | '1/16' | '1/24' | '1/32' | '1/48' | '1/96';
 export type ArpLatch = 'Off' | 'On';
 
 export interface ArpeggiatorSettings {
@@ -379,9 +379,9 @@ export const DEFAULT_ARPEGGIATOR: ArpeggiatorSettings = {
   clock: 120,
   direction: 'Up',
   octave: 1,
-  pattern: 'Pattern1',
+  pattern: '1',
   division: '1/16',
-  duration: '50%',
+  duration: '1/16',
   latch: 'Off'
 };
 

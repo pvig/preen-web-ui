@@ -5,6 +5,15 @@ import KnobBase from '../knobs/KnobBase';
 import { useArpeggiator, updateArpeggiator } from '../../stores/patchStore';
 import type { ArpDirection, ArpPattern, ArpDivision, ArpDuration, ArpLatch } from '../../types/patch';
 import { useThemeStore } from '../../theme/themeStore';
+import { 
+  sendArpeggiatorBpm,
+  sendArpeggiatorDirection,
+  sendArpeggiatorOctave,
+  sendArpeggiatorPattern,
+  sendArpeggiatorDivision,
+  sendArpeggiatorDuration,
+  sendArpeggiatorLatch
+} from '../../midi/midiService';
 
 const ArpContainer = styled.div`
   background: ${props => props.theme.colors.panel};
@@ -81,17 +90,19 @@ export const ArpeggiatorEditor: React.FC = () => {
   ];
 
   const patterns: ArpPattern[] = [
-    'Pattern1', 'Pattern2', 'Pattern3', 'Pattern4', 
-    'Pattern5', 'Pattern6', 'Pattern7', 'Pattern8'
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+    '11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
+    '21', '22', 'Usr1', 'Usr2', 'Usr3', 'Usr4'
   ];
 
   const divisions: ArpDivision[] = [
-    '2/1', '3/2', '1/1', '2/3', '1/2', '1/3', '1/4', 
+    '2/1', '3/2', '1/1', '3/4', '2/3', '1/2', '3/8', '1/3', '1/4', 
     '1/6', '1/8', '1/12', '1/16', '1/24', '1/32', '1/48', '1/96'
   ];
 
   const durations: ArpDuration[] = [
-    '5%', '10%', '25%', '50%', '75%', '85%', '95%', '100%'
+    '2/1', '3/2', '1/1', '3/4', '2/3', '1/2', '3/8', '1/3', '1/4', 
+    '1/6', '1/8', '1/12', '1/16', '1/24', '1/32', '1/48', '1/96'
   ];
 
   const latchModes: ArpLatch[] = ['Off', 'On'];
@@ -111,7 +122,10 @@ export const ArpeggiatorEditor: React.FC = () => {
             max={240}
             step={1}
             value={arp.clock}
-            onChange={(clock) => updateArpeggiator({ clock })}
+            onChange={(clock) => {
+              updateArpeggiator({ clock });
+              sendArpeggiatorBpm(clock);
+            }}
             color={theme.colors.knobArp}
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
@@ -125,7 +139,11 @@ export const ArpeggiatorEditor: React.FC = () => {
           <ControlLabel>{t('modulation.direction')}</ControlLabel>
           <Select 
             value={arp.direction}
-            onChange={(e) => updateArpeggiator({ direction: e.target.value as ArpDirection })}
+            onChange={(e) => {
+              const direction = e.target.value as ArpDirection;
+              updateArpeggiator({ direction });
+              sendArpeggiatorDirection(direction);
+            }}
           >
             {directions.map((dir) => (
               <option key={dir} value={dir}>
@@ -143,7 +161,10 @@ export const ArpeggiatorEditor: React.FC = () => {
             max={3}
             step={1}
             value={arp.octave}
-            onChange={(octave) => updateArpeggiator({ octave })}
+            onChange={(octave) => {
+              updateArpeggiator({ octave });
+              sendArpeggiatorOctave(octave);
+            }}
             color={theme.colors.knobVolume}
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
@@ -157,7 +178,11 @@ export const ArpeggiatorEditor: React.FC = () => {
           <ControlLabel>{t('modulation.pattern')}</ControlLabel>
           <Select 
             value={arp.pattern}
-            onChange={(e) => updateArpeggiator({ pattern: e.target.value as ArpPattern })}
+            onChange={(e) => {
+              const pattern = e.target.value as ArpPattern;
+              updateArpeggiator({ pattern });
+              sendArpeggiatorPattern(pattern);
+            }}
           >
             {patterns.map((pattern) => (
               <option key={pattern} value={pattern}>
@@ -172,7 +197,11 @@ export const ArpeggiatorEditor: React.FC = () => {
           <ControlLabel>{t('modulation.division')}</ControlLabel>
           <Select 
             value={arp.division}
-            onChange={(e) => updateArpeggiator({ division: e.target.value as ArpDivision })}
+            onChange={(e) => {
+              const division = e.target.value as ArpDivision;
+              updateArpeggiator({ division });
+              sendArpeggiatorDivision(division);
+            }}
           >
             {divisions.map((div) => (
               <option key={div} value={div}>
@@ -187,7 +216,11 @@ export const ArpeggiatorEditor: React.FC = () => {
           <ControlLabel>{t('modulation.duration')}</ControlLabel>
           <Select 
             value={arp.duration}
-            onChange={(e) => updateArpeggiator({ duration: e.target.value as ArpDuration })}
+            onChange={(e) => {
+              const duration = e.target.value as ArpDuration;
+              updateArpeggiator({ duration });
+              sendArpeggiatorDuration(duration);
+            }}
           >
             {durations.map((dur) => (
               <option key={dur} value={dur}>
@@ -202,7 +235,11 @@ export const ArpeggiatorEditor: React.FC = () => {
           <ControlLabel>{t('modulation.latch')}</ControlLabel>
           <Select 
             value={arp.latch}
-            onChange={(e) => updateArpeggiator({ latch: e.target.value as ArpLatch })}
+            onChange={(e) => {
+              const latch = e.target.value as ArpLatch;
+              updateArpeggiator({ latch });
+              sendArpeggiatorLatch(latch);
+            }}
           >
             {latchModes.map((latch) => (
               <option key={latch} value={latch}>

@@ -8,6 +8,13 @@ import { FILTER1_TYPE_LIST, NoteCurveUtils } from '../types/patch';
 // import type { Filter1Type, Filter2Type } from '../types/patch';
 import type { NRPNMessage } from './preenFM3MidiMap';
 import { DEFAULT_ALGORITHMS, DEFAULT_LFO_ENVELOPE } from '../types/patch';
+import type { 
+  ArpDirection, 
+  ArpPattern, 
+  ArpDivision, 
+  ArpDuration, 
+  ArpLatch 
+} from '../types/patch';
 import { ALGO_DIAGRAMS } from '../algo/algorithms.static';
 import { WaveformType } from '../types/waveform';
 import { 
@@ -19,6 +26,95 @@ import {
   // type LfoType
 } from '../types/lfo';
 import type { LFO } from '../types/patch';
+
+/**
+ * Conversion functions for Arpeggiator NRPN values
+ * According to PreenFM2 official documentation: https://ixox.fr/preenfm2/preenfm/midi/
+ * 
+ * NRPN mapping (MSB=0):
+ * - LSB=28: Clock (0=Off, 1=Internal, 2=External) 
+ * - LSB=29: BPM (actual tempo value)
+ * - LSB=30: Direction
+ * - LSB=31: Octave  
+ * - LSB=32: Pattern
+ * - LSB=33: Division
+ * - LSB=34: Duration
+ * - LSB=35: Latch
+ */
+const ARP_DIRECTIONS: ArpDirection[] = [
+  'Up', 'Down', 'UpDown', 'Played', 'Random', 'Chord', 'Rotate U', 'Rotate D', 'Shift U', 'Shift D'
+];
+
+const ARP_PATTERNS: ArpPattern[] = [
+  '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',        // 0-9
+  '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', // 10-19 
+  '21', '22', 'Usr1', 'Usr2', 'Usr3', 'Usr4'                // 20-25
+];
+
+const ARP_DIVISIONS: ArpDivision[] = [
+  '2/1',   // 0
+  '3/2',   // 1
+  '1/1',   // 2
+  '3/4',   // 3
+  '2/3',   // 4
+  '1/2',   // 5
+  '3/8',   // 6
+  '1/3',   // 7
+  '1/4',   // 8
+  '1/6',   // 9
+  '1/8',   // 10
+  '1/12',  // 11
+  '1/16',  // 12
+  '1/24',  // 13
+  '1/32',  // 14
+  '1/48',  // 15
+  '1/96'   // 16
+];
+
+const ARP_DURATIONS: ArpDuration[] = [
+  '2/1',   // 0
+  '3/2',   // 1
+  '1/1',   // 2
+  '3/4',   // 3
+  '2/3',   // 4
+  '1/2',   // 5
+  '3/8',   // 6
+  '1/3',   // 7
+  '1/4',   // 8
+  '1/6',   // 9
+  '1/8',   // 10
+  '1/12',  // 11
+  '1/16',  // 12
+  '1/24',  // 13
+  '1/32',  // 14
+  '1/48',  // 15
+  '1/96'   // 16
+];
+
+const ARP_LATCH: ArpLatch[] = ['Off', 'On'];
+
+function parseArpDirection(value: number): ArpDirection {
+  return ARP_DIRECTIONS[Math.min(value, ARP_DIRECTIONS.length - 1)] || 'Up';
+}
+
+function parseArpPattern(value: number): ArpPattern {
+  return ARP_PATTERNS[Math.min(value, ARP_PATTERNS.length - 1)] || '1';
+}
+
+function parseArpDivision(value: number): ArpDivision {
+  console.log(`[ARP DEBUG] Division NRPN value: ${value}`);
+  const result = ARP_DIVISIONS[Math.min(value, ARP_DIVISIONS.length - 1)] || '1/16';
+  console.log(`[ARP DEBUG] Division mapped to: ${result}`);
+  return result;
+}
+
+function parseArpDuration(value: number): ArpDuration {
+  return ARP_DURATIONS[Math.min(value, ARP_DURATIONS.length - 1)] || '1/16';
+}
+
+function parseArpLatch(value: number): ArpLatch {
+  return ARP_LATCH[Math.min(value, ARP_LATCH.length - 1)] || 'Off';
+}
 
 /**
  * NRPN Parser pour PreenFM3
@@ -615,13 +711,13 @@ export class PreenFM3Parser {
         chorus: { enabled: false, rate: 0.5, depth: 0.3, level: 0.3 },
       },
       arpeggiator: {
-        clock: 120,
-        direction: 'Up',
-        pattern: 'Pattern1',
-        division: '1/1',
-        duration: '100%',
-        latch: 'Off',
-        octave: 1,
+        clock: this.getValue(0, 29) ?? 120, // NRPN LSB=29 = BPM
+        direction: parseArpDirection(this.getValue(0, 30) ?? 0), // NRPN LSB=30 
+        octave: Math.max(1, Math.min(3, this.getValue(0, 31) ?? 1)), // NRPN LSB=31 (pas de +1)
+        pattern: parseArpPattern(this.getValue(0, 32) ?? 0), // NRPN LSB=32
+        division: parseArpDivision(this.getValue(0, 33) ?? 12), // NRPN LSB=33, Default to 1/16 (index 12)
+        duration: parseArpDuration(this.getValue(0, 34) ?? 12), // NRPN LSB=34, Default to 1/16 (index 12)
+        latch: parseArpLatch(this.getValue(0, 35) ?? 0), // NRPN LSB=35
       },
       midi: {
         channel: 1,

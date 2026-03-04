@@ -115,9 +115,9 @@ const createDefaultPatch = (): Patch => ({
     clock: 120,
     direction: 'Up',
     octave: 1,
-    pattern: 'Pattern1',
-    division: '1/8',
-    duration: '50%',
+    pattern: '1',
+    division: '1/16',
+    duration: '1/16',
     latch: 'Off'
   },
 

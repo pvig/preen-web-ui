@@ -126,6 +126,7 @@ export const PREENFM3_CC = {
   ARP_PATTERN: 103,
   ARP_DIVISION: 104,
   ARP_DURATION: 105,
+  ARP_LATCH: 109,
   
   // Mixer
   MIXER_VOLUME: 106,

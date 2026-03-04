@@ -241,6 +241,142 @@ export function sendLfoEnvelope(envIndex: 0 | 1, envelope: { attack: number, dec
     sendNRPN(nrpn);
   });
 }
+
+/**
+ * Send arpeggiator parameters to PreenFM3 via NRPN
+ * According to PreenFM3 official documentation: https://ixox.fr/preenfm2/preenfm/midi/
+ */
+
+/**
+ * Send arpeggiator BPM (clock) via NRPN
+ * NRPN MSB=0, LSB=29 (BPM: 10-240)
+ */
+export function sendArpeggiatorBpm(bpm: number, channel: number = currentChannel) {
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: 29,
+    valueMSB: (bpm >> 7) & 0x7F,
+    valueLSB: bpm & 0x7F
+  };
+  console.log('📤 Sending Arpeggiator BPM via NRPN:', { bpm, nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send arpeggiator direction via NRPN
+ * NRPN MSB=0, LSB=30 (Direction: 0-9)
+ */
+export function sendArpeggiatorDirection(direction: string, channel: number = currentChannel) {
+  const directions = ['Up', 'Down', 'UpDown', 'Played', 'Random', 'Chord', 'Rotate U', 'Rotate D', 'Shift U', 'Shift D'];
+  const value = directions.indexOf(direction);
+  
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: 30,
+    valueMSB: (value >> 7) & 0x7F,
+    valueLSB: value & 0x7F
+  };
+  console.log('📤 Sending Arpeggiator Direction via NRPN:', { direction, value, nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send arpeggiator octave via NRPN
+ * NRPN MSB=0, LSB=31 (Octave: 1-3)
+ */
+export function sendArpeggiatorOctave(octave: number, channel: number = currentChannel) {
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: 31,
+    valueMSB: (octave >> 7) & 0x7F,
+    valueLSB: octave & 0x7F
+  };
+  console.log('📤 Sending Arpeggiator Octave via NRPN:', { octave, nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send arpeggiator pattern via NRPN
+ * NRPN MSB=0, LSB=32 (Pattern: 0-25)
+ */
+export function sendArpeggiatorPattern(pattern: string, channel: number = currentChannel) {
+  const patterns = [
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+    '11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
+    '21', '22', 'Usr1', 'Usr2', 'Usr3', 'Usr4'
+  ];
+  const value = patterns.indexOf(pattern);
+  
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: 32,
+    valueMSB: (value >> 7) & 0x7F,
+    valueLSB: value & 0x7F
+  };
+  console.log('📤 Sending Arpeggiator Pattern via NRPN:', { pattern, value, nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send arpeggiator division via NRPN
+ * NRPN MSB=0, LSB=33 (Division: 0-16)
+ */
+export function sendArpeggiatorDivision(division: string, channel: number = currentChannel) {
+  const divisions = [
+    '2/1', '3/2', '1/1', '3/4', '2/3', '1/2', '3/8', '1/3', '1/4',
+    '1/6', '1/8', '1/12', '1/16', '1/24', '1/32', '1/48', '1/96'
+  ];
+  const value = divisions.indexOf(division);
+  
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: 33,
+    valueMSB: (value >> 7) & 0x7F,
+    valueLSB: value & 0x7F
+  };
+  console.log('📤 Sending Arpeggiator Division via NRPN:', { division, value, nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send arpeggiator duration via NRPN
+ * NRPN MSB=0, LSB=34 (Duration: 0-16)
+ */
+export function sendArpeggiatorDuration(duration: string, channel: number = currentChannel) {
+  const durations = [
+    '2/1', '3/2', '1/1', '3/4', '2/3', '1/2', '3/8', '1/3', '1/4',
+    '1/6', '1/8', '1/12', '1/16', '1/24', '1/32', '1/48', '1/96'
+  ];
+  const value = durations.indexOf(duration);
+  
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: 34,
+    valueMSB: (value >> 7) & 0x7F,
+    valueLSB: value & 0x7F
+  };
+  console.log('📤 Sending Arpeggiator Duration via NRPN:', { duration, value, nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send arpeggiator latch via NRPN
+ * NRPN MSB=0, LSB=35 (Latch: 0-1)
+ */
+export function sendArpeggiatorLatch(latch: string, channel: number = currentChannel) {
+  const latches = ['Off', 'On'];
+  const value = latches.indexOf(latch);
+  
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: 35,
+    valueMSB: (value >> 7) & 0x7F,
+    valueLSB: value & 0x7F
+  };
+  console.log('📤 Sending Arpeggiator Latch via NRPN:', { latch, value, nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+
 /**
  * MIDI Service for PreenFM3 Communication
  * Handles Web MIDI API for sending/receiving CC, NRPN, and SysEx messages
