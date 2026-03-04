@@ -151,7 +151,7 @@ function KnobBase({
         position: "relative",
         display: (valuePosition === 'left' || labelPosition === 'left') ? 'flex' : 'block',
         alignItems: (valuePosition === 'left' || labelPosition === 'left') ? 'center' : 'initial',
-        gap: (valuePosition === 'left' || labelPosition === 'left') ? '8px' : 0,
+        gap: (valuePosition === 'left' || labelPosition === 'left') ? '4px' : 0,
       }}
     >
       {/* Label à gauche */}

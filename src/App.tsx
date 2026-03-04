@@ -11,6 +11,7 @@ import { ThemeToggle } from './theme/ThemeToggle';
 import { LanguageToggle } from './components/LanguageToggle';
 import { useThemeStore } from './theme/themeStore';
 import { GlobalStyles } from './theme/GlobalStyles';
+import { useMidiActions } from './midi/useMidiActions';
 
 type AppScreen = 'patch' | 'matrix' | 'arpfilter' | 'effects' | 'library';
 
@@ -19,21 +20,17 @@ const AppContainer = styled.div`
   color: ${props => props.theme.colors.text};
   min-height: 100vh;
   transition: background-color 0.3s, color 0.3s;
+  position: relative;
 `;
 
-const Header = styled.header`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 0.5rem 1rem;
-  background-color: none;
-  border-bottom: 0;
-`;
-
-const HeaderRight = styled.div`
+const AbsoluteToggles = styled.div`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
   display: flex;
   gap: 10px;
   align-items: center;
+  z-index: 100;
 `;
 
 const TestButton = styled.button`
@@ -51,15 +48,61 @@ const TestButton = styled.button`
   }
 `;
 
+const MidiQuickButtons = styled.div`
+  display: flex;
+  gap: 2px;
+  margin-left: 4px;
+`;
+
+const QuickMidiButton = styled.button`
+  width: 24px !important;
+  height: 30px !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${props => props.theme.colors.primary};
+  color: ${props => props.theme.colors.background};
+  border: 1px solid ${props => props.theme.colors.border};
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover:not(:disabled) {
+    background: ${props => props.theme.colors.buttonHover || props.theme.colors.accent};
+    transform: scale(1.05);
+  }
+  
+  &:disabled {
+    background: ${props => props.theme.colors.button};
+    color: ${props => props.theme.colors.textMuted};
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+`;
+
 const Nav = styled.nav`
   background-color: none;
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
+  align-items: center;
   gap: 0.5rem;
-  padding: 0 0.5rem;
+  margin: 0 auto;
+  padding: 0.5rem 1rem 0 1rem;
   border-bottom: 1px solid ${props => props.theme.colors.border};
   max-width: 900px;
-  margin: 0 auto;
+  
+  .nav-tabs {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .nav-right {
+    display: flex;
+    align-items: center;
+  }
   
   button {
     background-color: ${props => props.theme.colors.button};
@@ -98,6 +141,7 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('patch');
   const [showCCTester, setShowCCTester] = useState(false);
   const { theme } = useThemeStore();
+  const { sendPatch, receivePatch, midi } = useMidiActions();
 
   // Keyboard shortcut: Ctrl+T to toggle CC Tester
   useEffect(() => {
@@ -116,30 +160,49 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <GlobalStyles />
       <AppContainer>
-        <Header>
-          <MidiMenu />
-          <HeaderRight>
+        <AbsoluteToggles>
+          <LanguageToggle />
+          <ThemeToggle />
+        </AbsoluteToggles>
+        
+        <Nav>
+          <div className="nav-tabs">
+            <button onClick={() => setCurrentScreen('patch')} className={currentScreen === 'patch' ? 'active' : ''}>
+              Patch
+            </button>
+            <button onClick={() => setCurrentScreen('matrix')} className={currentScreen === 'matrix' ? 'active' : ''}>
+              Modulations
+            </button>
+            <button onClick={() => setCurrentScreen('arpfilter')} className={currentScreen === 'arpfilter' ? 'active' : ''}>
+              Arp/Filter
+            </button>
+            <button onClick={() => setCurrentScreen('library')} className={currentScreen === 'library' ? 'active' : ''}>
+              Librairie
+            </button>
+          </div>
+          
+          <div className="nav-right">
             <TestButton onClick={() => setShowCCTester(prev => !prev)}>
               🧪 Test CC
             </TestButton>
-            <LanguageToggle />
-            <ThemeToggle />
-          </HeaderRight>
-        </Header>
-        
-        <Nav>
-          <button onClick={() => setCurrentScreen('patch')} className={currentScreen === 'patch' ? 'active' : ''}>
-            Patch
-          </button>
-          <button onClick={() => setCurrentScreen('matrix')} className={currentScreen === 'matrix' ? 'active' : ''}>
-            Modulations
-          </button>
-          <button onClick={() => setCurrentScreen('arpfilter')} className={currentScreen === 'arpfilter' ? 'active' : ''}>
-            Arp/Filter
-          </button>
-          <button onClick={() => setCurrentScreen('library')} className={currentScreen === 'library' ? 'active' : ''}>
-            Librairie
-          </button>
+            <MidiMenu />
+            <MidiQuickButtons>
+              <QuickMidiButton 
+                onClick={sendPatch}
+                disabled={!midi.selectedOutput}
+                title="Push vers PreenFM3"
+              >
+                ↑
+              </QuickMidiButton>
+              <QuickMidiButton 
+                onClick={receivePatch}
+                disabled={!midi.selectedInput}
+                title="Pull depuis PreenFM3"
+              >
+                ↓
+              </QuickMidiButton>
+            </MidiQuickButtons>
+          </div>
         </Nav>
 
         <Main>

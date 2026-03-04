@@ -1,22 +1,82 @@
 import styled from 'styled-components';
-import { usePreenFM3Midi } from '../midi/usePreenFM3Midi';
-import { requestPatchDump } from '../midi/midiService';
-import { useCurrentPatch, usePatchStore } from '../stores/patchStore';
-import { PreenFM3Parser } from '../midi/preenFM3Parser';
-import { useState, useRef } from 'react';
+import { useMidiActions } from '../midi/useMidiActions';
+import { useState, useCallback } from 'react';
 
 const MidiMenuContainer = styled.div`
-  background: none;
   display: inline-flex;
-  margin: auto;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const MidiToggleButton = styled.button`
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  background: ${props => props.theme.colors.primary};
+  color: ${props => props.theme.colors.background};
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-weight: 500;
+  font-size: 0.875rem;
+  
+  &:hover {
+    background: ${props => props.theme.colors.buttonHover || props.theme.colors.accent};
+  }
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: ${props => props.theme.colors.background};
+  padding: 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid ${props => props.theme.colors.border};
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+`;
+
+const ModalHeader = styled.div`
+  display: flex;
   justify-content: space-between;
-  flex-wrap: wrap;
-  max-width: 1200px;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  
+  h3 {
+    color: ${props => props.theme.colors.text};
+    margin: 0;
+  }
+`;
+
+const CloseButton = styled.button`
+  background: none;
+  border: none;
+  color: ${props => props.theme.colors.text};
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  
+  &:hover {
+    opacity: 0.7;
+  }
 `;
 
 const MidiPorts = styled.div`
   display: flex;
-  gap: 0.5rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
   
   h3 {
     color: ${props => props.theme.colors.text};
@@ -24,16 +84,16 @@ const MidiPorts = styled.div`
 `;
 
 const MidiPortSelect = styled.div`
-  margin: 0.5rem;
   
   label {
     display: block;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
     color: ${props => props.theme.colors.text};
+    font-weight: 500;
   }
   
   select {
-    width: 10em;
+    width: 12em;
     padding: 0.5rem;
     border-radius: 0.25rem;
     background: ${props => props.theme.colors.button};
@@ -51,13 +111,13 @@ const MidiPortSelect = styled.div`
 
 const MidiActions = styled.div`
   display: flex;
-  gap: 0.25rem;
-  margin: 1rem;
+  gap: 0.5rem;
+  margin: 1rem 0;
 `;
 
 const MidiButton = styled.button`
   flex: 1;
-  padding: 0.25rem 1rem;
+  padding: 0.75rem 1rem;
   border-radius: 0.25rem;
   background: ${props => props.theme.colors.primary};
   color: ${props => props.theme.colors.background};
@@ -77,17 +137,16 @@ const MidiButton = styled.button`
   }
 `;
 
-
 const ErrorMessage = styled.p`
   color: ${props => props.theme.colors.accent};
-  margin: 0.5rem;
+  margin: 0.5rem 0;
   padding: 0.5rem;
   background: ${props => `${props.theme.colors.accent}20`};
   border-radius: 0.25rem;
 `;
 
 const ErrorContainer = styled.div`
-  padding: 1rem;
+  margin: 1rem 0;
 `;
 
 const HelpContainer = styled.div`
@@ -139,7 +198,7 @@ const HelpNote = styled.p`
 `;
 
 const InfoBox = styled.div`
-  margin: 0.5rem;
+  margin: 0.5rem 0;
   padding: 0.75rem;
   background: rgba(237, 137, 54, 0.1);
   border-left: 3px solid #ed8936;
@@ -158,7 +217,7 @@ const InfoDetail = styled.p`
 `;
 
 const ReceptionStatus = styled.div`
-  margin: 0.5rem;
+  margin: 0.5rem 0;
   padding: 0.75rem;
   background: rgba(16, 185, 129, 0.1);
   border-left: 3px solid #10b981;
@@ -176,100 +235,43 @@ const PatchName = styled.p`
   font-weight: 500 !important;
 `;
 
+const StatusIndicator = styled.span<{ $connected: boolean }>`
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: ${props => props.$connected ? '#10b981' : '#6b7280'};
+  margin-left: 0.5rem;
+`;
+
 export const MidiMenu = () => {
-  const midi = usePreenFM3Midi();
-  const currentPatch = useCurrentPatch();
-  const { loadPatch } = usePatchStore();
-  const parserRef = useRef<PreenFM3Parser>(new PreenFM3Parser());
-  const [receivedCount, setReceivedCount] = useState(0);
-  const [receivedName, setReceivedName] = useState('');
+  const { sendPatch, receivePatch, receivedCount, receivedName, midi } = useMidiActions();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Envoi d'un patch au PreenFM3 (Push)
-  const sendPatch = () => {
-    if (!midi.selectedOutput) {
-      alert('Aucune sortie MIDI sélectionnée');
-      return;
+  const isConnected = Boolean(midi.selectedInput && midi.selectedOutput);
+  const noDevices = !midi.devices || (midi.devices.inputs.length === 0 && midi.devices.outputs.length === 0);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const input = midi.devices?.inputs.find(i => i.id === e.target.value);
+    midi.selectInput(input || null);
+  }, [midi.devices?.inputs, midi.selectInput]);
+
+  const handleOutputChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const output = midi.devices?.outputs.find(o => o.id === e.target.value);
+    midi.selectOutput(output || null);
+  }, [midi.devices?.outputs, midi.selectOutput]);
+
+  const handleChannelChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    midi.changeChannel(parseInt(e.target.value));
+  }, [midi.changeChannel]);
+
+  const renderModalContent = () => {
+    if (midi.isLoading) {
+      return <p>Initialisation MIDI...</p>;
     }
 
-    // TODO: Implémenter la conversion du patch en SysEx ou NRPN
-    console.log('Patch à envoyer:', currentPatch);
-    console.log('Fonctionnalité Push en cours de développement...');
-    
-    // Pour l'instant, on peut au moins envoyer l'algorithme
-    if (currentPatch?.algorithm) {
-      midi.sendAlgorithmChange(String(currentPatch.algorithm.id));
-    }
-  };
-
-  // Réception d'un patch depuis le PreenFM3 (Pull)
-  const receivePatch = () => {
-    if (!midi.selectedInput) {
-      alert('Aucune entrée MIDI sélectionnée');
-      return;
-    }
-
-    console.log('🎹 Demande de patch au PreenFM3...');
-    
-    // Réinitialiser le parser
-    parserRef.current.reset();
-    setReceivedCount(0);
-    setReceivedName('');
-    
-    requestPatchDump(0, midi.channel); // Timbre 0
-    
-    // Écouter les NRPN entrants
-    midi.listenToNRPN((nrpn, _channel) => {
-      // Ajouter au parser
-      parserRef.current.addNRPN(nrpn);
-      
-      // Intercepter les NRPN MIX/PAN et les appliquer directement
-      // (loadPatch() préservera ces valeurs automatiquement)
-      const paramIndex = (nrpn.paramMSB << 7) | nrpn.paramLSB;
-      const value = (nrpn.valueMSB << 7) | nrpn.valueLSB;
-      
-      // MIX: NRPN [0, 16+(n-1)*2] plage 0-100
-      // PAN: NRPN [0, 17+(n-1)*2] plage 0-200
-      // Suppression de la mise à jour immédiate de l’amplitude/pan lors du pull NRPN :
-      // Les valeurs correctes seront appliquées lors du chargement du patch complet.
-      
-      // Mettre à jour l'affichage
-      const stats = parserRef.current.getStats();
-      setReceivedCount(stats.count);
-      setReceivedName(stats.name);
-      
-      // Logger de manière plus lisible
-      console.log(`📥 NRPN [${nrpn.paramMSB},${nrpn.paramLSB}] (idx=${paramIndex}) = [${nrpn.valueMSB},${nrpn.valueLSB}] (val=${value})`);
-    });
-
-    // Attendre un peu puis convertir et charger le patch
-    setTimeout(() => {
-      console.log('=== Réception terminée ===');
-      parserRef.current.logAll();
-      
-      // Convertir les NRPN en Patch et charger dans le store
-      // Note: loadPatch() préserve automatiquement amplitude/pan des opérateurs existants
-      try {
-        const patch = parserRef.current.toPatch();
-        console.log('✅ Patch converti:', patch);
-        loadPatch(patch);
-        console.log('✅ Patch chargé dans l\'UI (avec MIX/PAN préservés)');
-      } catch (error) {
-        console.error('❌ Erreur lors de la conversion du patch:', error);
-      }
-    }, 2000);
-  };
-
-  if (midi.isLoading) {
-    return (
-      <MidiMenuContainer>
-        <p>Initialisation MIDI...</p>
-      </MidiMenuContainer>
-    );
-  }
-
-  if (midi.error) {
-    return (
-      <MidiMenuContainer>
+    if (midi.error) {
+      return (
         <ErrorContainer>
           <ErrorMessage>❌ {midi.error}</ErrorMessage>
           <HelpContainer>
@@ -290,103 +292,124 @@ export const MidiMenu = () => {
             </HelpNote>
           </HelpContainer>
         </ErrorContainer>
-      </MidiMenuContainer>
-    );
-  }
+      );
+    }
 
-  const noDevices = !midi.devices || (midi.devices.inputs.length === 0 && midi.devices.outputs.length === 0);
+    return (
+      <>
+        {noDevices && (
+          <InfoBox>
+            <p>⚠️ Aucun périphérique MIDI détecté</p>
+            <InfoDetail>Connectez votre PreenFM3 via USB et actualisez la page</InfoDetail>
+          </InfoBox>
+        )}
+        
+        <MidiPorts>
+          <MidiPortSelect>
+            <label>
+              Entrée MIDI:
+              <select 
+                value={midi.selectedInput?.id || ''}
+                onChange={handleInputChange}
+              >
+                <option value="">-- Sélectionner --</option>
+                {midi.devices?.inputs.map(input => (
+                  <option key={input.id} value={input.id}>
+                    {input.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </MidiPortSelect>
+
+          <MidiPortSelect>
+            <label>
+              Sortie MIDI:
+              <select 
+                value={midi.selectedOutput?.id || ''}
+                onChange={handleOutputChange}
+              >
+                <option value="">-- Sélectionner --</option>
+                {midi.devices?.outputs.map(output => (
+                  <option key={output.id} value={output.id}>
+                    {output.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </MidiPortSelect>
+
+          <MidiPortSelect>
+            <label>
+              Canal MIDI:
+              <select 
+                value={midi.channel}
+                onChange={handleChannelChange}
+              >
+                {Array.from({ length: 16 }, (_, i) => i + 1).map(ch => (
+                  <option key={ch} value={ch}>
+                    Canal {ch}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </MidiPortSelect>
+        </MidiPorts>
+
+        <MidiActions>
+          <MidiButton 
+            onClick={sendPatch}
+            disabled={!midi.selectedOutput}
+            title="Envoyer le patch actuel vers le PreenFM3"
+          >
+            Push → PreenFM
+          </MidiButton>
+          
+          <MidiButton 
+            onClick={receivePatch}
+            disabled={!midi.selectedInput}
+            title="Récupérer le patch actuel depuis le PreenFM3"
+          >
+            Pull ← PreenFM
+          </MidiButton>
+        </MidiActions>
+
+        {receivedCount > 0 && (
+          <ReceptionStatus>
+            <p>📥 Réception: {receivedCount} paramètres</p>
+            {receivedName && <PatchName>Patch: "{receivedName}"</PatchName>}
+          </ReceptionStatus>
+        )}
+      </>
+    );
+  };
 
   return (
-    <MidiMenuContainer>
-      {noDevices && (
-        <InfoBox>
-          <p>⚠️ Aucun périphérique MIDI détecté</p>
-          <InfoDetail>Connectez votre PreenFM3 via USB et actualisez la page</InfoDetail>
-        </InfoBox>
-      )}
-      
-      <MidiPorts>
-        <MidiPortSelect>
-          <label>
-            Entrée MIDI:
-            <select 
-              value={midi.selectedInput?.id || ''}
-              onChange={(e) => {
-                const input = midi.devices?.inputs.find(i => i.id === e.target.value);
-                midi.selectInput(input || null);
-              }}
-            >
-              <option value="">-- Sélectionner --</option>
-              {midi.devices?.inputs.map(input => (
-                <option key={input.id} value={input.id}>
-                  {input.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </MidiPortSelect>
-
-        <MidiPortSelect>
-          <label>
-            Sortie MIDI:
-            <select 
-              value={midi.selectedOutput?.id || ''}
-              onChange={(e) => {
-                const output = midi.devices?.outputs.find(o => o.id === e.target.value);
-                midi.selectOutput(output || null);
-              }}
-            >
-              <option value="">-- Sélectionner --</option>
-              {midi.devices?.outputs.map(output => (
-                <option key={output.id} value={output.id}>
-                  {output.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </MidiPortSelect>
-
-        <MidiPortSelect>
-          <label>
-            Canal MIDI:
-            <select 
-              value={midi.channel}
-              onChange={(e) => midi.changeChannel(parseInt(e.target.value))}
-            >
-              {Array.from({ length: 16 }, (_, i) => i + 1).map(ch => (
-                <option key={ch} value={ch}>
-                  Canal {ch}
-                </option>
-              ))}
-            </select>
-          </label>
-        </MidiPortSelect>
-      </MidiPorts>
-
-      <MidiActions>
-        <MidiButton 
-          onClick={sendPatch}
-          disabled={!midi.selectedOutput}
-          title="Envoyer le patch actuel vers le PreenFM3"
-        >
-          Push → PreenFM
-        </MidiButton>
+    <>
+      <MidiMenuContainer>
+        <MidiToggleButton onClick={() => setIsModalOpen(true)}>
+          MIDI
+          <StatusIndicator $connected={isConnected} />
+        </MidiToggleButton>
         
-        <MidiButton 
-          onClick={receivePatch}
-          disabled={!midi.selectedInput}
-          title="Récupérer le patch actuel depuis le PreenFM3"
-        >
-          Pull ← PreenFM
-        </MidiButton>
-      </MidiActions>
+        {receivedCount > 0 && (
+          <span style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 'bold' }}>
+            {receivedCount} params
+          </span>
+        )}
+      </MidiMenuContainer>
 
-      {receivedCount > 0 && (
-        <ReceptionStatus>
-          <p>📥 Réception: {receivedCount} paramètres</p>
-          {receivedName && <PatchName>Patch: "{receivedName}"</PatchName>}
-        </ReceptionStatus>
+      {isModalOpen && (
+        <ModalOverlay onClick={() => setIsModalOpen(false)}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <ModalHeader>
+              <h3>Configuration MIDI</h3>
+              <CloseButton onClick={() => setIsModalOpen(false)}>×</CloseButton>
+            </ModalHeader>
+            {renderModalContent()}
+          </ModalContent>
+        </ModalOverlay>
       )}
-    </MidiMenuContainer>
+    </>
   );
 };

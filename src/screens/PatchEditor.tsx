@@ -29,11 +29,15 @@ const Row = styled.div<RowProps>`
 const OperatorGrid = styled.div`
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: space-around;
   margin: 10px auto;
   max-width: 900px;
   background: ${props => props.theme.colors.panel};
   border-radius: 8px;
+
+  h3{
+    margin:0;
+  }
 `;
 
 const GlobalKnobWrapper = styled.div`

@@ -28,9 +28,10 @@ const PanelContainer = styled.div<{ $isHighlighted?: boolean }>`
 
 const ControlsRow = styled.div`
   display: flex;
-  gap: 6px;
+  gap: 0;
+  padding-left: 10px;
   justify-content: center;
-  margin-bottom: 10px;
+  margin-bottom: 0;
 `;
 
 interface OperatorPanelProps {
@@ -60,19 +61,22 @@ export const OperatorPanel = ({ opNumber }: OperatorPanelProps) => {
           max={16} 
           step={0.01}
           onChange={val => updateOperator(opId, { frequency: val })}
+          renderLabel={(v: number) => v.toFixed(2)}
+          labelPosition="left"
           color={theme.colors.knobFrequency}
           strokeColor={theme.colors.knobStroke}
           backgroundColor={theme.colors.knobBackground}
           size={60}
         />
         <KnobBase
-          label="Finetuning" 
+          label="Fine tuning" 
           value={selectedOperator?.detune ?? 0}
           min={-16} 
           max={16} 
           step={0.01}
           onChange={val => updateOperator(opId, { detune: val })}
           renderLabel={(v: number) => v.toFixed(2)}
+          labelPosition="left"
           color={theme.colors.knobFrequency}
           strokeColor={theme.colors.knobStroke}
           backgroundColor={theme.colors.knobBackground}
