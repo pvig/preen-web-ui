@@ -7,8 +7,7 @@ import { EffectsEditor } from './screens/EffectsEditor';
 import { PatchLibrary } from './screens/PatchLibrary';
 import { MidiMenu } from './components/MidiMenu';
 import { MidiCCTester } from './components/MidiCCTester';
-import { ThemeToggle } from './theme/ThemeToggle';
-import { LanguageToggle } from './components/LanguageToggle';
+import { HamburgerMenu } from './components/HamburgerMenu';
 import { useThemeStore } from './theme/themeStore';
 import { GlobalStyles } from './theme/GlobalStyles';
 import { useMidiActions } from './midi/useMidiActions';
@@ -22,16 +21,6 @@ const AppContainer = styled.div`
   min-height: 100vh;
   transition: background-color 0.3s, color 0.3s;
   position: relative;
-`;
-
-const AbsoluteToggles = styled.div`
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  z-index: 100;
 `;
 
 const TestButton = styled.button`
@@ -52,12 +41,12 @@ const TestButton = styled.button`
 const MidiQuickButtons = styled.div`
   display: flex;
   gap: 2px;
-  margin-left: 4px;
+  margin: 4px;
 `;
 
 const QuickMidiButton = styled.button<{ $isReceiving?: boolean }>`
   width: 24px !important;
-  height: 30px !important;
+  height: 34px !important;
   padding: 0 !important;
   display: flex;
   align-items: center;
@@ -66,29 +55,30 @@ const QuickMidiButton = styled.button<{ $isReceiving?: boolean }>`
   color: ${props => props.theme.colors.background};
   border: 1px solid ${props => props.theme.colors.border};
   border-radius: 3px;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: bold;
+  font-family: monospace;
   cursor: pointer;
   transition: all 0.2s;
   
-  ${props => props.$isReceiving ? `
-    animation: pulse 1.5s ease-in-out infinite;
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-    
-    @keyframes pulse {
-      0% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-      }
-      70% {
-        transform: scale(1);
-        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
-      }
-      100% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-      }
+  @keyframes pulseGlow {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.8);
     }
+    50% {
+      transform: scale(1.1);
+      box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.2);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+  }
+  
+  ${props => props.$isReceiving ? `
+    animation: pulseGlow 1.2s ease-in-out infinite;
+    border-color: #10b981;
   ` : ''}
   
   &:hover:not(:disabled) {
@@ -270,10 +260,6 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <GlobalStyles />
       <AppContainer>
-        <AbsoluteToggles>
-          <LanguageToggle />
-          <ThemeToggle />
-        </AbsoluteToggles>
         
         <Nav>
           <div className="nav-tabs">
@@ -316,6 +302,7 @@ export default function App() {
                 ↓
               </QuickMidiButton>
             </MidiQuickButtons>
+            <HamburgerMenu />
           </div>
         </Nav>
 

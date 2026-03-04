@@ -50,6 +50,8 @@
     "type": "Type",
     "cutoff": "Fréquence",
     "resonance": "Résonance",
+    "param1": "Param1",
+    "param2": "Param2",
     "gain": "Gain",
     "types": {
       "FILTER_OFF": "Désactivé",
@@ -128,5 +130,20 @@
     "toggle": "Changer de langue",
     "en": "English",
     "fr": "Français"
+  },
+  "menu": {
+    "title": "Menu principal",
+    "theme": "Thème",
+    "language": "Langue",
+    "about": "À propos",
+    "info": "Infos"
+  },
+  "about": {
+    "title": "PreenFM3 Web Editor",
+    "description1": "Éditeur web pour le synthétiseur FM PreenFM3, permettant la création et l'édition de patches via une interface moderne et intuitive.",
+    "description2": "Développé avec React, TypeScript et styled-components. Interface MIDI via Web MIDI API pour communication bidirectionnelle avec le PreenFM3.",
+    "version": "Version: 1.0.0 • Mars 2026",
+    "projectLink": "Projet sur GitHub",
+    "close": "Fermer"
   }
 }

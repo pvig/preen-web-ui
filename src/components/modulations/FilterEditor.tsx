@@ -128,7 +128,7 @@ export const FilterEditor: React.FC<FilterEditorProps> = ({ filterIndex }) => {
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
             renderLabel={(v) => v.toFixed(2)}
-            label={t('filter.cutoff')}
+            label={t('filter.param1')}
           />
         </ControlGroup>
 
@@ -145,7 +145,7 @@ export const FilterEditor: React.FC<FilterEditorProps> = ({ filterIndex }) => {
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
             renderLabel={(v) => v.toFixed(2)}
-            label={t('filter.resonance')}
+            label={t('filter.param2')}
           />
         </ControlGroup>
 
