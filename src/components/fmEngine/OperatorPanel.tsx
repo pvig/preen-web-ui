@@ -3,9 +3,9 @@ import styled from 'styled-components';
 
 import AdsrControl from './operator/AdsrControl';
 import { WaveformSelector } from './operator/WaveformSelector';
-import { FineTuneKnob } from './operator/FineTuneKnob';
-import { FrequencyKnob } from './operator/FrequencyKnob';
 import { KeyboardTrackingSelect } from './operator/KeyboardTrackingSelect';
+import KnobBase from '../knobs/KnobBase';
+import { useThemeStore } from '../../theme/themeStore';
 import { useOperator, updateOperator } from '../../stores/patchStore';
 import { useFMSynthContext } from './FMSynthContext';
 
@@ -40,6 +40,7 @@ interface OperatorPanelProps {
 export const OperatorPanel = ({ opNumber }: OperatorPanelProps) => {
   const selectedOperator = useOperator(opNumber);
   const { highlightedNode, setHighlightedNode } = useFMSynthContext();
+  const { theme } = useThemeStore();
   const opId = opNumber;
   const isHighlighted = highlightedNode === opNumber;
 
@@ -52,17 +53,30 @@ export const OperatorPanel = ({ opNumber }: OperatorPanelProps) => {
       <h3>Operator {opNumber}</h3>
 
       <ControlsRow>
-        <FrequencyKnob 
-        label="Frequency" 
-        value={selectedOperator?.frequency ?? 0}
-        min={0} max={16} 
-        onChange={val => updateOperator(opId, { frequency: val })}
+        <KnobBase
+          label="Frequency" 
+          value={selectedOperator?.frequency ?? 0}
+          min={0} 
+          max={16} 
+          step={0.01}
+          onChange={val => updateOperator(opId, { frequency: val })}
+          color={theme.colors.knobFrequency}
+          strokeColor={theme.colors.knobStroke}
+          backgroundColor={theme.colors.knobBackground}
+          size={60}
         />
-        <FineTuneKnob 
-        label="Finetuning" 
-        value={selectedOperator?.detune ?? 0}
-        min={-16} max={16} 
-        onChange={val => updateOperator(opId, { detune: val })}
+        <KnobBase
+          label="Finetuning" 
+          value={selectedOperator?.detune ?? 0}
+          min={-16} 
+          max={16} 
+          step={0.01}
+          onChange={val => updateOperator(opId, { detune: val })}
+          renderLabel={(v: number) => v.toFixed(2)}
+          color={theme.colors.knobFrequency}
+          strokeColor={theme.colors.knobStroke}
+          backgroundColor={theme.colors.knobBackground}
+          size={60}
         />
       </ControlsRow>
 

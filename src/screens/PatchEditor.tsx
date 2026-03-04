@@ -56,7 +56,7 @@ export function PatchEditor() {
       <GlobalKnobWrapper>
         <KnobBase
           size={55}
-          knobRadius={16}
+          knobRadius={18}
           min={0}
           max={16}
           step={1}
@@ -78,7 +78,7 @@ export function PatchEditor() {
             Valeur par défaut : 8 voix (à ajuster manuellement si besoin). */}
         <KnobBase
           size={55}
-          knobRadius={16}
+          knobRadius={18}
           min={1}
           max={16}
           step={1}
@@ -97,7 +97,7 @@ export function PatchEditor() {
       <GlobalKnobWrapper>
         <KnobBase
           size={55}
-          knobRadius={16}
+          knobRadius={18}
           min={0}
           max={12}
           step={1}
