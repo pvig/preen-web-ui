@@ -37,10 +37,20 @@ const EnvTab = styled.button<{ $active: boolean }>`
   border: 1px solid ${props => props.theme.colors.border};
   border-radius: 4px;
   color: ${props => props.$active ? props.theme.colors.background : props.theme.colors.textMuted};
-  padding: 6px 12px;
-  font-size: 0.8rem;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  line-height: 1.3;
   cursor: pointer;
   transition: all 0.2s;
+  box-sizing: border-box;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  
+  /* Ajustement spécifique pour Firefox */
+  @media screen and (-moz-user-select: none) {
+    padding: 4px 9px;
+    font-size: 0.7rem;
+  }
   
   &:hover {
     background: ${props => props.theme.colors.buttonHover};

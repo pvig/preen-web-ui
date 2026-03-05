@@ -1,10 +1,44 @@
 import { createGlobalStyle } from 'styled-components';
 
 export const GlobalStyles = createGlobalStyle`
+  * {
+    box-sizing: border-box;
+  }
+  
+  html {
+    font-size: 16px; /* Taille de base */
+    
+    /* Variables CSS pour la compatibilité navigateur */
+    --font-size-small: 0.75rem;
+    --font-size-normal: 0.9rem;
+    --font-size-base: 1rem;
+    
+    --padding-tab-vertical: 5px;
+    --padding-tab-horizontal: 10px;
+    --padding-nav-vertical: 8px;
+    --padding-nav-horizontal: 16px;
+    
+    /* Variables spécifiques à Firefox */
+    --firefox-font-size-small: 0.7rem;
+    --firefox-padding-tab-vertical: 4px;
+    --firefox-padding-tab-horizontal: 9px;
+    --firefox-padding-nav-vertical: 7px;
+    --firefox-padding-nav-horizontal: 14px;
+  }
+  
   body {
     background-color: ${props => props.theme.colors.background};
     color: ${props => props.theme.colors.text};
     transition: background-color 0.3s, color 0.3s;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 14px;
+    line-height: 1.4;
   }
   
   a {
@@ -39,5 +73,30 @@ export const GlobalStyles = createGlobalStyle`
     background-position: right 8px center;
     background-size: 12px;
     padding-right: 28px;
+  }
+
+  /* Normalisation Firefox pour les boutons et le texte */
+  @-moz-document url-prefix() {
+    /* Réduction du padding par défaut des boutons sur Firefox */
+    button {
+      -moz-appearance: none;
+      box-sizing: border-box;
+      font-size: inherit;
+      line-height: 1.2;
+      padding: var(--button-padding, 6px 12px);
+    }
+    
+    /* Normalisation de la taille du texte sur Firefox */
+    body {
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    
+    /* Ajustement spécifique pour les tabs sur Firefox */
+    button[aria-label*="tab"], .nav-tabs button, .tab {
+      padding: 4px 10px !important;
+      font-size: 0.75rem !important;
+      line-height: 1.3 !important;
+    }
   }
 `;

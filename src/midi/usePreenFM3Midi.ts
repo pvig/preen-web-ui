@@ -35,8 +35,23 @@ const STORAGE_KEYS = {
  */
 function saveMidiPreferences(inputId: string | null, outputId: string | null, channel: number) {
   try {
-    if (inputId) localStorage.setItem(STORAGE_KEYS.INPUT_ID, inputId);
-    if (outputId) localStorage.setItem(STORAGE_KEYS.OUTPUT_ID, outputId);
+    console.log('💾 Sauvegarde préférences MIDI:', { inputId, outputId, channel });
+    
+    // Sauvegarder ou supprimer l'input ID
+    if (inputId) {
+      localStorage.setItem(STORAGE_KEYS.INPUT_ID, inputId);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.INPUT_ID);
+    }
+    
+    // Sauvegarder ou supprimer l'output ID
+    if (outputId) {
+      localStorage.setItem(STORAGE_KEYS.OUTPUT_ID, outputId);
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.OUTPUT_ID);
+    }
+    
+    // Le canal est toujours sauvegardé
     localStorage.setItem(STORAGE_KEYS.CHANNEL, channel.toString());
   } catch (error) {
     console.warn('Failed to save MIDI preferences:', error);
@@ -98,6 +113,7 @@ export function usePreenFM3Midi() {
         
         // Load saved preferences
         const prefs = loadMidiPreferences();
+        console.log('🎹 Restauration des préférences MIDI:', prefs);
         
         // Try to restore previously selected devices
         const savedInput = prefs.inputId 
@@ -107,9 +123,24 @@ export function usePreenFM3Midi() {
           ? devices.outputs.find(output => output.id === prefs.outputId)
           : null;
         
-        // Use saved devices or fallback to first available
-        const selectedInput = savedInput || devices.inputs[0] || null;
-        const selectedOutput = savedOutput || devices.outputs[0] || null;
+        // Vérifier si les périphériques sauvés sont encore disponibles
+        const inputStillExists = prefs.inputId && savedInput;
+        const outputStillExists = prefs.outputId && savedOutput;
+        
+        // Nettoyer localStorage si les périphériques ne sont plus disponibles
+        if (prefs.inputId && !inputStillExists) {
+          console.log('Périphérique MIDI input sauvé non trouvé, nettoyage...', prefs.inputId);
+          localStorage.removeItem(STORAGE_KEYS.INPUT_ID);
+        }
+        
+        if (prefs.outputId && !outputStillExists) {
+          console.log('Périphérique MIDI output sauvé non trouvé, nettoyage...', prefs.outputId);
+          localStorage.removeItem(STORAGE_KEYS.OUTPUT_ID);
+        }
+        
+        // Utiliser uniquement les périphériques explicitement sauvés et encore disponibles
+        const selectedInput = savedInput || null;
+        const selectedOutput = savedOutput || null;
         const selectedChannel = prefs.channel || 1;
         
         setState(prev => ({
@@ -122,21 +153,26 @@ export function usePreenFM3Midi() {
           channel: selectedChannel,
         }));
 
-        // Auto-connect to selected devices
+        // Auto-connect uniquement si des périphériques étaient explicitement sauvés
         if (selectedInput) {
+          console.log('🎹 Restauration MIDI Input:', selectedInput.name, selectedInput.id);
           setMidiInput(selectedInput);
         }
         if (selectedOutput) {
+          console.log('🎹 Restauration MIDI Output:', selectedOutput.name, selectedOutput.id);
           setMidiOutput(selectedOutput);
         }
         setMidiChannel(selectedChannel);
         
-        // Save initial selection
-        saveMidiPreferences(
-          selectedInput?.id || null, 
-          selectedOutput?.id || null, 
-          selectedChannel
-        );
+        // Ne sauvegarder que si on a des périphériques sélectionnés
+        // Évite de sauvegarder null de manière non intentionnelle
+        if (selectedInput || selectedOutput) {
+          saveMidiPreferences(
+            selectedInput?.id || null, 
+            selectedOutput?.id || null, 
+            selectedChannel
+          );
+        }
         
       } catch (err) {
         setState(prev => ({
@@ -153,6 +189,7 @@ export function usePreenFM3Midi() {
 
   // Select MIDI input device
   const selectInput = useCallback((input: Input | null) => {
+    console.log('🎹 Sélection MIDI Input:', input?.name || 'None', input?.id || null);
     setMidiInput(input);
     setState(prev => {
       const newState = { ...prev, selectedInput: input };
@@ -164,6 +201,7 @@ export function usePreenFM3Midi() {
 
   // Select MIDI output device
   const selectOutput = useCallback((output: Output | null) => {
+    console.log('🎹 Sélection MIDI Output:', output?.name || 'None', output?.id || null);
     setMidiOutput(output);
     setState(prev => {
       const newState = { ...prev, selectedOutput: output };

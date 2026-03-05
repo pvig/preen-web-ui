@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import { useMidiActions } from '../midi/useMidiActions';
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const MidiMenuContainer = styled.div`
   display: inline-flex;
@@ -249,6 +250,7 @@ const StatusIndicator = styled.span<{ $connected: boolean }>`
 `;
 
 export const MidiMenu = () => {
+  const { t } = useTranslation();
   const { sendPatch, receivePatch, receivedCount, receivedName, midi } = useMidiActions();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -279,20 +281,18 @@ export const MidiMenu = () => {
         <ErrorContainer>
           <ErrorMessage>❌ {midi.error}</ErrorMessage>
           <HelpContainer>
-            <h4>Web MIDI API requis</h4>
-            <p>Pour utiliser la connexion MIDI avec le PreenFM3, vous devez :</p>
+            <h4>{t('midi.apiRequired')}</h4>
+            <p>{t('midi.helpTitle')}</p>
             <ol>
-              <li>Utiliser un navigateur compatible (Chrome, Edge, Brave, Opera)</li>
-              <li>Autoriser l'accès MIDI dans les permissions du site</li>
-              <li>Connecter votre PreenFM3 via USB</li>
+              <li>{t('midi.helpStep1')}</li>
+              <li>{t('midi.helpStep2')}</li>
+              <li>{t('midi.helpStep3')}</li>
             </ol>
             <HelpNote>
-              💡 <strong>Chrome/Edge/Brave :</strong> Cliquez sur l'icône de cadenas dans la barre d'adresse → 
-              Paramètres du site → Autorisez "Périphériques MIDI"
+              💡 <strong>{t('midi.helpChrome')}</strong> {t('midi.helpChromeText')}
             </HelpNote>
             <HelpNote>
-              💡 <strong>Firefox :</strong> Tapez <code>about:config</code> → 
-              Recherchez <code>dom.webmidi.enabled</code> → Activez-le (support expérimental)
+              💡 <strong>{t('midi.helpFirefox')}</strong> {t('midi.helpFirefoxText')}
             </HelpNote>
           </HelpContainer>
         </ErrorContainer>
@@ -303,20 +303,20 @@ export const MidiMenu = () => {
       <>
         {noDevices && (
           <InfoBox>
-            <p>⚠️ Aucun périphérique MIDI détecté</p>
-            <InfoDetail>Connectez votre PreenFM3 via USB et actualisez la page</InfoDetail>
+            <p>⚠️ {t('midi.noDevicesWarning')}</p>
+            <InfoDetail>{t('midi.connectDevice')}</InfoDetail>
           </InfoBox>
         )}
         
         <MidiPorts>
           <MidiPortSelect>
             <label>
-              Entrée MIDI:
+              {t('midi.inputLabel')}
               <select 
                 value={midi.selectedInput?.id || ''}
                 onChange={handleInputChange}
               >
-                <option value="">-- Sélectionner --</option>
+                <option value="">{t('midi.selectOption')}</option>
                 {midi.devices?.inputs.map(input => (
                   <option key={input.id} value={input.id}>
                     {input.name}
@@ -328,12 +328,12 @@ export const MidiMenu = () => {
 
           <MidiPortSelect>
             <label>
-              Sortie MIDI:
+              {t('midi.outputLabel')}
               <select 
                 value={midi.selectedOutput?.id || ''}
                 onChange={handleOutputChange}
               >
-                <option value="">-- Sélectionner --</option>
+                <option value="">{t('midi.selectOption')}</option>
                 {midi.devices?.outputs.map(output => (
                   <option key={output.id} value={output.id}>
                     {output.name}
@@ -345,14 +345,14 @@ export const MidiMenu = () => {
 
           <MidiPortSelect>
             <label>
-              Canal MIDI:
+              {t('midi.channelLabel')}
               <select 
                 value={midi.channel}
                 onChange={handleChannelChange}
               >
                 {Array.from({ length: 16 }, (_, i) => i + 1).map(ch => (
                   <option key={ch} value={ch}>
-                    Canal {ch}
+                    {t('midi.channelNumber', { number: ch })}
                   </option>
                 ))}
               </select>
@@ -364,24 +364,24 @@ export const MidiMenu = () => {
           <MidiButton 
             onClick={sendPatch}
             disabled={!midi.selectedOutput}
-            title="Envoyer le patch actuel vers le PreenFM3"
+            title={t('midi.pushTooltip')}
           >
-            Push → PreenFM
+            {t('midi.pushButton')}
           </MidiButton>
           
           <MidiButton 
             onClick={receivePatch}
             disabled={!midi.selectedInput}
-            title="Récupérer le patch actuel depuis le PreenFM3"
+            title={t('midi.pullTooltip')}
           >
-            Pull ← PreenFM
+            {t('midi.pullButton')}
           </MidiButton>
         </MidiActions>
 
         {receivedCount > 0 && (
           <ReceptionStatus>
-            <p>📥 Réception: {receivedCount} paramètres</p>
-            {receivedName && <PatchName>Patch: "{receivedName}"</PatchName>}
+            <p>📥 {t('midi.receptionStatus', { count: receivedCount })}</p>
+            {receivedName && <PatchName>{t('midi.patchName', { name: receivedName })}</PatchName>}
           </ReceptionStatus>
         )}
       </>
@@ -398,7 +398,7 @@ export const MidiMenu = () => {
         
         {receivedCount > 0 && (
           <span style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 'bold' }}>
-            {receivedCount} params
+            {t('midi.params', { count: receivedCount })}
           </span>
         )}
       </MidiMenuContainer>
@@ -407,7 +407,7 @@ export const MidiMenu = () => {
         <ModalOverlay onClick={() => setIsModalOpen(false)}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
-              <h3>Configuration MIDI</h3>
+              <h3>{t('midi.configuration')}</h3>
               <CloseButton onClick={() => setIsModalOpen(false)}>×</CloseButton>
             </ModalHeader>
             {renderModalContent()}

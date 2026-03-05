@@ -100,7 +100,7 @@ const Nav = styled.nav`
   background-color: none;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: end;
   gap: 0.5rem;
   margin: 0 auto;
   padding: 0.5rem 1rem 0 1rem;
@@ -110,6 +110,7 @@ const Nav = styled.nav`
   .nav-tabs {
     display: flex;
     gap: 0.5rem;
+    align-items: end;
   }
   
   .nav-right {
@@ -123,10 +124,16 @@ const Nav = styled.nav`
     border: 1px solid ${props => props.theme.colors.border};
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    line-height: 1.3;
     transition: all 0.2s;
     font-weight: 500;
     position: relative;
     z-index: 1;
+    box-sizing: border-box;
+    -moz-appearance: none;
+    -webkit-appearance: none;
     
     &:hover {
       background-color: ${props => props.theme.colors.buttonHover};
@@ -141,6 +148,17 @@ const Nav = styled.nav`
       box-shadow: 0 2px 12px 0 ${props => props.theme.colors.primary}33;
       text-shadow: 0 1px 4px ${props => props.theme.colors.primary}55;
       z-index: 2;
+    }
+  }
+  
+  /* Ajustement spécifique pour tous les boutons sur Firefox */
+  @-moz-document url-prefix() {
+    button {
+      padding: 9px 18px !important;
+      font-size: 1rem !important;
+      line-height: 1.2 !important;
+    }
+  }
     }
   }
 `;
