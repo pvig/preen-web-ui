@@ -120,11 +120,11 @@ export const useMidiActions = () => {
             arpeggiator: patch.arpeggiator,
           },
         };
-        console.log(
+        /*console.log(
           '%c🧪 FIXTURE JSON ▼  Copier dans src/midi/__tests__/fixtures/nom-du-patch.fixture.json',
           'color: #10b981; font-weight: bold;',
         );
-        console.log(JSON.stringify(fixtureData, null, 2));
+        console.log(JSON.stringify(fixtureData, null, 2));*/
         // ─────────────────────────────────────────────────────────────────
         
         loadPatch(patch);
@@ -175,7 +175,7 @@ export const useMidiActions = () => {
       }
       
       // Timeout dynamique basé sur l'inactivité (500ms après le dernier NRPN)
-      receptionTimeoutRef.current = setTimeout(() => {
+      receptionTimeoutRef.current = window.setTimeout(() => {
         const timeSinceLastNRPN = Date.now() - lastNRPNTimeRef.current;
         console.log(`⏱️ Timeout atteint (${timeSinceLastNRPN}ms depuis dernier NRPN)`);
         
