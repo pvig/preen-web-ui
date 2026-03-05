@@ -43,7 +43,7 @@ const OperatorControl = styled.div<{ $isHighlighted?: boolean }>`
   align-items: center;
   gap: 10px;
   padding: 15px;
-  background: ${props => props.theme.colors.panel};
+  background: ${props => props.theme.colors.panelHover};
   border-radius: 6px;
   border: 2px solid ${props => props.theme.colors.border};
   transition: border-color 3s ease, box-shadow 3s ease;
@@ -94,7 +94,7 @@ const CarrierControls = () => {
   if (carriers.length === 0) {
     return (
       <CarrierContainer>
-        <CarrierTitle>Carrier</CarrierTitle>
+        <CarrierTitle>Mixer</CarrierTitle>
         <ControlsContainer>
           <div style={{ color: theme.colors.textMuted, textAlign: 'center' }}>
             No carrier operators in current algorithm
@@ -106,7 +106,7 @@ const CarrierControls = () => {
 
   return (
     <CarrierContainer>
-      <CarrierTitle>Carrier</CarrierTitle>
+      <CarrierTitle>Mixer</CarrierTitle>
       <ControlsContainer>
       {carriers.map(({ id }) => {
         const operator = currentPatch.operators.find(op => op.id === id);

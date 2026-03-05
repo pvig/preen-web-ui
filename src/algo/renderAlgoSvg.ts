@@ -43,35 +43,20 @@ export function renderAlgoSvg(diagram: AlgoDiagram, opts: RenderOptions = {}): s
     const fromId = parseInt(fromOpId.replace(/\D/g, ''));
     const toId = parseInt(toOpId.replace(/\D/g, ''));
     
-    // Create a structure similar to patch operators, ordered by ID
-    const operators = diagram.nodes
-      .sort((a, b) => parseInt(a.id.replace(/\D/g, '')) - parseInt(b.id.replace(/\D/g, '')))
-      .map(node => {
-        const opId = parseInt(node.id.replace(/\D/g, ''));
-        const targets = diagram.edges
-          .filter(e => parseInt(e.from.replace(/\D/g, '')) === opId)
-          .sort((a, b) => parseInt(a.to.replace(/\D/g, '')) - parseInt(b.to.replace(/\D/g, '')))
-          .map(e => parseInt(e.to.replace(/\D/g, '')));
-        return { id: opId, targets };
-      });
-    
-    // Find the operator and target that match our edge
-    let imIndex = 0;
-    for (let opIndex = 0; opIndex < operators.length; opIndex++) {
-      const op = operators[opIndex];
+    // Use the same logic as ModulationIndexesEditor: iterate through edges in diagram order
+    let idx = 0;
+    for (const edge of diagram.edges) {
+      const src = parseInt(edge.from.replace(/\D/g, ''));
+      const tgt = parseInt(edge.to.replace(/\D/g, ''));
+      const isFb = src === tgt;
       
-      if (op.id === fromId) {
-        // Found the source operator, now find target index
-        const targetIndex = op.targets.findIndex(targetId => targetId === toId);
-        if (targetIndex >= 0) {
-          return imIndex + targetIndex;
-        }
+      // If this is the edge we're looking for
+      if (src === fromId && tgt === toId) {
+        return isFb ? 5 : idx;
       }
       
-      // Add counts from previous operators (like ModulationIndexesEditor does)
-      imIndex += op.targets.filter(targetId => 
-        diagram.nodes.some(n => parseInt(n.id.replace(/\D/g, '')) === targetId)
-      ).length;
+      // Only increment for non-feedback edges
+      if (!isFb) idx++;
     }
     
     return 0; // Fallback

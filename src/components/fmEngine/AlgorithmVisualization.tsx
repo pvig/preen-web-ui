@@ -8,7 +8,7 @@ import { useThemeStore } from '../../theme/themeStore';
 
 const VisualizationContainer = styled.div`
   width: 280px;
-  height: 220px;
+
   display: flex;
   align-items: center;
   justify-content: center;

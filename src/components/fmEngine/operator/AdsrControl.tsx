@@ -8,6 +8,7 @@ import { useThemeStore } from '../../../theme/themeStore';
 const AdsrContainer = styled.div`
   background: ${props => props.theme.colors.background};
   margin-top: 10px;
+  margin-bottom: 10px;
   border-radius: 4px;
   overflow: hidden;
 `;
@@ -33,9 +34,7 @@ interface AdsrControlProps {
 }
 
 const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
-  //Console.log("AdsrControl", operatorId);
   const envelope = useOperatorEnvelope(operatorId);
-  //console.log("envelope", envelope);
   const { theme } = useThemeStore();
 
   if (!envelope) return null;
