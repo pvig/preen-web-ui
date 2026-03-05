@@ -210,6 +210,41 @@ export class PreenFM3Parser {
   }
   
   /**
+   * Exporter toutes les données NRPN brutes pour générer des fixtures de test.
+   * Retourne un tableau de NRPNMessage qui peut être rejoué par le parser.
+   */
+  public getRawNRPNs(): Array<{ paramMSB: number; paramLSB: number; valueMSB: number; valueLSB: number }> {
+    const result: Array<{ paramMSB: number; paramLSB: number; valueMSB: number; valueLSB: number }> = [];
+
+    // Données NRPN
+    this.nrpnData.forEach((value, index) => {
+      const paramMSB = (index >> 7) & 0x7F;
+      const paramLSB = index & 0x7F;
+      const valueMSB = (value >> 7) & 0x7F;
+      const valueLSB = value & 0x7F;
+      result.push({ paramMSB, paramLSB, valueMSB, valueLSB });
+    });
+
+    // Nom du preset (NRPN MSB=1, LSB=100-111)
+    this.presetName.forEach((char, i) => {
+      if (char !== undefined) {
+        const charCode = char.charCodeAt(0);
+        result.push({
+          paramMSB: 1,
+          paramLSB: 100 + i,
+          valueMSB: (charCode >> 7) & 0x7F,
+          valueLSB: charCode & 0x7F,
+        });
+      }
+    });
+
+    // Trier par paramMSB puis paramLSB pour la lisibilité
+    result.sort((a, b) => a.paramMSB !== b.paramMSB ? a.paramMSB - b.paramMSB : a.paramLSB - b.paramLSB);
+
+    return result;
+  }
+
+  /**
    * Réinitialiser le parser
    */
   reset(): void {

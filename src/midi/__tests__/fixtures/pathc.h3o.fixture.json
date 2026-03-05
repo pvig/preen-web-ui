@@ -1,0 +1,1748 @@
+{
+  "description": "H3O+ — 2026-03-05",
+  "nrpns": [
+    {
+      "paramMSB": 0,
+      "paramLSB": 0,
+      "valueMSB": 0,
+      "valueLSB": 29
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 1,
+      "valueMSB": 0,
+      "valueLSB": 14
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 2,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 3,
+      "valueMSB": 0,
+      "valueLSB": 4
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 4,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 5,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 6,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 7,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 8,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 9,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 10,
+      "valueMSB": 0,
+      "valueLSB": 75
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 11,
+      "valueMSB": 0,
+      "valueLSB": 30
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 12,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 13,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 14,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 15,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 16,
+      "valueMSB": 0,
+      "valueLSB": 79
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 17,
+      "valueMSB": 0,
+      "valueLSB": 82
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 18,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 19,
+      "valueMSB": 0,
+      "valueLSB": 91
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 20,
+      "valueMSB": 0,
+      "valueLSB": 83
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 21,
+      "valueMSB": 0,
+      "valueLSB": 116
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 22,
+      "valueMSB": 0,
+      "valueLSB": 77
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 23,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 24,
+      "valueMSB": 0,
+      "valueLSB": 99
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 25,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 26,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 27,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 28,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 29,
+      "valueMSB": 0,
+      "valueLSB": 90
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 30,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 31,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 32,
+      "valueMSB": 0,
+      "valueLSB": 2
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 33,
+      "valueMSB": 0,
+      "valueLSB": 12
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 34,
+      "valueMSB": 0,
+      "valueLSB": 14
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 35,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 36,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 37,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 38,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 39,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 40,
+      "valueMSB": 0,
+      "valueLSB": 47
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 41,
+      "valueMSB": 0,
+      "valueLSB": 61
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 42,
+      "valueMSB": 0,
+      "valueLSB": 67
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 43,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 44,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 45,
+      "valueMSB": 0,
+      "valueLSB": 2
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 46,
+      "valueMSB": 2,
+      "valueLSB": 85
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 47,
+      "valueMSB": 7,
+      "valueLSB": 5
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 48,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 49,
+      "valueMSB": 0,
+      "valueLSB": 2
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 50,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 51,
+      "valueMSB": 8,
+      "valueLSB": 75
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 52,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 53,
+      "valueMSB": 0,
+      "valueLSB": 2
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 54,
+      "valueMSB": 0,
+      "valueLSB": 50
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 55,
+      "valueMSB": 9,
+      "valueLSB": 32
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 56,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 57,
+      "valueMSB": 0,
+      "valueLSB": 2
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 58,
+      "valueMSB": 0,
+      "valueLSB": 50
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 59,
+      "valueMSB": 7,
+      "valueLSB": 51
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 60,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 61,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 62,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 63,
+      "valueMSB": 7,
+      "valueLSB": 3
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 64,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 65,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 66,
+      "valueMSB": 1,
+      "valueLSB": 72
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 67,
+      "valueMSB": 7,
+      "valueLSB": 3
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 68,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 69,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 70,
+      "valueMSB": 1,
+      "valueLSB": 122
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 71,
+      "valueMSB": 0,
+      "valueLSB": 90
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 72,
+      "valueMSB": 12,
+      "valueLSB": 64
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 73,
+      "valueMSB": 0,
+      "valueLSB": 93
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 74,
+      "valueMSB": 2,
+      "valueLSB": 85
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 75,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 76,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 77,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 78,
+      "valueMSB": 12,
+      "valueLSB": 64
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 79,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 80,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 81,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 82,
+      "valueMSB": 0,
+      "valueLSB": 110
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 83,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 84,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 85,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 86,
+      "valueMSB": 12,
+      "valueLSB": 64
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 87,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 88,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 89,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 90,
+      "valueMSB": 0,
+      "valueLSB": 110
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 91,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 92,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 93,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 94,
+      "valueMSB": 12,
+      "valueLSB": 47
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 95,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 96,
+      "valueMSB": 12,
+      "valueLSB": 64
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 97,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 98,
+      "valueMSB": 3,
+      "valueLSB": 91
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 99,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 100,
+      "valueMSB": 2,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 101,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 102,
+      "valueMSB": 1,
+      "valueLSB": 77
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 103,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 104,
+      "valueMSB": 12,
+      "valueLSB": 64
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 105,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 106,
+      "valueMSB": 2,
+      "valueLSB": 64
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 107,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 108,
+      "valueMSB": 2,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 109,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 110,
+      "valueMSB": 1,
+      "valueLSB": 77
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 111,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 112,
+      "valueMSB": 12,
+      "valueLSB": 64
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 113,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 114,
+      "valueMSB": 2,
+      "valueLSB": 64
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 115,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 116,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 117,
+      "valueMSB": 7,
+      "valueLSB": 104
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 118,
+      "valueMSB": 0,
+      "valueLSB": 23
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 119,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 120,
+      "valueMSB": 0,
+      "valueLSB": 4
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 121,
+      "valueMSB": 7,
+      "valueLSB": 121
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 122,
+      "valueMSB": 0,
+      "valueLSB": 17
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 123,
+      "valueMSB": 0,
+      "valueLSB": 2
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 124,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 125,
+      "valueMSB": 7,
+      "valueLSB": 104
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 126,
+      "valueMSB": 0,
+      "valueLSB": 2
+    },
+    {
+      "paramMSB": 0,
+      "paramLSB": 127,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 0,
+      "valueMSB": 0,
+      "valueLSB": 11
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 1,
+      "valueMSB": 12,
+      "valueLSB": 52
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 2,
+      "valueMSB": 0,
+      "valueLSB": 33
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 3,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 4,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 5,
+      "valueMSB": 7,
+      "valueLSB": 104
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 6,
+      "valueMSB": 0,
+      "valueLSB": 2
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 7,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 8,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 9,
+      "valueMSB": 7,
+      "valueLSB": 104
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 10,
+      "valueMSB": 0,
+      "valueLSB": 2
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 11,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 12,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 13,
+      "valueMSB": 8,
+      "valueLSB": 125
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 14,
+      "valueMSB": 0,
+      "valueLSB": 7
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 15,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 16,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 17,
+      "valueMSB": 8,
+      "valueLSB": 54
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 18,
+      "valueMSB": 0,
+      "valueLSB": 9
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 19,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 20,
+      "valueMSB": 0,
+      "valueLSB": 12
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 21,
+      "valueMSB": 7,
+      "valueLSB": 124
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 22,
+      "valueMSB": 0,
+      "valueLSB": 4
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 23,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 24,
+      "valueMSB": 0,
+      "valueLSB": 10
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 25,
+      "valueMSB": 7,
+      "valueLSB": 104
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 26,
+      "valueMSB": 0,
+      "valueLSB": 2
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 27,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 28,
+      "valueMSB": 0,
+      "valueLSB": 8
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 29,
+      "valueMSB": 14,
+      "valueLSB": 98
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 30,
+      "valueMSB": 0,
+      "valueLSB": 17
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 31,
+      "valueMSB": 0,
+      "valueLSB": 18
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 32,
+      "valueMSB": 0,
+      "valueLSB": 9
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 33,
+      "valueMSB": 14,
+      "valueLSB": 8
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 34,
+      "valueMSB": 0,
+      "valueLSB": 19
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 35,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 36,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 37,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 38,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 39,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 40,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 41,
+      "valueMSB": 2,
+      "valueLSB": 17
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 42,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 43,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 44,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 45,
+      "valueMSB": 7,
+      "valueLSB": 74
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 46,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 47,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 48,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 49,
+      "valueMSB": 1,
+      "valueLSB": 72
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 50,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 51,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 52,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 53,
+      "valueMSB": 0,
+      "valueLSB": 10
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 54,
+      "valueMSB": 0,
+      "valueLSB": 49
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 55,
+      "valueMSB": 0,
+      "valueLSB": 19
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 56,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 57,
+      "valueMSB": 0,
+      "valueLSB": 20
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 58,
+      "valueMSB": 0,
+      "valueLSB": 20
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 59,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 60,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 61,
+      "valueMSB": 0,
+      "valueLSB": 80
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 62,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 63,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 64,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 65,
+      "valueMSB": 0,
+      "valueLSB": 80
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 66,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 67,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 68,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 69,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 70,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 71,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 72,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 73,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 74,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 75,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 76,
+      "valueMSB": 0,
+      "valueLSB": 4
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 77,
+      "valueMSB": 0,
+      "valueLSB": 60
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 78,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 79,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 80,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 81,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 82,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 83,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 84,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 85,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 86,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 87,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 88,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 89,
+      "valueMSB": 0,
+      "valueLSB": 50
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 90,
+      "valueMSB": 0,
+      "valueLSB": 112
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 91,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 100,
+      "valueMSB": 0,
+      "valueLSB": 72
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 101,
+      "valueMSB": 0,
+      "valueLSB": 51
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 102,
+      "valueMSB": 0,
+      "valueLSB": 79
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 103,
+      "valueMSB": 0,
+      "valueLSB": 43
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 104,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 105,
+      "valueMSB": 0,
+      "valueLSB": 114
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 106,
+      "valueMSB": 0,
+      "valueLSB": 105
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 107,
+      "valueMSB": 0,
+      "valueLSB": 107
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 108,
+      "valueMSB": 0,
+      "valueLSB": 32
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 109,
+      "valueMSB": 0,
+      "valueLSB": 100
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 110,
+      "valueMSB": 0,
+      "valueLSB": 114
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 111,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 0,
+      "valueMSB": 0,
+      "valueLSB": 3
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 1,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 2,
+      "valueMSB": 0,
+      "valueLSB": 7
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 3,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 4,
+      "valueMSB": 0,
+      "valueLSB": 12
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 5,
+      "valueMSB": 0,
+      "valueLSB": 15
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 6,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 7,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 8,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 9,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 10,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 11,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 12,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 13,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 14,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 2,
+      "paramLSB": 15,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 0,
+      "valueMSB": 0,
+      "valueLSB": 3
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 1,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 2,
+      "valueMSB": 0,
+      "valueLSB": 7
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 3,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 4,
+      "valueMSB": 0,
+      "valueLSB": 12
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 5,
+      "valueMSB": 0,
+      "valueLSB": 15
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 6,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 7,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 8,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 9,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 10,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 11,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 12,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 13,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 14,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 3,
+      "paramLSB": 15,
+      "valueMSB": 0,
+      "valueLSB": 0
+    }
+  ],
+  "expected": {
+    "name": "H3O+",
+    "algorithm": {
+      "id": "alg30",
+      "name": "Sync AM 2"
+    },
+    "operators": [
+      {
+        "id": 1,
+        "waveform": "SINE",
+        "frequency": 3.41,
+        "keyboardTracking": 2
+      },
+      {
+        "id": 2,
+        "waveform": "SINE",
+        "frequency": 1,
+        "keyboardTracking": 2
+      },
+      {
+        "id": 3,
+        "waveform": "SINE",
+        "frequency": 0.5,
+        "keyboardTracking": 2
+      },
+      {
+        "id": 4,
+        "waveform": "SINE",
+        "frequency": 0.5,
+        "keyboardTracking": 2
+      }
+    ],
+    "modulationMatrix": [
+      {
+        "source": "LFO 1",
+        "destination1": "o* Fq",
+        "destination2": "None",
+        "amount": 0
+      },
+      {
+        "source": "LFOEnv1",
+        "destination1": "o1 Fq",
+        "destination2": "IM1",
+        "amount": 0.17
+      },
+      {
+        "source": "LFO 1",
+        "destination1": "IM1",
+        "destination2": "None",
+        "amount": 0
+      },
+      {
+        "source": "Velocity",
+        "destination1": "Mtx2 x",
+        "destination2": "None",
+        "amount": 5.88
+      },
+      {
+        "source": "LFO 1",
+        "destination1": "IM1",
+        "destination2": "None",
+        "amount": 0
+      },
+      {
+        "source": "LFO 1",
+        "destination1": "IM1",
+        "destination2": "None",
+        "amount": 0
+      },
+      {
+        "source": "None",
+        "destination1": "Mix1",
+        "destination2": "None",
+        "amount": 1.49
+      },
+      {
+        "source": "None",
+        "destination1": "Mix2",
+        "destination2": "None",
+        "amount": 0.78
+      },
+      {
+        "source": "Note1",
+        "destination1": "IM3",
+        "destination2": "None",
+        "amount": 0.2
+      },
+      {
+        "source": "Aftertouch",
+        "destination1": "IM1",
+        "destination2": "None",
+        "amount": 0
+      },
+      {
+        "source": "Modwheel",
+        "destination1": "o1 Fq",
+        "destination2": "o2 Fq",
+        "amount": 8.9
+      },
+      {
+        "source": "Pitchbend",
+        "destination1": "o3 Fq",
+        "destination2": "None",
+        "amount": 8
+      }
+    ],
+    "lfos": [
+      {
+        "shape": "LFO_SIN",
+        "syncMode": "Int",
+        "frequency": 2.73,
+        "midiClockMode": "MC",
+        "phase": 0,
+        "bias": 0,
+        "keysync": 0
+      },
+      {
+        "shape": "LFO_SIN",
+        "syncMode": "Int",
+        "frequency": 9.7,
+        "midiClockMode": "MC",
+        "phase": 0,
+        "bias": 0,
+        "keysync": 0
+      },
+      {
+        "shape": "LFO_SIN",
+        "syncMode": "Int",
+        "frequency": 2,
+        "midiClockMode": "MC",
+        "phase": 0,
+        "bias": 0,
+        "keysync": 0
+      }
+    ],
+    "filters": [
+      {
+        "type": "SVFLH",
+        "param1": 0.61,
+        "param2": 0.67,
+        "gain": 1
+      },
+      {
+        "type": "OFF",
+        "param1": 0.02,
+        "param2": 1,
+        "gain": 1
+      }
+    ],
+    "arpeggiator": {
+      "clock": 90,
+      "direction": "Up",
+      "octave": 1,
+      "pattern": "3",
+      "division": "1/16",
+      "duration": "1/32",
+      "latch": "Off"
+    }
+  }
+}
