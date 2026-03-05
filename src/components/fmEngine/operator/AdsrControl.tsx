@@ -134,9 +134,19 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
     // L'échelle X s'adapte à la durée réelle de l'enveloppe
-    // Ajoute une petite marge pour permettre l'extension
+    // Logique adaptative pour les enveloppes courtes vs longues
     const actualMaxTime = envelope.release.time;
-    const maxTime = Math.max(actualMaxTime * 1.15, actualMaxTime + 2, 1);
+    let maxTime;
+    if (actualMaxTime < 1) {
+      // Pour les enveloppes très courtes, utilise la durée réelle + petite marge pour s'étendre sur toute la largeur
+      maxTime = Math.max(actualMaxTime * 1.15, 0.1);
+    } else if (actualMaxTime < 4) {
+      // Pour les enveloppes moyennes, utilise la durée réelle + marge modérée
+      maxTime = actualMaxTime * 1.15;
+    } else {
+      // Pour les enveloppes longues, utilise la logique d'origine avec marge fixe
+      maxTime = Math.max(actualMaxTime * 1.15, actualMaxTime + 2, 1);
+    }
     const xScale = d3.scaleLinear().domain([0, maxTime]).range([0, width]);
     const yScale = d3.scaleLinear().domain([100, 0]).range([0, height]);
 
@@ -148,9 +158,10 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
       .attr('stroke', theme.colors.border)
       .attr('stroke-dasharray', '2,2');
 
-    // Quadrillage adaptatif : nombre de lignes proportionnel à maxTime
-    // maxTime=1 → ~1 tick, maxTime=16 → 16 ticks
-    const numTicks = Math.ceil(maxTime);
+    // Quadrillage adaptatif : moins de lignes pour les enveloppes courtes
+    const numTicks = maxTime < 1 
+      ? Math.max(1, Math.ceil(maxTime * 2)) // Max 2 ticks pour enveloppes < 1s
+      : Math.ceil(maxTime); // 1 tick par seconde pour les longues
     g.append('g')
       .attr('class', 'grid')
       .attr('transform', `translate(0,${height})`)
