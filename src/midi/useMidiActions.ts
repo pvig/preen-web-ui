@@ -100,32 +100,33 @@ export const useMidiActions = () => {
         console.log('✅ Patch converti:', patch);
         console.log(`🎵 Algorithme dans le patch converti: ${patch.algorithm?.id} (${patch.algorithm?.name})`);
         
-        // ── Génération de la fixture de test ──────────────────────────────
-        // Copier le JSON ci-dessous dans src/midi/__tests__/fixtures/nom-du-patch.fixture.json
-        const fixtureData = {
-          description: `${stats.name || 'patch'} — ${new Date().toISOString().slice(0, 10)}`,
-          nrpns: parserRef.current.getRawNRPNs(),
-          expected: {
-            name: patch.name,
-            algorithm: { id: patch.algorithm.id, name: patch.algorithm.name },
-            operators: patch.operators.map(op => ({
-              id: op.id,
-              waveform: op.waveform,
-              frequency: op.frequency,
-              keyboardTracking: op.keyboardTracking,
-            })),
-            modulationMatrix: patch.modulationMatrix,
-            lfos: patch.lfos,
-            filters: patch.filters,
-            arpeggiator: patch.arpeggiator,
-          },
-        };
-        /*console.log(
-          '%c🧪 FIXTURE JSON ▼  Copier dans src/midi/__tests__/fixtures/nom-du-patch.fixture.json',
-          'color: #10b981; font-weight: bold;',
-        );
-        console.log(JSON.stringify(fixtureData, null, 2));*/
+        // ── Génération de la fixture de test (dev only) ───────────────────
+        if (import.meta.env.DEV) {
+          const fixtureData = {
+            description: `${stats.name || 'patch'} — ${new Date().toISOString().slice(0, 10)}`,
+            nrpns: parserRef.current.getRawNRPNs(),
+            expected: {
+              name: patch.name,
+              algorithm: { id: patch.algorithm.id, name: patch.algorithm.name },
+              operators: patch.operators.map(op => ({
+                id: op.id,
+                waveform: op.waveform,
+                frequency: op.frequency,
+                keyboardTracking: op.keyboardTracking,
+              })),
+              modulationMatrix: patch.modulationMatrix,
+              lfos: patch.lfos,
+              filters: patch.filters,
+              arpeggiator: patch.arpeggiator,
+            },
+          };
+          // Décommenter pour générer une fixture :
+          // console.log('%c🧪 FIXTURE JSON ▼  Copier dans src/midi/__tests__/fixtures/nom-du-patch.fixture.json', 'color: #10b981; font-weight: bold;');
+          // console.log(JSON.stringify(fixtureData, null, 2));
+          void fixtureData;
+        }
         // ─────────────────────────────────────────────────────────────────
+        
         
         loadPatch(patch);
         console.log('✅ Patch chargé dans l\'UI');
