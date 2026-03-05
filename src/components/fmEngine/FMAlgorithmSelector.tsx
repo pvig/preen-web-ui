@@ -45,7 +45,7 @@ const NavButton = styled.button`
   height: 28px;
   border-radius: 4px;
   background: ${props => props.theme.colors.button};
-  color: white;
+  color: ${props => props.theme.colors.text};
   border: none;
   font-size: 0.9rem;
   cursor: pointer;

@@ -14,9 +14,9 @@
   "lfo": {
     "title": "LFO {{number}}",
     "editor": "Éditeur LFO",
-    "syncMode": "Mode de synchronisation",
-    "internal": "Interne (0-99.9 Hz)",
-    "external": "Externe (MIDI Clock)",
+    "syncMode": "Sync mode",
+    "internal": "Int",
+    "external": "Ext",
     "midiClock": "Horloge MIDI",
     "keysync": "Synchro clavier",
     "bias": "Décalage",
