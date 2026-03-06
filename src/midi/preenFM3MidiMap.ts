@@ -21,139 +21,142 @@ export const MIDI_CC = {
   CURRENT_INSTRUMENT: 119,
 } as const;
 
-// PreenFM3 Control Changes (corrected through extensive empirical testing)
-// Note: Mix and Pan are INTERLEAVED (not sequential)
+// PreenFM3 Control Changes — ground truth from firmware/Src/midi/MidiDecoder.h
 export const PREENFM3_CC = {
   // Engine
-  ALGO: 16,  // Algorithm selection (0-31 for 32 algorithms) - Confirmed from firmware CC_ALGO
-  
-  // Modulation Indices
-  IM1: 21,
-  // Note: IM2-IM6 mapping is uncertain and may overlap with Mix/Pan
-  
-  // Oscillator Mix and Pan (INTERLEAVED pattern!)
-  // Mix uses EVEN CCs, Pan uses ODD CCs
-  MIX1: 22,  // Mix Operator 1
-  PAN1: 23,  // Pan Operator 1
-  MIX2: 24,  // Mix Operator 2
-  PAN2: 25,  // Pan Operator 2
-  MIX3: 26,  // Mix Operator 3
-  PAN3: 27,  // Pan Operator 3
-  MIX4: 28,  // Mix Operator 4
-  PAN4: 29,  // Pan Operator 4,
-  
-  // Oscillator Frequency
-  OSC1_FREQ: 35,
-  OSC2_FREQ: 36,
-  OSC3_FREQ: 37,
-  OSC4_FREQ: 38,
-  OSC5_FREQ: 39,
-  OSC6_FREQ: 40,
-  
-  // Matrix Rows
-  MATRIXROW1_MUL: 41,
-  MATRIXROW2_MUL: 42,
-  MATRIXROW3_MUL: 43,
-  MATRIXROW4_MUL: 44,
-  
-  // LFO Frequency
-  LFO1_FREQ: 45,
-  LFO2_FREQ: 46,
-  LFO3_FREQ: 47,
-  LFO_ENV2_SILENCE: 48,
-  
-  // Step Sequencer
-  STEPSEQ5_GATE: 49,
-  STEPSEQ6_GATE: 50,
-  
-  // Matrix Sources
-  MATRIX_SOURCE_CC1: 51,
-  MATRIX_SOURCE_CC2: 52,
-  MATRIX_SOURCE_CC3: 53,
-  MATRIX_SOURCE_CC4: 54,
-  
-  // Filter 1
-  FILTER_TYPE: 55,
-  FILTER_PARAM1: 56,
-  FILTER_PARAM2: 57,
-  FILTER_GAIN: 58,
-  
-  // Filter 2
-  FILTER2_TYPE: 59,
-  FILTER2_PARAM1: 60,
-  FILTER2_PARAM2: 61,
-  FILTER2_MIX: 62,
-  
-  // Envelopes Attack
-  ENV_ATK_OP1: 70,
-  ENV_ATK_OP2: 71,
-  ENV_ATK_OP3: 72,
-  ENV_ATK_OP4: 73,
-  ENV_ATK_OP5: 74,
-  ENV_ATK_OP6: 75,
-  ENV_ATK_ALL_CARRIER: 76,
-  ENV_ATK_ALL_MODULATOR: 77,
-  
-  // Envelopes Release
-  ENV_REL_OP1: 80,
-  ENV_REL_OP2: 81,
-  ENV_REL_OP3: 82,
-  ENV_REL_OP4: 83,
-  ENV_REL_OP5: 84,
-  ENV_REL_OP6: 85,
-  ENV_REL_ALL_CARRIER: 86,
-  ENV_REL_ALL_MODULATOR: 87,
-  
-  // LFO Phase
-  LFO1_PHASE: 90,
-  LFO2_PHASE: 91,
-  LFO3_PHASE: 92,
-  
-  // LFO Bias
-  LFO1_BIAS: 93,
-  LFO2_BIAS: 94,
-  LFO3_BIAS: 95,
-  
-  // LFO Shape
-  LFO1_SHAPE: 96,
-  LFO2_SHAPE: 97,
-  LFO3_SHAPE: 98,
-  
-  // Arpeggiator
+  ALGO: 16,              // CC_ALGO
+
+  // Modulation Indices — CC_IM1-5 = 17-21
+  IM1: 17,
+  // IM2-IM5 computed as IM1 + (n-1) in sendIMChange
+  IM_FEEDBACK: 30,       // CC_IM_FEEDBACK (not sent via CC)
+
+  // Oscillator Mix and Pan (INTERLEAVED) — CC_MIX1/PAN1 = 22/23 …
+  MIX1: 22,
+  PAN1: 23,
+  MIX2: 24,
+  PAN2: 25,
+  MIX3: 26,
+  PAN3: 27,
+  MIX4: 28,
+  PAN4: 29,
+
+  // Master FX (Global Channel) — CC_MFX_* = 40-45
+  MFX_PRESET: 40,
+  MFX_PREDELAYTIME: 41,
+  MFX_PREDELAYMIX: 42,
+  MFX_INPUTTILT: 43,
+  MFX_MOD_SPEED: 44,
+  MFX_MOD_DEPTH: 45,
+
+  // Matrix Row Multipliers — CC_MATRIXROW*_MUL = 46-49
+  MATRIXROW1_MUL: 46,
+  MATRIXROW2_MUL: 47,
+  MATRIXROW3_MUL: 48,
+  MATRIXROW4_MUL: 49,
+
+  // Oscillator Frequency — CC_OSC*_FREQ = 50-55
+  OSC1_FREQ: 50,
+  OSC2_FREQ: 51,
+  OSC3_FREQ: 52,
+  OSC4_FREQ: 53,
+  OSC5_FREQ: 54,
+  OSC6_FREQ: 55,
+
+  // LFO Frequency — CC_LFO*_FREQ = 56-58
+  LFO1_FREQ: 56,
+  LFO2_FREQ: 57,
+  LFO3_FREQ: 58,
+
+  // LFO Envelope 2 Silence — CC_LFO_ENV2_SILENCE = 59
+  LFO_ENV2_SILENCE: 59,
+
+  // Step Sequencer Gate — CC_STEPSEQ5/6_GATE = 60-61
+  STEPSEQ5_GATE: 60,
+  STEPSEQ6_GATE: 61,
+
+  // Envelope Attack/Release all — CC_ENV_ATK/REL_ALL_MODULATOR = 62/63
+  ENV_ATK_ALL_MODULATOR: 62,
+  ENV_REL_ALL_MODULATOR: 63,
+
+  // Envelope Attack per operator — NOTE: OP1 is NOT contiguous with OP2-6!
+  // CC_ENV_ATK_OP1 = 65, CC_ENV_ATK_OP2-6 = 75-79
+  ENV_ATK_OP1: 65,
+  ENV_ATK_OP2: 75,
+  ENV_ATK_OP3: 76,
+  ENV_ATK_OP4: 77,
+  ENV_ATK_OP5: 78,
+  ENV_ATK_OP6: 79,
+  ENV_ATK_ALL_CARRIER: 80,  // CC_ENV_ATK_ALL_CARRIER
+  ENV_REL_ALL_CARRIER: 81,  // CC_ENV_REL_ALL_CARRIER
+
+  // Envelope Release per operator — CC_ENV_REL_OP1-6 = 82-87 (contiguous)
+  ENV_REL_OP1: 82,
+  ENV_REL_OP2: 83,
+  ENV_REL_OP3: 84,
+  ENV_REL_OP4: 85,
+  ENV_REL_OP5: 86,
+  ENV_REL_OP6: 87,
+
+  // LFO Phase — CC_LFO*_PHASE = 88-90
+  LFO1_PHASE: 88,
+  LFO2_PHASE: 89,
+  LFO3_PHASE: 90,
+
+  // LFO Bias — CC_LFO*_BIAS = 91-93
+  LFO1_BIAS: 91,
+  LFO2_BIAS: 92,
+  LFO3_BIAS: 93,
+
+  // LFO Shape — CC_LFO*_SHAPE = 94-96
+  LFO1_SHAPE: 94,
+  LFO2_SHAPE: 95,
+  LFO3_SHAPE: 96,
+
+  // Arpeggiator — CC_ARP_* = 100-105 (no CC_ARP_LATCH in firmware; latch is NRPN only)
   ARP_CLOCK: 100,
   ARP_DIRECTION: 101,
   ARP_OCTAVE: 102,
   ARP_PATTERN: 103,
   ARP_DIVISION: 104,
   ARP_DURATION: 105,
-  ARP_LATCH: 109,
-  
-  // Mixer
-  MIXER_VOLUME: 106,
-  MIXER_PAN: 107,
-  MIXER_SEND: 108,
-  
+
+  // Sequencer Control — CC_SEQ_* = 106-110
+  SEQ_START_ALL: 106,
+  SEQ_START_INST: 107,
+  SEQ_RECORD_INST: 108,
+  SEQ_SET_SEQUENCE: 109,
+  SEQ_TRANSPOSE: 110,
+
+  // Matrix Sources (Performance params) — CC_MATRIX_SOURCE_CC* = 115-118
+  MATRIX_SOURCE_CC1: 115,
+  MATRIX_SOURCE_CC2: 116,
+  MATRIX_SOURCE_CC3: 117,
+  MATRIX_SOURCE_CC4: 118,
+
+  // Filter 1 CC (Note: filter sends use NRPN in this codebase) — CC_FILTER_* = 70-73
+  FILTER_TYPE: 70,
+  FILTER_PARAM1: 71,
+  FILTER_PARAM2: 72,
+  FILTER_GAIN: 73,
+
+  // Filter 2 CC — CC_FILTER2_* = 66-69
+  FILTER2_TYPE: 66,
+  FILTER2_PARAM1: 67,
+  FILTER2_PARAM2: 68,
+  FILTER2_MIX: 69,
+
   // MPE
   MPE_SLIDE_CC74: 74,
-  
-  // Unison
-  UNISON_DETUNE: 110,
-  UNISON_SPREAD: 111,
-  
-  // Sequencer Control
-  SEQ_START_ALL: 112,
-  SEQ_START_INST: 113,
-  SEQ_RECORD_INST: 114,
-  SEQ_TRANSPOSE: 115,
-  SEQ_SET_SEQUENCE: 116,
-  
-  // Master FX (Global Channel)
-  MFX_PRESET: 63,
-  MFX_PREDELAYTIME: 64,
-  MFX_PREDELAYMIX: 65,
-  MFX_INPUTTILT: 66,
-  MFX_MOD_SPEED: 67,
-  MFX_MOD_DEPTH: 68,
+
+  // Unison — CC_UNISON_DETUNE/SPREAD = 13/14
+  UNISON_DETUNE: 13,
+  UNISON_SPREAD: 14,
+
+  // Mixer — CC_MIXER_* = 7/10/11 — hardware encoders only, BLOCKED in sendCC()
+  MIXER_VOLUME: 7,
+  MIXER_PAN: 10,
+  MIXER_SEND: 11,
 } as const;
 
 /**

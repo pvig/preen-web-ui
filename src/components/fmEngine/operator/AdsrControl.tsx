@@ -43,7 +43,7 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
   const [dragging, setDragging] = useState<string | null>(null);
   const [hoverInfo, setHoverInfo] = useState<{ key: string; time: number; level: number } | null>(null);
   const maxSegmentSize = 16; // Limite fixe de 16 pour chaque segment
-  const margin = { top: 20, right: 20, bottom: 10, left: 30 };
+  const margin = { top: 20, right: 20, bottom: 20, left: 30 };
   const width = 250 - margin.left - margin.right;
   const height = 120 - margin.top - margin.bottom;
 

@@ -439,6 +439,14 @@ export function setMidiChannel(channel: number) {
  * Send a Control Change message
  */
 export function sendCC(controller: number, value: number, channel: number = currentChannel) {
+  // Block mixer CCs managed exclusively by PreenFM3 hardware encoders (firmware MidiDecoder.h)
+  // MIXER_VOLUME=7, MIXER_PAN=10, MIXER_SEND=11
+  // Sending these from the web UI would overwrite timbre dry/wet, volume or pan unexpectedly.
+  if (controller === PREENFM3_CC.MIXER_VOLUME || controller === PREENFM3_CC.MIXER_PAN || controller === PREENFM3_CC.MIXER_SEND) {
+    console.warn(`🚫 Blocked CC ${controller} — mixer CC reserved for PreenFM3 hardware (VOLUME=${PREENFM3_CC.MIXER_VOLUME}, PAN=${PREENFM3_CC.MIXER_PAN}, SEND=${PREENFM3_CC.MIXER_SEND})`);
+    return;
+  }
+
   console.log('📨 sendCC called:', { controller, value, channel, hasOutput: !!midiOutput, outputName: midiOutput?.name });
   
   if (!midiOutput) {
