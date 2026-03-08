@@ -17,7 +17,7 @@ const EditorContainer = styled.div`
   border-radius: 8px;
   min-width: 250px;
   max-width: 450px;
-  width: 450px;
+  width: 100%;
   flex: 1;
   box-sizing: border-box;
 
@@ -80,7 +80,7 @@ const ModulationItem = styled.div`
 
 const Label = styled.label`
   flex: 1 1 auto;
-  min-width: 100px;
+  min-width: 0;
   max-width: 50%;
   color: ${props => props.theme.colors.textSecondary};
   font-size: 0.7rem;
