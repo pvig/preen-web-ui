@@ -55,7 +55,7 @@ const QuickMidiButton = styled.button<{ $isReceiving?: boolean }>`
   color: ${props => props.theme.colors.background};
   border: 1px solid ${props => props.theme.colors.border};
   border-radius: 3px;
-  font-size: 16px;
+  font-size: 1.8em!important;
   font-weight: bold;
   font-family: monospace;
   cursor: pointer;
@@ -96,15 +96,23 @@ const QuickMidiButton = styled.button<{ $isReceiving?: boolean }>`
   }
 `;
 
+const NavWrapper = styled.div`
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: ${props => props.theme.colors.background};
+  border-bottom: 1px solid ${props => props.theme.colors.border};
+`;
+
 const Nav = styled.nav`
-  background-color: none;
+  background-color: transparent;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: end;
   gap: 0.5rem;
   margin: 0 auto;
   padding: 0.5rem 1rem 0 1rem;
-  border-bottom: 1px solid ${props => props.theme.colors.border};
   max-width: 900px;
   
   .nav-tabs {
@@ -279,6 +287,7 @@ export default function App() {
       <GlobalStyles />
       <AppContainer>
         
+        <NavWrapper>
         <Nav>
           <div className="nav-tabs">
             <button onClick={() => setCurrentScreen('patch')} className={currentScreen === 'patch' ? 'active' : ''}>
@@ -323,6 +332,7 @@ export default function App() {
             <HamburgerMenu />
           </div>
         </Nav>
+        </NavWrapper>
 
         <Main>
           {currentScreen === 'patch' && <PatchEditor />}

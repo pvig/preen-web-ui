@@ -15,7 +15,8 @@ const LfoContainer = styled.div`
   padding: 12px;
   margin-bottom: 16px;
   border: 1px solid ${props => props.theme.colors.border};
-  width: 520px
+  width: 100%;
+  max-width: 520px;
 `;
 
 const LfoTitle = styled.h3`
@@ -73,6 +74,7 @@ const LfoTab = styled.button<{ $active: boolean }>`
 
 const LfoControls = styled.div`
   display: flex;
+  flex-wrap: wrap;
   gap: 20px;
   align-items: start;
 `;

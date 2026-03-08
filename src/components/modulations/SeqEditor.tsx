@@ -13,6 +13,8 @@ const SeqContainer = styled.div`
   padding: 12px;
   margin-bottom: 16px;
   border: 1px solid ${props => props.theme.colors.border};
+  width: 100%;
+  max-width: 520px;
 `;
 
 const HeaderRow = styled.div`
@@ -60,6 +62,7 @@ const SeqTab = styled.button<{ $active: boolean }>`
 
 const StepsContainer = styled.div`
   margin-bottom: 12px;
+  overflow-x: auto;
 `;
 
 const StepGrid = styled.div`
@@ -74,6 +77,7 @@ const StepColumn = styled.div`
   align-items: center;
   gap: 4px;
   flex: 1;
+  min-width: 0;
   user-select: none;
 `;
 
@@ -108,15 +112,18 @@ const StepLabel = styled.div`
   color: ${props => props.theme.colors.textMuted};
   font-size: 0.65rem;
   text-align: center;
-  min-width: 20px;
 `;
 
 const StepValue = styled.div`
   color: ${props => props.theme.colors.text};
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: bold;
   text-align: center;
-  min-height: 18px;
+  min-height: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
 `;
 
 const SeqControls = styled.div`

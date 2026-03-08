@@ -21,8 +21,11 @@ const LeftColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-width: 530px;
-
+  min-width: 0;
+  max-width: 520px;
+  @media (max-width: 520px) {
+    max-width: 100%;
+  }
 `;
 
 const RightColumn = styled.div`
