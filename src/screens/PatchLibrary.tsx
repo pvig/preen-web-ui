@@ -1,20 +1,20 @@
-import PatchManager from '../components/PatchManager';
+import { PatchSavePanel, BankOrganizerPanel } from '../components/PatchManager';
 import styled from 'styled-components';
 
 const LibraryContainer = styled.div`
   max-width: 900px;
   margin: auto;
-`;
-
-const LibraryContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px 0;
 `;
 
 export function PatchLibrary() {
   return (
     <LibraryContainer>
-      <LibraryContent>
-        <PatchManager />
-      </LibraryContent>
+      <PatchSavePanel />
+      <BankOrganizerPanel />
     </LibraryContainer>
   );
 }

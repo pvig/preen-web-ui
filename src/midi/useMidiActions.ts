@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
 import { usePreenFM3Midi } from './usePreenFM3Midi';
 import { useCurrentPatch, usePatchStore } from '../stores/patchStore';
-import { requestPatchDump } from './midiService';
+import { requestPatchDump, sendNRPN } from './midiService';
 import { PreenFM3Parser } from './preenFM3Parser';
+import { patchToNRPNMessages } from './patchSerializer';
 
 export const useMidiActions = () => {
   const midi = usePreenFM3Midi();
@@ -26,14 +27,39 @@ export const useMidiActions = () => {
       return;
     }
 
-    // TODO: Implémenter la conversion du patch en SysEx ou NRPN
-    console.log('Patch à envoyer:', currentPatch);
-    console.log('Fonctionnalité Push en cours de développement...');
-    
-    // Pour l'instant, on peut au moins envoyer l'algorithme
-    if (currentPatch?.algorithm) {
-      midi.sendAlgorithmChange(String(currentPatch.algorithm.id));
+    if (!currentPatch) {
+      alert('Aucun patch chargé');
+      return;
     }
+
+    console.log('📤 Push du patch vers le PreenFM3…', currentPatch.name);
+
+    const nrpnMessages = patchToNRPNMessages(currentPatch);
+    console.log(`📤 ${nrpnMessages.length} messages NRPN à envoyer`);
+
+    // Envoyer tous les messages NRPN avec un léger délai inter-message
+    // pour éviter de saturer le buffer MIDI du PreenFM3
+    const DELAY_MS = 3; // 3ms entre chaque NRPN (4 CC messages)
+    let sent = 0;
+
+    const sendNext = () => {
+      if (sent >= nrpnMessages.length) {
+        console.log(`✅ Push terminé : ${sent} messages NRPN envoyés`);
+        return;
+      }
+
+      const msg = nrpnMessages[sent];
+      sendNRPN(msg, midi.channel);
+      sent++;
+
+      if (sent % 50 === 0) {
+        console.log(`📤 ${sent}/${nrpnMessages.length} messages envoyés…`);
+      }
+
+      setTimeout(sendNext, DELAY_MS);
+    };
+
+    sendNext();
   };
 
   // Réception d'un patch depuis le PreenFM3 (Pull)
