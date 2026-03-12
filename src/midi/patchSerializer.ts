@@ -264,7 +264,7 @@ function buildMixPanSlots(patch: Patch): { mixes: number[]; pans: number[] } {
  * Serialize a Patch object into a 1024-byte FlashSynthParams binary blob.
  * This binary format is compatible with .bnk files used by PreenFM3 firmware.
  */
-export function patchToFlashSynthParams(patch: Patch): Uint8Array {
+export function patchToFlashSynthParams(patch: Patch): Uint8Array<ArrayBuffer> {
   const buffer = new ArrayBuffer(PRESET_SIZE);
   const view = new DataView(buffer);
   const bytes = new Uint8Array(buffer);

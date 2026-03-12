@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useThemeStore } from '../../theme/themeStore';
 
 type ValuePosition = 'bottom' | 'left' | 'none';
@@ -50,15 +50,35 @@ function KnobBase({
   const END_ANGLE = 135;
   const ANGLE_RANGE = END_ANGLE - START_ANGLE;
 
-  //value = value?.toFixed(2);
+  // Does the range span zero? If so, anchor 0 at 0° (12 o'clock)
+  const crossesZero = min < 0 && max > 0;
 
-  const angleForValue = (val:number) => {
+  const angleForValue = (val: number) => {
+    if (crossesZero) {
+      // Piecewise: [min,0] → [START_ANGLE, 0°] and [0,max] → [0°, END_ANGLE]
+      if (val <= 0) {
+        const ratio = val / min; // 1 at min, 0 at zero
+        return START_ANGLE * ratio;  // START_ANGLE when ratio=1, 0° when ratio=0
+      } else {
+        const ratio = val / max; // 0 at zero, 1 at max
+        return END_ANGLE * ratio;    // 0° when ratio=0, END_ANGLE when ratio=1
+      }
+    }
     const ratio = (val - min) / (max - min);
     return START_ANGLE + ratio * ANGLE_RANGE;
   };
 
-  const valueForAngle = (angle:number) => {
+  const valueForAngle = (angle: number) => {
     const clamped = Math.max(START_ANGLE, Math.min(END_ANGLE, angle));
+    if (crossesZero) {
+      if (clamped <= 0) {
+        // [START_ANGLE, 0°] → [min, 0]
+        return min * (clamped / START_ANGLE);
+      } else {
+        // [0°, END_ANGLE] → [0, max]
+        return max * (clamped / END_ANGLE);
+      }
+    }
     const ratio = (clamped - START_ANGLE) / ANGLE_RANGE;
     return min + ratio * (max - min);
   };
@@ -137,12 +157,55 @@ function KnobBase({
 
   const tickMin = getTick(START_ANGLE);
   const tickMax = getTick(END_ANGLE);
-  
-  React.useEffect(() => {
-    return () => {
-      // Rien à nettoyer: pas de listeners globaux
-    };
-  }, []);
+  const tickZero = crossesZero ? getTick(0) : null;
+
+  // ── Editable value ──────────────────────────────────────────────────────────
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState('');
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const startEditing = () => {
+    setEditText(String(step && step >= 1 ? Math.round(value) : parseFloat(value.toFixed(4))));
+    setIsEditing(true);
+    // Focus will be set via autoFocus on the input
+  };
+
+  const commitEdit = () => {
+    setIsEditing(false);
+    const parsed = parseFloat(editText);
+    if (isNaN(parsed)) return;
+    let clamped = Math.max(min, Math.min(max, parsed));
+    if (step && step > 0) {
+      clamped = Math.round(clamped / step) * step;
+    }
+    onChange(clamped);
+  };
+
+  const cancelEdit = () => {
+    setIsEditing(false);
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      commitEdit();
+    } else if (e.key === 'Escape') {
+      cancelEdit();
+    }
+  };
+
+  const editInputStyle: React.CSSProperties = {
+    background: 'transparent',
+    border: `1px solid ${color}`,
+    borderRadius: 3,
+    color: color,
+    fontSize: 12,
+    fontFamily: 'monospace',
+    textAlign: 'center',
+    outline: 'none',
+    padding: '0 2px',
+    width: '100%',
+    boxSizing: 'border-box',
+  };
 
   return (
     <div
@@ -180,10 +243,29 @@ function KnobBase({
             fontFamily: 'monospace',
             minWidth: '45px',
             textAlign: 'right',
-            pointerEvents: "none",
           }}
         >
-          {renderLabel(value)}
+          {isEditing ? (
+            <input
+              ref={inputRef}
+              type="text"
+              inputMode="decimal"
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              onBlur={commitEdit}
+              onKeyDown={handleEditKeyDown}
+              autoFocus
+              style={{ ...editInputStyle, textAlign: 'right', width: '45px' }}
+            />
+          ) : (
+            <span
+              onClick={startEditing}
+              style={{ cursor: 'text', userSelect: 'none' }}
+              title="Cliquer pour éditer"
+            >
+              {renderLabel(value)}
+            </span>
+          )}
         </div>
       )}
 
@@ -221,6 +303,9 @@ function KnobBase({
           />
           <line {...tickMin} stroke={theme.colors.knobTick} strokeWidth="2" />
           <line {...tickMax} stroke={theme.colors.knobTick} strokeWidth="2" />
+          {tickZero && (
+            <line {...tickZero} stroke={theme.colors.knobTick} strokeWidth="2" opacity="0.6" />
+          )}
           <line
             x1={center}
             y1={center}
@@ -262,10 +347,29 @@ function KnobBase({
               textAlign: "center",
               fontSize: 12,
               color: color,
-              pointerEvents: "none",
             }}
           >
-            {renderLabel(value)}
+            {isEditing ? (
+              <input
+                ref={inputRef}
+                type="text"
+                inputMode="decimal"
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                onBlur={commitEdit}
+                onKeyDown={handleEditKeyDown}
+                autoFocus
+                style={editInputStyle}
+              />
+            ) : (
+              <span
+                onClick={startEditing}
+                style={{ cursor: 'text', userSelect: 'none' }}
+                title="Cliquer pour éditer"
+              >
+                {renderLabel(value)}
+              </span>
+            )}
           </div>
         )}
       </div>
