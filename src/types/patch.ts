@@ -122,6 +122,7 @@ export interface GlobalEffects {
   };
 }
 
+export type ArpClock = 'Off' | 'Int' | 'Ext';
 export type ArpDirection = 'Up' | 'Down' | 'UpDown' | 'Played' | 'Random' | 'Chord' | 'Rotate U' | 'Rotate D' | 'Shift U' | 'Shift D';
 export type ArpPattern = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' | '20' | '21' | '22' | 'Usr1' | 'Usr2' | 'Usr3' | 'Usr4';
 export type ArpDivision = '2/1' | '3/2' | '1/1' | '3/4' | '2/3' | '1/2' | '3/8' | '1/3' | '1/4' | '1/6' | '1/8' | '1/12' | '1/16' | '1/24' | '1/32' | '1/48' | '1/96';
@@ -129,13 +130,14 @@ export type ArpDuration = '2/1' | '3/2' | '1/1' | '3/4' | '2/3' | '1/2' | '3/8' 
 export type ArpLatch = 'Off' | 'On';
 
 export interface ArpeggiatorSettings {
-  clock: number;         // BPM: NRPN 0 (0-240)
-  direction: ArpDirection;  // NRPN 1 (0-9)
-  octave: number;        // NRPN 2 (1-3)
-  pattern: ArpPattern;   // NRPN 3 (0-7)
-  division: ArpDivision; // NRPN 4 (0-14)
-  duration: ArpDuration; // NRPN 5 (0-7)
-  latch: ArpLatch;       // NRPN 6 (0-1)
+  clockSource: ArpClock;   // NRPN LSB=28 (0=Off, 1=Internal, 2=External)
+  clock: number;           // BPM: NRPN LSB=29 (10-240)
+  direction: ArpDirection; // NRPN LSB=30 (0-9)
+  octave: number;          // NRPN LSB=31 (1-3)
+  pattern: ArpPattern;     // NRPN LSB=32 (0-25)
+  division: ArpDivision;   // NRPN LSB=33 (0-16)
+  duration: ArpDuration;   // NRPN LSB=34 (0-16)
+  latch: ArpLatch;         // NRPN LSB=35 (0-1)
 }
 
 // ===== NOTE CURVE SYSTEM CENTRALISÉ =====
@@ -376,6 +378,7 @@ export const DEFAULT_FILTER: Filter = {
 };
 
 export const DEFAULT_ARPEGGIATOR: ArpeggiatorSettings = {
+  clockSource: 'Off',
   clock: 120,
   direction: 'Up',
   octave: 1,

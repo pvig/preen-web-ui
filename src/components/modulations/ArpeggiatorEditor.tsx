@@ -3,9 +3,10 @@ import styled from 'styled-components';
 import { useTranslation } from 'react-i18next';
 import KnobBase from '../knobs/KnobBase';
 import { useArpeggiator, updateArpeggiator } from '../../stores/patchStore';
-import type { ArpDirection, ArpPattern, ArpDivision, ArpDuration, ArpLatch } from '../../types/patch';
+import type { ArpClock, ArpDirection, ArpPattern, ArpDivision, ArpDuration, ArpLatch } from '../../types/patch';
 import { useThemeStore } from '../../theme/themeStore';
 import { 
+  sendArpeggiatorClock,
   sendArpeggiatorBpm,
   sendArpeggiatorDirection,
   sendArpeggiatorOctave,
@@ -85,6 +86,8 @@ export const ArpeggiatorEditor: React.FC = () => {
   const arp = useArpeggiator();
   const { theme } = useThemeStore();
 
+  const clockSources: ArpClock[] = ['Off', 'Int', 'Ext'];
+
   const directions: ArpDirection[] = [
     'Up', 'Down', 'UpDown', 'Played', 'Random', 'Chord', 'Rotate U', 'Rotate D', 'Shift U', 'Shift D'
   ];
@@ -114,7 +117,26 @@ export const ArpeggiatorEditor: React.FC = () => {
       </ArpHeader>
 
       <ArpControls>
-        {/* Clock (BPM) */}
+        {/* Clock Source (Off/Int/Ext) */}
+        <ControlGroup>
+          <ControlLabel>{t('modulation.clockSource')}</ControlLabel>
+          <Select 
+            value={arp.clockSource}
+            onChange={(e) => {
+              const clockSource = e.target.value as ArpClock;
+              updateArpeggiator({ clockSource });
+              sendArpeggiatorClock(clockSource);
+            }}
+          >
+            {clockSources.map((src) => (
+              <option key={src} value={src}>
+                {src}
+              </option>
+            ))}
+          </Select>
+        </ControlGroup>
+
+        {/* BPM */}
         <ControlGroup>
           <KnobBase
             size={60}

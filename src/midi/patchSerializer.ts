@@ -60,6 +60,7 @@ import {
 } from '../types/lfo';
 import { PreenFM3Parser } from './preenFM3Parser';
 import type {
+  ArpClock,
   ArpDirection,
   ArpPattern,
   ArpDivision,
@@ -103,6 +104,7 @@ const OFF_VERSION_TAG = 1019;     // 4 bytes uint32 (PRESET_VERSION1 = 0)
 
 // ── Reverse-lookup tables ─────────────────────────────────────────────────────
 
+const ARP_CLOCKS: ArpClock[] = ['Off', 'Int', 'Ext'];
 const ARP_DIRECTIONS: ArpDirection[] = [
   'Up', 'Down', 'UpDown', 'Played', 'Random', 'Chord', 'Rotate U', 'Rotate D', 'Shift U', 'Shift D',
 ];
@@ -446,10 +448,10 @@ export function patchToFlashSynthParams(patch: Patch): Uint8Array {
 
   // ── Arpeggiator (offsets 736, 752) ──────────────────────────────────────────
   const arp = patch.arpeggiator;
-  // EngineArp1: {clock, BPM, direction, octave}
+  // EngineArp1: {clockSource, BPM, direction, octave}
   writeFloats(view, OFF_ARP1, [
+    indexOf(ARP_CLOCKS, arp.clockSource),
     arp.clock,
-    arp.clock,  // BPM is same as clock in practice
     indexOf(ARP_DIRECTIONS, arp.direction),
     arp.octave,
   ]);
@@ -845,8 +847,8 @@ export function patchToNRPNMessages(patch: Patch): NRPNMsg[] {
 
   // ── Arpeggiator ─────────────────────────────────────────────────────────────
   const arp = patch.arpeggiator;
-  msgs.push(nrpnMsg(0, 28, arp.clock));    // clock
-  msgs.push(nrpnMsg(0, 29, arp.clock));    // BPM (= clock)
+  msgs.push(nrpnMsg(0, 28, indexOf(ARP_CLOCKS, arp.clockSource)));  // clock source (Off/Int/Ext)
+  msgs.push(nrpnMsg(0, 29, arp.clock));    // BPM
   msgs.push(nrpnMsg(0, 30, indexOf(ARP_DIRECTIONS, arp.direction)));
   msgs.push(nrpnMsg(0, 31, arp.octave));
   msgs.push(nrpnMsg(0, 32, indexOf(ARP_PATTERNS, arp.pattern)));

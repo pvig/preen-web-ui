@@ -9,6 +9,7 @@ import { FILTER1_TYPE_LIST, NoteCurveUtils } from '../types/patch';
 import type { NRPNMessage } from './preenFM3MidiMap';
 import { DEFAULT_ALGORITHMS, DEFAULT_LFO_ENVELOPE } from '../types/patch';
 import type { 
+  ArpClock,
   ArpDirection, 
   ArpPattern, 
   ArpDivision, 
@@ -41,6 +42,8 @@ import type { LFO } from '../types/patch';
  * - LSB=34: Duration
  * - LSB=35: Latch
  */
+const ARP_CLOCKS: ArpClock[] = ['Off', 'Int', 'Ext'];
+
 const ARP_DIRECTIONS: ArpDirection[] = [
   'Up', 'Down', 'UpDown', 'Played', 'Random', 'Chord', 'Rotate U', 'Rotate D', 'Shift U', 'Shift D'
 ];
@@ -92,6 +95,10 @@ const ARP_DURATIONS: ArpDuration[] = [
 ];
 
 const ARP_LATCH: ArpLatch[] = ['Off', 'On'];
+
+function parseArpClock(value: number): ArpClock {
+  return ARP_CLOCKS[Math.min(value, ARP_CLOCKS.length - 1)] || 'Off';
+}
 
 function parseArpDirection(value: number): ArpDirection {
   return ARP_DIRECTIONS[Math.min(value, ARP_DIRECTIONS.length - 1)] || 'Up';
@@ -746,6 +753,7 @@ export class PreenFM3Parser {
         chorus: { enabled: false, rate: 0.5, depth: 0.3, level: 0.3 },
       },
       arpeggiator: {
+        clockSource: parseArpClock(this.getValue(0, 28) ?? 0), // NRPN LSB=28 = Clock source
         clock: this.getValue(0, 29) ?? 120, // NRPN LSB=29 = BPM
         direction: parseArpDirection(this.getValue(0, 30) ?? 0), // NRPN LSB=30 
         octave: Math.max(1, Math.min(3, this.getValue(0, 31) ?? 1)), // NRPN LSB=31 (pas de +1)

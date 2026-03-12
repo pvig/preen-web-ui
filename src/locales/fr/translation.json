@@ -92,6 +92,7 @@
     "noLinks": "Aucune liaison de modulation",
     "break": "Coupure",
     "gate": "Porte",
+    "clockSource": "Horloge",
     "bpm": "BPM",
     "octaves": "Octaves",
     "direction": "Direction",

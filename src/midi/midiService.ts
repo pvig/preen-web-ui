@@ -248,7 +248,25 @@ export function sendLfoEnvelope(envIndex: 0 | 1, envelope: { attack: number, dec
  */
 
 /**
- * Send arpeggiator BPM (clock) via NRPN
+ * Send arpeggiator clock source via NRPN
+ * NRPN MSB=0, LSB=28 (0=Off, 1=Internal, 2=External)
+ */
+export function sendArpeggiatorClock(clockSource: string, channel: number = currentChannel) {
+  const clockSources = ['Off', 'Int', 'Ext'];
+  const value = clockSources.indexOf(clockSource);
+  
+  const nrpn = {
+    paramMSB: 0,
+    paramLSB: 28,
+    valueMSB: 0,
+    valueLSB: Math.max(0, value) & 0x7F
+  };
+  console.log('📤 Sending Arpeggiator Clock via NRPN:', { clockSource, value, nrpn, channel });
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send arpeggiator BPM via NRPN
  * NRPN MSB=0, LSB=29 (BPM: 10-240)
  */
 export function sendArpeggiatorBpm(bpm: number, channel: number = currentChannel) {

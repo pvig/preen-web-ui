@@ -92,6 +92,7 @@
     "noLinks": "No modulation links",
     "break": "Break",
     "gate": "Gate",
+    "clockSource": "Clock",
     "bpm": "BPM",
     "octaves": "Octaves",
     "direction": "Direction",
