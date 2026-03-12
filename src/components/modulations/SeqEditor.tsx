@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
 import { useTranslation } from 'react-i18next';
 import KnobBase from '../knobs/KnobBase';
@@ -182,6 +182,33 @@ export const SeqEditor: React.FC = () => {
   // État local pour un dessin fluide, synchronisé avec le store uniquement à la fin
   const [localSteps, setLocalSteps] = useState<number[] | null>(null);
   const displaySteps = localSteps || seq.steps;
+  const stepsContainerRef = useRef<HTMLDivElement>(null);
+
+  /** Trouve le step le plus proche en X et calcule la valeur en Y (sensible au-dessus/dessous des barres) */
+  const findStepAndValue = (clientX: number, clientY: number): { index: number; value: number } | null => {
+    if (!stepsContainerRef.current) return null;
+    const bars = stepsContainerRef.current.querySelectorAll<HTMLElement>('[data-step-index]');
+    if (bars.length === 0) return null;
+    let closestIndex = -1;
+    let minDist = Infinity;
+    let closestRect: DOMRect | null = null;
+    bars.forEach((bar) => {
+      const rect = bar.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const dist = Math.abs(clientX - centerX);
+      const idx = parseInt(bar.getAttribute('data-step-index') || '-1');
+      if (dist < minDist && idx >= 0) {
+        minDist = dist;
+        closestIndex = idx;
+        closestRect = rect;
+      }
+    });
+    if (closestIndex < 0 || !closestRect) return null;
+    const rect = closestRect as DOMRect;
+    const y = clientY - rect.top;
+    const value = Math.round(100 - (y / rect.height) * 100);
+    return { index: closestIndex, value: Math.max(0, Math.min(100, value)) };
+  };
 
   // Synchroniser l'état local quand on change de séquenceur
   React.useEffect(() => {
@@ -195,9 +222,12 @@ export const SeqEditor: React.FC = () => {
     return Math.max(0, Math.min(100, value));
   };
 
-  const handleMouseDown = () => {
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDrawing(true);
-    setLocalSteps([...seq.steps]); // Copie locale pour le dessin
+    const newSteps = [...seq.steps];
+    const hit = findStepAndValue(e.clientX, e.clientY);
+    if (hit) newSteps[hit.index] = hit.value;
+    setLocalSteps(newSteps);
   };
 
   const handleMouseUp = () => {
@@ -207,18 +237,6 @@ export const SeqEditor: React.FC = () => {
       updateStepSequencer(activeSeq, { steps: localSteps });
       setLocalSteps(null);
     }
-  };
-
-  const handleStepMouseEnter = (index: number, e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDrawing || !localSteps) return;
-    
-    const rect = e.currentTarget.getBoundingClientRect();
-    const value = calculateValueFromMouseY(e, rect);
-    
-    // Mise à jour locale uniquement (pas de store)
-    const newSteps = [...localSteps];
-    newSteps[index] = value;
-    setLocalSteps(newSteps);
   };
 
   const handleStepClick = (index: number, e: React.MouseEvent<HTMLDivElement>) => {
@@ -253,17 +271,33 @@ export const SeqEditor: React.FC = () => {
   };
 
   React.useEffect(() => {
-    if (isDrawing) {
-      const handleGlobalMouseUp = () => {
-        setIsDrawing(false);
-        if (localSteps) {
-          updateStepSequencer(activeSeq, { steps: localSteps });
-          setLocalSteps(null);
-        }
-      };
-      window.addEventListener('mouseup', handleGlobalMouseUp);
-      return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
-    }
+    if (!isDrawing) return;
+
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!localSteps) return;
+      const hit = findStepAndValue(e.clientX, e.clientY);
+      if (!hit) return;
+      const newSteps = [...localSteps];
+      if (newSteps[hit.index] !== hit.value) {
+        newSteps[hit.index] = hit.value;
+        setLocalSteps(newSteps);
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      setIsDrawing(false);
+      if (localSteps) {
+        updateStepSequencer(activeSeq, { steps: localSteps });
+        setLocalSteps(null);
+      }
+    };
+
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
   }, [isDrawing, localSteps, activeSeq]);
 
   const syncModes: StepSeqSyncMode[] = ['Int', 'Ext'];
@@ -287,14 +321,14 @@ export const SeqEditor: React.FC = () => {
         </TitleTabGroup>
       </HeaderRow>
 
-      <StepsContainer onMouseDown={handleMouseDown} onMouseUp={handleMouseUp}>
+      <StepsContainer ref={stepsContainerRef} onMouseDown={handleMouseDown} onMouseUp={handleMouseUp}>
         <StepGrid>
           {displaySteps.map((value, index) => (
             <StepColumn key={index}>
               <StepValue>{value}</StepValue>
               <StepBar
+                data-step-index={index}
                 onClick={(e) => handleStepClick(index, e)}
-                onMouseEnter={(e) => handleStepMouseEnter(index, e)}
                 title={`Step ${index + 1}: ${value}`}
               >
                 <StepFill $value={value} />
