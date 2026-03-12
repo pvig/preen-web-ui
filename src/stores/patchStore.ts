@@ -112,6 +112,7 @@ const createDefaultPatch = (): Patch => ({
   ],
 
   arpeggiator: {
+    clockSource: 'Off',
     clock: 120,
     direction: 'Up',
     octave: 1,
