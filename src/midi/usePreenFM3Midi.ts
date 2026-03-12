@@ -1,8 +1,10 @@
 /**
  * React hook for PreenFM3 MIDI communication
+ * Uses a Zustand store so MIDI state is shared across all components.
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
+import { create } from 'zustand';
 import { Input, Output } from 'webmidi';
 import {
   initializeMidi,
@@ -89,24 +91,78 @@ export interface MidiState {
   error: string | null;
 }
 
+interface MidiStoreActions {
+  _setLoading: (isLoading: boolean) => void;
+  _setInitialized: (devices: MidiDevices, selectedInput: Input | null, selectedOutput: Output | null, channel: number) => void;
+  _setError: (error: string) => void;
+  selectInput: (input: Input | null) => void;
+  selectOutput: (output: Output | null) => void;
+  changeChannel: (channel: number) => void;
+}
+
+type MidiStore = MidiState & MidiStoreActions;
+
 /**
- * Hook to manage MIDI connection and communication with PreenFM3
+ * Global Zustand store for MIDI state — shared across all components
+ */
+export const useMidiStore = create<MidiStore>((set, get) => ({
+  // Initial state
+  enabled: false,
+  devices: null,
+  selectedInput: null,
+  selectedOutput: null,
+  channel: 1,
+  isLoading: false,
+  error: null,
+
+  // Internal actions (used by the init effect)
+  _setLoading: (isLoading) => set({ isLoading }),
+  _setInitialized: (devices, selectedInput, selectedOutput, channel) =>
+    set({ enabled: true, devices, selectedInput, selectedOutput, channel, isLoading: false }),
+  _setError: (error) => set({ enabled: false, isLoading: false, error }),
+
+  // Public actions
+  selectInput: (input) => {
+    console.log('🎹 Sélection MIDI Input:', input?.name || 'None', input?.id || null);
+    setMidiInput(input);
+    const { selectedOutput, channel } = get();
+    saveMidiPreferences(input?.id || null, selectedOutput?.id || null, channel);
+    set({ selectedInput: input });
+  },
+
+  selectOutput: (output) => {
+    console.log('🎹 Sélection MIDI Output:', output?.name || 'None', output?.id || null);
+    setMidiOutput(output);
+    const { selectedInput, channel } = get();
+    saveMidiPreferences(selectedInput?.id || null, output?.id || null, channel);
+    set({ selectedOutput: output });
+  },
+
+  changeChannel: (channel) => {
+    setMidiChannel(channel);
+    const { selectedInput, selectedOutput } = get();
+    saveMidiPreferences(selectedInput?.id || null, selectedOutput?.id || null, channel);
+    set({ channel });
+  },
+}));
+
+/** Flag to ensure the async init runs only once across all hook instances */
+let _midiInitStarted = false;
+
+/**
+ * Hook to manage MIDI connection and communication with PreenFM3.
+ * The underlying state lives in a Zustand store so every consumer sees the same values.
  */
 export function usePreenFM3Midi() {
-  const [state, setState] = useState<MidiState>({
-    enabled: false,
-    devices: null,
-    selectedInput: null,
-    selectedOutput: null,
-    channel: 1,
-    isLoading: false,
-    error: null,
-  });
+  const state = useMidiStore();
 
-  // Initialize MIDI on mount
+  // Initialize MIDI once (first mount of any consumer)
   useEffect(() => {
+    if (_midiInitStarted) return;
+    _midiInitStarted = true;
+
     const init = async () => {
-      setState(prev => ({ ...prev, isLoading: true }));
+      useMidiStore.getState()._setLoading(true);
       
       try {
         const devices = await initializeMidi();
@@ -143,15 +199,7 @@ export function usePreenFM3Midi() {
         const selectedOutput = savedOutput || null;
         const selectedChannel = prefs.channel || 1;
         
-        setState(prev => ({
-          ...prev,
-          enabled: true,
-          devices,
-          isLoading: false,
-          selectedInput,
-          selectedOutput,
-          channel: selectedChannel,
-        }));
+        useMidiStore.getState()._setInitialized(devices, selectedInput, selectedOutput, selectedChannel);
 
         // Auto-connect uniquement si des périphériques étaient explicitement sauvés
         if (selectedInput) {
@@ -175,51 +223,13 @@ export function usePreenFM3Midi() {
         }
         
       } catch (err) {
-        setState(prev => ({
-          ...prev,
-          enabled: false,
-          isLoading: false,
-          error: err instanceof Error ? err.message : 'Failed to initialize MIDI',
-        }));
+        useMidiStore.getState()._setError(
+          err instanceof Error ? err.message : 'Failed to initialize MIDI'
+        );
       }
     };
 
     init();
-  }, []);
-
-  // Select MIDI input device
-  const selectInput = useCallback((input: Input | null) => {
-    console.log('🎹 Sélection MIDI Input:', input?.name || 'None', input?.id || null);
-    setMidiInput(input);
-    setState(prev => {
-      const newState = { ...prev, selectedInput: input };
-      // Save to localStorage
-      saveMidiPreferences(input?.id || null, prev.selectedOutput?.id || null, prev.channel);
-      return newState;
-    });
-  }, []);
-
-  // Select MIDI output device
-  const selectOutput = useCallback((output: Output | null) => {
-    console.log('🎹 Sélection MIDI Output:', output?.name || 'None', output?.id || null);
-    setMidiOutput(output);
-    setState(prev => {
-      const newState = { ...prev, selectedOutput: output };
-      // Save to localStorage
-      saveMidiPreferences(prev.selectedInput?.id || null, output?.id || null, prev.channel);
-      return newState;
-    });
-  }, []);
-
-  // Change MIDI channel
-  const changeChannel = useCallback((channel: number) => {
-    setMidiChannel(channel);
-    setState(prev => {
-      const newState = { ...prev, channel };
-      // Save to localStorage
-      saveMidiPreferences(prev.selectedInput?.id || null, prev.selectedOutput?.id || null, channel);
-      return newState;
-    });
   }, []);
 
   // Listen to CC changes from PreenFM3
@@ -241,24 +251,19 @@ export function usePreenFM3Midi() {
     // State
     ...state,
     
-    // Device selection
-    selectInput,
-    selectOutput,
-    changeChannel,
-    
-    // Send functions
+    // Send functions (use current channel from store)
     sendAlgorithmChange: useCallback((algoId: number | string) => 
-      sendAlgorithmChange(algoId, state.channel), [state.channel]),
+      sendAlgorithmChange(algoId, useMidiStore.getState().channel), []),
     sendIMChange: useCallback((imNumber: number, value: number) => 
-      sendIMChange(imNumber, value, state.channel), [state.channel]),
+      sendIMChange(imNumber, value, useMidiStore.getState().channel), []),
     sendEnvelopeAttack: useCallback((opNumber: number, value: number) => 
-      sendEnvelopeAttack(opNumber, value, state.channel), [state.channel]),
+      sendEnvelopeAttack(opNumber, value, useMidiStore.getState().channel), []),
     sendEnvelopeRelease: useCallback((opNumber: number, value: number) => 
-      sendEnvelopeRelease(opNumber, value, state.channel), [state.channel]),
+      sendEnvelopeRelease(opNumber, value, useMidiStore.getState().channel), []),
     sendCC: useCallback((controller: number, value: number) => 
-      sendCC(controller, value, state.channel), [state.channel]),
+      sendCC(controller, value, useMidiStore.getState().channel), []),
     sendNRPN: useCallback((nrpn: NRPNMessage) => 
-      sendNRPN(nrpn, state.channel), [state.channel]),
+      sendNRPN(nrpn, useMidiStore.getState().channel), []),
     
     // Listen functions
     listenToCC,
