@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import styled, { ThemeProvider } from 'styled-components';
 import { PatchEditor } from './screens/PatchEditor';
 import { ModulationsEditor } from './screens/modulationsEditor';
@@ -266,6 +267,7 @@ const PatchNameEditorComponent: React.FC = () => {
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('patch');
   const [showCCTester, setShowCCTester] = useState(false);
+  const { t } = useTranslation();
   const { theme } = useThemeStore();
   const { sendPatch, receivePatch, isReceiving, midi } = useMidiActions();
 
@@ -291,16 +293,16 @@ export default function App() {
         <Nav>
           <div className="nav-tabs">
             <button onClick={() => setCurrentScreen('patch')} className={currentScreen === 'patch' ? 'active' : ''}>
-              Patch
+              {t('nav.patch')}
             </button>
             <button onClick={() => setCurrentScreen('matrix')} className={currentScreen === 'matrix' ? 'active' : ''}>
-              Modulations
+              {t('nav.modulations')}
             </button>
             <button onClick={() => setCurrentScreen('arpfilter')} className={currentScreen === 'arpfilter' ? 'active' : ''}>
-              Arp/Filter
+              {t('nav.arpFilter')}
             </button>
             <button onClick={() => setCurrentScreen('library')} className={currentScreen === 'library' ? 'active' : ''}>
-              Librairie
+              {t('nav.library')}
             </button>
           </div>
           

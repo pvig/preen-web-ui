@@ -169,5 +169,38 @@
     "version": "Version: 1.0.0 • Mars 2026",
     "projectLink": "Projet sur GitHub",
     "close": "Fermer"
+  },
+  "nav": {
+    "patch": "Patch",
+    "modulations": "Modulations",
+    "arpFilter": "Arp/Filtre",
+    "library": "Librairie"
+  },
+  "patchManager": {
+    "currentPatch": "Patch courant",
+    "savePatch": "Sauvegarder le patch en .patch",
+    "loadPatch": "Charger un patch (.patch)",
+    "organizeBank": "Organiser une bank",
+    "helpTooltip": "Mode d'emploi",
+    "openBnk": "Ouvrir un fichier .bnk",
+    "help": {
+      "title": "Organiser une bank PreenFM (.bnk)",
+      "intro": "Ce module permet de réorganiser les 128 presets d'un fichier .bnk :",
+      "dragDropLabel": "Glisser-déposer",
+      "dragDropDesc": "un preset sur un autre pour échanger leurs positions.",
+      "doubleClickLabel": "Double-cliquer",
+      "doubleClickDesc": "sur un preset pour le renommer (12 caractères max).",
+      "saveTitle": "Sauvegarde",
+      "saveLabel": "Sauvegarder",
+      "saveOverwriteDesc": "ouvre le dialogue de l'OS avec le nom d'origine pré-rempli ; vous pouvez écraser le fichier directement.",
+      "saveAsLabel": "Sauvegarder sous\u2026",
+      "saveAsDesc": "même dialogue mais avec un nom _reordered pour conserver l'original.",
+      "browserReqTitle": "\u26a0 Prérequis navigateur",
+      "browserReqDesc": "Pour que la sauvegarde fonctionne correctement (écriture directe sur le disque, sans fichier numéroté (1), (2)\u2026), le navigateur doit supporter la File System Access API :",
+      "chromeDesc": "supporté nativement.",
+      "braveDesc": "ouvrir brave://flags/#file-system-access-api, passer sur Enabled puis relancer.",
+      "firefoxDesc": "non supporté ; le téléchargement se fera dans le dossier par défaut.",
+      "close": "Fermer"
+    }
   }
 }

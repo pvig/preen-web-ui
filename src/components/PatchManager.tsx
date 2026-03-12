@@ -1,6 +1,7 @@
 // src/components/PatchManager.tsx
 // @see PATCH_MANAGEMENT.md for binary format, firmware compatibility, and architecture overview.
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { useCurrentPatch, usePatchStore } from '../stores/patchStore';
 import ReorderingComponent from './ReorderingComponent';
@@ -128,6 +129,7 @@ const HelpCloseBtn = styled.button`
 // ── Patch Save Panel ──────────────────────────────────────────────────────────
 
 export function PatchSavePanel() {
+  const { t } = useTranslation();
   const { loadPatch } = usePatchStore();
   const currentPatch = useCurrentPatch();
 
@@ -142,17 +144,17 @@ export function PatchSavePanel() {
       loadPatch(patch);
     } catch (err) {
       console.error('[PatchManager] Erreur chargement .patch :', err);
-      alert(`Erreur : ${err instanceof Error ? err.message : String(err)}`);
+      alert(`${t('patchManager.loadError')} : ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
   return (
     <Panel>
-      <PanelTitle>Patch courant</PanelTitle>
+      <PanelTitle>{t('patchManager.currentPatch')}</PanelTitle>
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-        <Btn onClick={handleSavePatch}>Sauvegarder le patch en .patch</Btn>
+        <Btn onClick={handleSavePatch}>{t('patchManager.savePatch')}</Btn>
         <label style={{ cursor: 'pointer' }}>
-          <Btn as="span">Charger un patch (.patch)</Btn>
+          <Btn as="span">{t('patchManager.loadPatch')}</Btn>
           <input
             type="file"
             accept=".patch,.syx"
@@ -168,6 +170,7 @@ export function PatchSavePanel() {
 // ── Bank Organizer Panel ──────────────────────────────────────────────────────
 
 export function BankOrganizerPanel() {
+  const { t } = useTranslation();
   const bankInputRef = useRef<HTMLInputElement>(null);
   const [bank, setBank] = useState<BankState | null>(null);
   const [showHelp, setShowHelp] = useState(false);
@@ -204,12 +207,12 @@ export function BankOrganizerPanel() {
   return (
     <Panel>
       <PanelTitle>
-        Organiser une bank
-        <HelpBtn onClick={() => setShowHelp(true)} title="Mode d'emploi">?</HelpBtn>
+        {t('patchManager.organizeBank')}
+        <HelpBtn onClick={() => setShowHelp(true)} title={t('patchManager.helpTooltip')}>?</HelpBtn>
       </PanelTitle>
 
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-        <Btn onClick={openBankFile}>Ouvrir un fichier .bnk</Btn>
+        <Btn onClick={openBankFile}>{t('patchManager.openBnk')}</Btn>
         <input
           ref={bankInputRef}
           type="file"
@@ -236,33 +239,31 @@ export function BankOrganizerPanel() {
       {showHelp && (
         <HelpOverlay onClick={(e) => e.target === e.currentTarget && setShowHelp(false)}>
           <HelpPanel>
-            <h3>Organiser une bank PreenFM (.bnk)</h3>
+            <h3>{t('patchManager.help.title')}</h3>
             <p>
-              Ce module permet de réorganiser les 128 presets d'un fichier <code>.bnk</code>&nbsp;:
+              {t('patchManager.help.intro')}
             </p>
             <ul>
-              <li><strong>Glisser-déposer</strong> un preset sur un autre pour échanger leurs positions.</li>
-              <li><strong>Double-cliquer</strong> sur un preset pour le renommer (12 caractères max).</li>
+              <li><strong>{t('patchManager.help.dragDropLabel')}</strong> {t('patchManager.help.dragDropDesc')}</li>
+              <li><strong>{t('patchManager.help.doubleClickLabel')}</strong> {t('patchManager.help.doubleClickDesc')}</li>
             </ul>
 
-            <h3>Sauvegarde</h3>
+            <h3>{t('patchManager.help.saveTitle')}</h3>
             <ul>
-              <li><strong>Sauvegarder</strong> — ouvre le dialogue de l'OS avec le nom d'origine pré-rempli ; vous pouvez écraser le fichier directement.</li>
-              <li><strong>Sauvegarder sous…</strong> — même dialogue mais avec un nom <code>_reordered</code> pour conserver l'original.</li>
+              <li><strong>{t('patchManager.help.saveLabel')}</strong> — {t('patchManager.help.saveOverwriteDesc')}</li>
+              <li><strong>{t('patchManager.help.saveAsLabel')}</strong> — {t('patchManager.help.saveAsDesc')}</li>
             </ul>
 
-            <h3>⚠ Prérequis navigateur</h3>
+            <h3>{t('patchManager.help.browserReqTitle')}</h3>
             <p>
-              Pour que la sauvegarde fonctionne correctement (écriture directe sur le disque,
-              sans fichier numéroté <code>(1)</code>, <code>(2)</code>…), le navigateur
-              doit supporter la <strong>File System Access API</strong>&nbsp;:
+              {t('patchManager.help.browserReqDesc')}
             </p>
             <ul>
-              <li><strong>Chrome / Edge</strong> — supporté nativement.</li>
-              <li><strong>Brave</strong> — ouvrir <code>brave://flags/#file-system-access-api</code>, passer sur <strong>Enabled</strong> puis relancer.</li>
-              <li><strong>Firefox / Safari</strong> — non supporté ; le téléchargement se fera dans le dossier par défaut.</li>
+              <li><strong>Chrome / Edge</strong> — {t('patchManager.help.chromeDesc')}</li>
+              <li><strong>Brave</strong> — {t('patchManager.help.braveDesc')}</li>
+              <li><strong>Firefox / Safari</strong> — {t('patchManager.help.firefoxDesc')}</li>
             </ul>
-            <HelpCloseBtn onClick={() => setShowHelp(false)}>Fermer</HelpCloseBtn>
+            <HelpCloseBtn onClick={() => setShowHelp(false)}>{t('patchManager.help.close')}</HelpCloseBtn>
           </HelpPanel>
         </HelpOverlay>
       )}

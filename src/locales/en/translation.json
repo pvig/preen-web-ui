@@ -169,5 +169,38 @@
     "version": "Version: 1.0.0 • March 2026",
     "projectLink": "Project on GitHub",
     "close": "Close"
+  },
+  "nav": {
+    "patch": "Patch",
+    "modulations": "Modulations",
+    "arpFilter": "Arp/Filter",
+    "library": "Library"
+  },
+  "patchManager": {
+    "currentPatch": "Current Patch",
+    "savePatch": "Save patch as .patch",
+    "loadPatch": "Load a patch (.patch)",
+    "organizeBank": "Organize a bank",
+    "helpTooltip": "How to use",
+    "openBnk": "Open a .bnk file",
+    "help": {
+      "title": "Organize a PreenFM bank (.bnk)",
+      "intro": "This module lets you reorder the 128 presets in a .bnk file:",
+      "dragDropLabel": "Drag and drop",
+      "dragDropDesc": "a preset onto another to swap their positions.",
+      "doubleClickLabel": "Double-click",
+      "doubleClickDesc": "a preset to rename it (12 characters max).",
+      "saveTitle": "Save",
+      "saveLabel": "Save",
+      "saveOverwriteDesc": "opens the OS dialog with the original name pre-filled; you can overwrite the file directly.",
+      "saveAsLabel": "Save as\u2026",
+      "saveAsDesc": "same dialog but with a _reordered name to keep the original.",
+      "browserReqTitle": "\u26a0 Browser requirements",
+      "browserReqDesc": "For saving to work correctly (writing directly to disk, without a numbered file (1), (2)\u2026), the browser must support the File System Access API:",
+      "chromeDesc": "natively supported.",
+      "braveDesc": "open brave://flags/#file-system-access-api, switch to Enabled then relaunch.",
+      "firefoxDesc": "not supported; the download will go to the default folder.",
+      "close": "Close"
+    }
   }
 }
