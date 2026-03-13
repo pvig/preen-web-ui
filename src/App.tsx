@@ -165,11 +165,9 @@ const Nav = styled.nav`
   /* Ajustement spécifique pour tous les boutons sur Firefox */
   @-moz-document url-prefix() {
     button {
-      padding: 9px 18px !important;
-      font-size: 1rem !important;
-      line-height: 1.2 !important;
-    }
-  }
+      padding: 8px 16px !important;
+      font-size: 0.9rem !important;
+      line-height: 1.3 !important;
     }
   }
 `;
