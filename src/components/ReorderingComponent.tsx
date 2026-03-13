@@ -23,11 +23,11 @@ import styled from 'styled-components';
 // ── Constants ────────────────────────────────────────────────────────────────
 
 /** Bytes per preset block in a .bnk file */
-const PRESET_SIZE = 1024;
+export const PRESET_SIZE = 1024;
 /** Total number of presets in a bank */
-const PRESET_COUNT = 128;
+export const PRESET_COUNT = 128;
 /** Maximum length of a preset name (null terminator not counted) */
-const NAME_MAX_LEN = 12;
+export const NAME_MAX_LEN = 12;
 /**
  * Byte offset of presetName[13] within FlashSynthParams (all fields are float = 4 bytes):
  *   engine1(16) + flashEngineIm1(16) + flashEngineIm2(16)
@@ -40,14 +40,14 @@ const NAME_MAX_LEN = 12;
  *   + lfoSteps1+lfoSteps2 (2×16=32)
  *   = 720
  */
-const NAME_OFFSET = 720;
+export const NAME_OFFSET = 720;
 /** Grid layout */
 const COLS = 8;
 const ROWS = 16;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface PresetSlot {
+export interface PresetSlot {
   /** Human-readable name (already decoded from binary) */
   name: string;
   /** Raw 1024-byte block — mutated in place for rename */
@@ -254,7 +254,7 @@ const ContextMenuItem = styled.button`
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /** Extract a null-terminated ASCII name from a preset block */
-function readName(block: Uint8Array): string {
+export function readName(block: Uint8Array): string {
   let name = '';
   for (let i = NAME_OFFSET; i < NAME_OFFSET + NAME_MAX_LEN; i++) {
     const byte = block[i];
@@ -265,7 +265,7 @@ function readName(block: Uint8Array): string {
 }
 
 /** Write a name back into a preset block (in-place) */
-function writeName(block: Uint8Array, name: string): void {
+export function writeName(block: Uint8Array, name: string): void {
   const truncated = name.slice(0, NAME_MAX_LEN);
   for (let i = 0; i < NAME_MAX_LEN; i++) {
     block[NAME_OFFSET + i] =
@@ -274,7 +274,7 @@ function writeName(block: Uint8Array, name: string): void {
 }
 
 /** Parse a .bnk ArrayBuffer into an array of PresetSlot */
-function parseBankData(buffer: ArrayBuffer): PresetSlot[] {
+export function parseBankData(buffer: ArrayBuffer): PresetSlot[] {
   const bytes = new Uint8Array(buffer);
   const slots: PresetSlot[] = [];
 
@@ -289,7 +289,7 @@ function parseBankData(buffer: ArrayBuffer): PresetSlot[] {
 }
 
 /** Rebuild a bank ArrayBuffer from an ordered array of PresetSlot */
-function buildBankData(slots: PresetSlot[]): ArrayBuffer {
+export function buildBankData(slots: PresetSlot[]): ArrayBuffer {
   const out = new Uint8Array(PRESET_COUNT * PRESET_SIZE);
   for (let i = 0; i < PRESET_COUNT; i++) {
     out.set(slots[i].data, i * PRESET_SIZE);
@@ -298,20 +298,20 @@ function buildBankData(slots: PresetSlot[]): ArrayBuffer {
 }
 
 /** Suggest a new output filename (strip extension + any existing _reordered suffix, add suffix once) */
-function suggestFileName(original: string): string {
+export function suggestFileName(original: string): string {
   const base = original.replace(/\.bnk$/i, '').replace(/(_reordered)+$/i, '');
   return base + '_reordered.bnk';
 }
 
 /** Swap two elements in an array (immutably) */
-function swapAt<T>(arr: T[], a: number, b: number): T[] {
+export function swapAt<T>(arr: T[], a: number, b: number): T[] {
   const next = [...arr];
   [next[a], next[b]] = [next[b], next[a]];
   return next;
 }
 
 /** Check if a preset slot is empty (name bytes are all zero) */
-function isEmptySlot(data: Uint8Array): boolean {
+export function isEmptySlot(data: Uint8Array): boolean {
   for (let i = NAME_OFFSET; i < NAME_OFFSET + NAME_MAX_LEN; i++) {
     if (data[i] !== 0) return false;
   }

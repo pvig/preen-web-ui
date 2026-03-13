@@ -57,7 +57,6 @@ const OperatorControl = styled.div<{ $isHighlighted?: boolean }>`
 
 const OperatorTitle = styled.h4`
   margin: 0;
-  color: #e2e8f0;
   font-size: 1rem;
   text-align: center;
 `;
