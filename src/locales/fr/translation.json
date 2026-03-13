@@ -175,7 +175,22 @@
     "patch": "Patch",
     "modulations": "Modulations",
     "arpFilter": "Arp/Filtre",
-    "library": "Librairie"
+    "library": "Librairie",
+    "mutation": "Mutations"
+  },
+  "mutation": {
+    "title": "Mutation de patch",
+    "source": "Source",
+    "emptySlot": "Aucun patch chargé",
+    "loadFile": "Charger .patch",
+    "pull": "Pull MIDI",
+    "clear": "Vider",
+    "enable": "Mutation active",
+    "loadBoth": "Chargez les deux patchs source pour activer la mutation.",
+    "activeHint": "Le patch courant est l'interpolation entre A et B. Déplacez le curseur pour muter.",
+    "noMidiInput": "Aucune entrée MIDI sélectionnée",
+    "pullFailed": "Aucune donnée reçue du PreenFM3.",
+    "pullTimeout": "Timeout : pas de réponse du PreenFM3."
   },
   "patchManager": {
     "currentPatch": "Patch courant",

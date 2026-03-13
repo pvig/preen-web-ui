@@ -175,7 +175,22 @@
     "patch": "Patch",
     "modulations": "Modulations",
     "arpFilter": "Arp/Filter",
-    "library": "Library"
+    "library": "Library",
+    "mutation": "Mutations"
+  },
+  "mutation": {
+    "title": "Patch Mutation",
+    "source": "Source",
+    "emptySlot": "No patch loaded",
+    "loadFile": "Load .patch",
+    "pull": "Pull MIDI",
+    "clear": "Clear",
+    "enable": "Mutation active",
+    "loadBoth": "Load both source patches to enable mutation.",
+    "activeHint": "The current patch is an interpolation between A and B. Move the slider to mutate.",
+    "noMidiInput": "No MIDI input selected",
+    "pullFailed": "No data received from PreenFM3.",
+    "pullTimeout": "Timeout: no response from PreenFM3."
   },
   "patchManager": {
     "currentPatch": "Current Patch",

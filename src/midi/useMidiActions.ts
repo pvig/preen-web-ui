@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react';
 import { usePreenFM3Midi } from './usePreenFM3Midi';
 import { useCurrentPatch, usePatchStore } from '../stores/patchStore';
-import { requestPatchDump, sendNRPN } from './midiService';
+import { requestPatchDump, sendNRPN, clearNRPNQueue, drainNRPNQueue } from './midiService';
 import { PreenFM3Parser } from './preenFM3Parser';
-import { patchToNRPNMessages } from './patchSerializer';
+import { patchToNRPNMessages, type PatchToNRPNOptions } from './patchSerializer';
 
 export const useMidiActions = () => {
   const midi = usePreenFM3Midi();
@@ -13,6 +13,7 @@ export const useMidiActions = () => {
   const [receivedCount, setReceivedCount] = useState(0);
   const [receivedName, setReceivedName] = useState('');
   const [isReceiving, setIsReceiving] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   
   // État pour la réception MIDI
   const receptionTimeoutRef = useRef<number | null>(null);
@@ -21,7 +22,7 @@ export const useMidiActions = () => {
   const nrpnListenerRef = useRef<((nrpn: any, channel: number) => void) | null>(null);
 
   // Envoi d'un patch au PreenFM3 (Push)
-  const sendPatch = () => {
+  const sendPatch = (options?: PatchToNRPNOptions) => {
     if (!midi.selectedOutput) {
       alert('Aucune sortie MIDI sélectionnée');
       return;
@@ -34,32 +35,24 @@ export const useMidiActions = () => {
 
     console.log('📤 Push du patch vers le PreenFM3…', currentPatch.name);
 
-    const nrpnMessages = patchToNRPNMessages(currentPatch);
-    console.log(`📤 ${nrpnMessages.length} messages NRPN à envoyer`);
+    // Cancel any in-flight push before starting a new one
+    clearNRPNQueue();
+    setIsSending(true);
 
-    // Envoyer tous les messages NRPN avec un léger délai inter-message
-    // pour éviter de saturer le buffer MIDI du PreenFM3
-    const DELAY_MS = 3; // 3ms entre chaque NRPN (4 CC messages)
-    let sent = 0;
+    const nrpnMessages = patchToNRPNMessages(currentPatch, options);
+    console.log(`📤 ${nrpnMessages.length} messages NRPN à envoyer (via queue, ~${nrpnMessages.length * 10}ms)`);
 
-    const sendNext = () => {
-      if (sent >= nrpnMessages.length) {
-        console.log(`✅ Push terminé : ${sent} messages NRPN envoyés`);
-        return;
-      }
-
-      const msg = nrpnMessages[sent];
+    // Queue all messages — the NRPN queue handles pacing (10 ms gap)
+    // and deduplication automatically.
+    for (const msg of nrpnMessages) {
       sendNRPN(msg, midi.channel);
-      sent++;
+    }
 
-      if (sent % 50 === 0) {
-        console.log(`📤 ${sent}/${nrpnMessages.length} messages envoyés…`);
-      }
-
-      setTimeout(sendNext, DELAY_MS);
-    };
-
-    sendNext();
+    // Reset visual feedback when the full push is done
+    drainNRPNQueue().then(() => {
+      console.log(`✅ Push terminé : ${nrpnMessages.length} messages NRPN envoyés`);
+      setIsSending(false);
+    });
   };
 
   // Réception d'un patch depuis le PreenFM3 (Pull)
@@ -241,6 +234,7 @@ export const useMidiActions = () => {
     receivedCount,
     receivedName,
     isReceiving,
+    isSending,
     midi
   };
 };

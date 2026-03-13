@@ -25,7 +25,6 @@ import {
   swapAt,
   isEmptySlot,
 } from '../ReorderingComponent';
-import type { PresetSlot } from '../ReorderingComponent';
 
 // ---------------------------------------------------------------------------
 // Helpers to build synthetic binary data

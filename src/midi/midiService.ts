@@ -401,7 +401,7 @@ export function sendArpeggiatorLatch(latch: string, channel: number = currentCha
  */
 
 import { WebMidi, Input, Output } from 'webmidi';
-import { PREENFM3_CC, NRPNMessage, NRPN_COMMANDS } from './preenFM3MidiMap';
+import { MIDI_CC, PREENFM3_CC, NRPNMessage, NRPN_COMMANDS } from './preenFM3MidiMap';
 
 let midiInput: Input | null = null;
 let midiOutput: Output | null = null;
@@ -425,6 +425,13 @@ export async function initializeMidi(): Promise<{ inputs: Input[]; outputs: Outp
     console.error('Failed to enable Web MIDI:', err);
     throw err;
   }
+}
+
+/**
+ * Get the current MIDI input (for scoped listeners).
+ */
+export function getMidiInput(): Input | null {
+  return midiInput;
 }
 
 /**
@@ -465,6 +472,13 @@ export function sendCC(controller: number, value: number, channel: number = curr
     return;
   }
 
+  // Block sustain pedal (CC 64 = hold pedal).  This app never needs to send
+  // it; an accidental CC 64 would lock notes in sustain on the PreenFM3.
+  if (controller === MIDI_CC.HOLD_PEDAL) {
+    console.warn('🚫 Blocked CC 64 (hold pedal) — never sent from the editor');
+    return;
+  }
+
   console.log('📨 sendCC called:', { controller, value, channel, hasOutput: !!midiOutput, outputName: midiOutput?.name });
   
   if (!midiOutput) {
@@ -500,34 +514,146 @@ export function sendCC(controller: number, value: number, channel: number = curr
 }
 
 /**
- * Send an NRPN message (4 CC messages)
+ * ── NRPN Send Queue ─────────────────────────────────────────────────────────
+ *
+ * All NRPN messages go through a centralized FIFO queue so the PreenFM3
+ * firmware has enough time to process each one before the next arrives.
+ *
+ * - Minimum inter-NRPN gap: NRPN_SEND_INTERVAL_MS (default 10 ms).
+ * - Deduplication: if a message with the same NRPN address (paramMSB:paramLSB)
+ *   is already pending, its value is updated in-place (latest-value-wins).
+ *   This is ideal for live knob/slider changes — only the most recent value
+ *   actually gets sent.
+ * - drainNRPNQueue() returns a Promise that resolves once the queue is empty.
+ */
+
+/** Minimum delay between consecutive NRPN sends (ms). */
+const NRPN_SEND_INTERVAL_MS = 10;
+
+interface QueuedNRPN {
+  nrpn: NRPNMessage;
+  channel: number;
+  /** Dedup key: "paramMSB:paramLSB" */
+  key: string;
+}
+
+const nrpnQueue: QueuedNRPN[] = [];
+let queueTimer: ReturnType<typeof setTimeout> | null = null;
+let lastNrpnSendTime = 0;
+/** Pending drain-resolve callbacks. */
+let drainResolvers: (() => void)[] = [];
+
+function nrpnKey(nrpn: NRPNMessage): string {
+  return `${nrpn.paramMSB}:${nrpn.paramLSB}`;
+}
+
+/**
+ * Send 4 CCs for one NRPN as a **single** send() call so that the
+ * 12 bytes travel in one USB transfer (same approach as the official
+ * PreenFM controller's sendBlockOfMessagesNow).
+ * This prevents USB-level interleaving that could corrupt the NRPN
+ * state machine on the synth — which was causing a phantom CC 64
+ * (sustain / hold pedal) to be perceived by the firmware.
+ */
+function sendNRPNImmediate(nrpn: NRPNMessage, channel: number) {
+  if (!midiOutput) return;
+  const s = 0xB0 + (channel - 1);
+  midiOutput.send([
+    s, 99, nrpn.paramMSB & 0x7F,   // CC 99 = NRPN param MSB
+    s, 98, nrpn.paramLSB & 0x7F,   // CC 98 = NRPN param LSB
+    s,  6, nrpn.valueMSB  & 0x7F,   // CC 6  = Data Entry MSB
+    s, 38, nrpn.valueLSB  & 0x7F,   // CC 38 = Data Entry LSB
+  ]);
+}
+
+function processNrpnQueue() {
+  queueTimer = null;
+
+  if (nrpnQueue.length === 0) {
+    // Queue drained — resolve all waiters
+    const resolvers = drainResolvers;
+    drainResolvers = [];
+    resolvers.forEach((r) => r());
+    return;
+  }
+
+  const item = nrpnQueue.shift()!;
+  try {
+    sendNRPNImmediate(item.nrpn, item.channel);
+  } catch (err) {
+    console.error('Failed to send NRPN:', err);
+  }
+  lastNrpnSendTime = performance.now();
+
+  if (nrpnQueue.length > 0) {
+    queueTimer = setTimeout(processNrpnQueue, NRPN_SEND_INTERVAL_MS);
+  } else {
+    // Queue just became empty — resolve all waiters
+    const resolvers = drainResolvers;
+    drainResolvers = [];
+    resolvers.forEach((r) => r());
+  }
+}
+
+/**
+ * Send an NRPN message (4 CC messages) via the rate-limited queue.
+ *
+ * If a message with the same NRPN address is already pending, its value is
+ * updated in place (latest-value-wins deduplication).
  */
 export function sendNRPN(nrpn: NRPNMessage, channel: number = currentChannel) {
   if (!midiOutput) {
     console.warn('No MIDI output selected');
     return;
   }
-  
-  try {
-    // Build status byte for Control Change
-    const statusByte = 0xB0 + (channel - 1);
-    
-    console.log('📤 Sending NRPN via Output:', { id: midiOutput.id, name: midiOutput.name });
-    
-    // Send 4 CC messages using raw MIDI WITHOUT timestamp
-    // CC 99 = NRPN MSB
-    midiOutput.send([statusByte, 99, nrpn.paramMSB & 0x7F]);
-    // CC 98 = NRPN LSB
-    midiOutput.send([statusByte, 98, nrpn.paramLSB & 0x7F]);
-    // CC 6 = Data Entry MSB
-    midiOutput.send([statusByte, 6, nrpn.valueMSB & 0x7F]);
-    // CC 38 = Data Entry LSB
-    midiOutput.send([statusByte, 38, nrpn.valueLSB & 0x7F]);
-    
-    console.log(`Sent NRPN [${nrpn.paramMSB},${nrpn.paramLSB}] = [${nrpn.valueMSB},${nrpn.valueLSB}] on channel ${channel}`);
-  } catch (err) {
-    console.error('Failed to send NRPN:', err);
+
+  const key = nrpnKey(nrpn);
+
+  // Dedup: update in place if same address is already queued
+  const existing = nrpnQueue.findIndex((q) => q.key === key);
+  if (existing >= 0) {
+    nrpnQueue[existing].nrpn = nrpn;
+    nrpnQueue[existing].channel = channel;
+    return;
   }
+
+  nrpnQueue.push({ nrpn, channel, key });
+
+  // Kick the queue processor if not already running
+  if (!queueTimer) {
+    const elapsed = performance.now() - lastNrpnSendTime;
+    const wait = Math.max(0, NRPN_SEND_INTERVAL_MS - elapsed);
+    queueTimer = setTimeout(processNrpnQueue, wait);
+  }
+}
+
+/**
+ * Returns a Promise that resolves once all currently-queued NRPN messages
+ * have been sent.  Useful after a batch push (sendPatch) to know when the
+ * hardware has received everything.
+ */
+export function drainNRPNQueue(): Promise<void> {
+  if (nrpnQueue.length === 0 && !queueTimer) {
+    return Promise.resolve();
+  }
+  return new Promise<void>((resolve) => {
+    drainResolvers.push(resolve);
+  });
+}
+
+/**
+ * Clear any pending NRPN messages (e.g. when switching patches while a push
+ * is still in progress).
+ */
+export function clearNRPNQueue() {
+  nrpnQueue.length = 0;
+  if (queueTimer) {
+    clearTimeout(queueTimer);
+    queueTimer = null;
+  }
+  const resolvers = drainResolvers;
+  drainResolvers = [];
+  resolvers.forEach((r) => r());
 }
 
 /**
@@ -1356,6 +1482,71 @@ export function onNRPN(callback: (nrpn: NRPNMessage, channel: number) => void) {
         break;
     }
   });
+}
+
+/**
+ * Listen to incoming NRPN messages — scoped version.
+ * Returns an unsubscribe function that removes ONLY this listener.
+ * Use this when multiple independent consumers need to pull concurrently
+ * (e.g. mutation slots) without interfering with each other.
+ */
+export function onNRPNScoped(
+  callback: (nrpn: NRPNMessage, channel: number) => void,
+): (() => void) | null {
+  if (!midiInput) {
+    console.warn('No MIDI input selected');
+    return null;
+  }
+
+  const input = midiInput; // capture ref
+  const nrpnBuffer: Map<number, Partial<NRPNMessage>> = new Map();
+
+  const handler = (e: any) => {
+    const channel = e.message.channel || 1;
+    const controller = e.controller.number;
+    const value =
+      typeof e.rawValue === 'number'
+        ? e.rawValue
+        : typeof e.value === 'number'
+        ? Math.round(e.value * 127)
+        : 0;
+
+    if (!nrpnBuffer.has(channel)) {
+      nrpnBuffer.set(channel, {});
+    }
+
+    const buffer = nrpnBuffer.get(channel)!;
+
+    switch (controller) {
+      case 99:
+        buffer.paramMSB = value;
+        break;
+      case 98:
+        buffer.paramLSB = value;
+        break;
+      case 6:
+        buffer.valueMSB = value;
+        break;
+      case 38:
+        buffer.valueLSB = value;
+        if (
+          buffer.paramMSB !== undefined &&
+          buffer.paramLSB !== undefined &&
+          buffer.valueMSB !== undefined &&
+          buffer.valueLSB !== undefined
+        ) {
+          callback(buffer as NRPNMessage, channel);
+          nrpnBuffer.set(channel, {});
+        }
+        break;
+    }
+  };
+
+  input.addListener('controlchange', handler);
+
+  return () => {
+    input.removeListener('controlchange', handler);
+  };
 }
 
 /**

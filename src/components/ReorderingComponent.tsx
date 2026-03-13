@@ -482,7 +482,7 @@ export default function ReorderingComponent({ bankData, fileName, onClose }: Pro
             ],
           });
           const writable = await handle.createWritable();
-          await writable.write(slot.data);
+          await writable.write(new Uint8Array(slot.data) as BlobPart);
           await writable.close();
           return;
         } catch {
@@ -490,7 +490,7 @@ export default function ReorderingComponent({ bankData, fileName, onClose }: Pro
         }
       }
 
-      const blob = new Blob([slot.data], { type: 'application/octet-stream' });
+      const blob = new Blob([new Uint8Array(slot.data)], { type: 'application/octet-stream' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

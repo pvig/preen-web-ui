@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { WaveformType, getWaveformId } from '../types/waveform';
 import { sendOperatorMix, sendOperatorPan, sendOperatorFrequency, sendOperatorDetune, sendOperatorWaveform, sendOperatorKeyboardTracking, sendOperatorADSR, sendModulationIM, sendModulationVelo, calculateIMIndex, sendStepSequencerStep, sendStepSequencerBpm, sendStepSequencerGate, sendAlgorithmChange, sendGlobalVelocitySensitivity, sendPlayMode, sendGlideTime, sendNoteCurve, sendPatchName, sendFilterType, sendFilterParam1, sendFilterParam2, sendFilterGain } from '../midi/midiService';
+import { sanitizePatchName } from '../utils/patchNameUtils';
 
 
 
@@ -698,14 +699,15 @@ export const usePatchStore = create<PatchStore>()(
 
     updatePatchName: (name: string) =>
       set((state) => {
-        state.currentPatch.name = name;
+        const safe = sanitizePatchName(name);
+        state.currentPatch.name = safe;
         state.isModified = true;
         updateLastModified(state.currentPatch);
         
         // Send patch name to PreenFM3 via MIDI
         try {
-          sendPatchName(name);
-          console.log('✅ Patch name sent to PreenFM3:', name);
+          sendPatchName(safe);
+          console.log('✅ Patch name sent to PreenFM3:', safe);
         } catch (error) {
           console.warn('⚠️ Failed to send patch name to PreenFM3:', error);
         }

@@ -251,7 +251,7 @@ const StatusIndicator = styled.span<{ $connected: boolean }>`
 
 export const MidiMenu = () => {
   const { t } = useTranslation();
-  const { sendPatch, receivePatch, receivedCount, receivedName, midi } = useMidiActions();
+  const { sendPatch, receivePatch, receivedCount, receivedName, isSending, midi } = useMidiActions();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const isConnected = Boolean(midi.selectedInput && midi.selectedOutput);
@@ -362,11 +362,11 @@ export const MidiMenu = () => {
 
         <MidiActions>
           <MidiButton 
-            onClick={sendPatch}
-            disabled={!midi.selectedOutput}
+            onClick={() => sendPatch()}
+            disabled={!midi.selectedOutput || isSending}
             title={t('midi.pushTooltip')}
           >
-            {t('midi.pushButton')}
+            {isSending ? t('midi.sending', 'Envoi…') : t('midi.pushButton')}
           </MidiButton>
           
           <MidiButton 

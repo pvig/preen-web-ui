@@ -6,6 +6,7 @@ import { ModulationsEditor } from './screens/modulationsEditor';
 import { ArpFilterEditor } from './screens/ArpFilterEditor';
 import { EffectsEditor } from './screens/EffectsEditor';
 import { PatchLibrary } from './screens/PatchLibrary';
+import { MutationEditor } from './screens/MutationEditor';
 import { MidiMenu } from './components/MidiMenu';
 import { MidiCCTester } from './components/MidiCCTester';
 import { HamburgerMenu } from './components/HamburgerMenu';
@@ -13,8 +14,9 @@ import { useThemeStore } from './theme/themeStore';
 import { GlobalStyles } from './theme/GlobalStyles';
 import { useMidiActions } from './midi/useMidiActions';
 import { useCurrentPatch, usePatchStore } from './stores/patchStore';
+import { useMutationStore } from './stores/mutationStore';
 
-type AppScreen = 'patch' | 'matrix' | 'arpfilter' | 'effects' | 'library';
+type AppScreen = 'patch' | 'matrix' | 'arpfilter' | 'effects' | 'library' | 'mutation';
 
 const AppContainer = styled.div`
   background-color: ${props => props.theme.colors.background};
@@ -45,14 +47,14 @@ const MidiQuickButtons = styled.div`
   margin: 4px;
 `;
 
-const QuickMidiButton = styled.button<{ $isReceiving?: boolean }>`
+const QuickMidiButton = styled.button<{ $isReceiving?: boolean; $isSending?: boolean }>`
   width: 24px !important;
   height: 34px !important;
   padding: 0 !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: ${props => props.$isReceiving ? '#10b981' : props.theme.colors.primary};
+  background: ${props => (props.$isReceiving || props.$isSending) ? '#10b981' : props.theme.colors.primary};
   color: ${props => props.theme.colors.background};
   border: 1px solid ${props => props.theme.colors.border};
   border-radius: 3px;
@@ -77,14 +79,14 @@ const QuickMidiButton = styled.button<{ $isReceiving?: boolean }>`
     }
   }
   
-  ${props => props.$isReceiving ? `
+  ${props => (props.$isReceiving || props.$isSending) ? `
     animation: pulseGlow 1.2s ease-in-out infinite;
     border-color: #10b981;
   ` : ''}
   
   &:hover:not(:disabled) {
-    background: ${props => props.$isReceiving ? '#059669' : (props.theme.colors.buttonHover || props.theme.colors.accent)};
-    transform: ${props => props.$isReceiving ? 'none' : 'scale(1.05)'};
+    background: ${props => (props.$isReceiving || props.$isSending) ? '#059669' : (props.theme.colors.buttonHover || props.theme.colors.accent)};
+    transform: ${props => (props.$isReceiving || props.$isSending) ? 'none' : 'scale(1.05)'};
   }
   
   &:disabled {
@@ -231,6 +233,11 @@ const PatchNameEditorComponent: React.FC = () => {
   const handleSave = () => {
     if (editValue.trim() && editValue !== currentPatch.name) {
       updatePatchName(editValue.trim());
+      // Preserve user-edited name during mutation interpolation
+      const { sourceA, sourceB, setCustomName } = useMutationStore.getState();
+      if (sourceA && sourceB) {
+        setCustomName(editValue.trim());
+      }
     }
     setIsEditing(false);
   };
@@ -249,10 +256,11 @@ const PatchNameEditorComponent: React.FC = () => {
         <input
           type="text"
           value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
+          onChange={(e) => setEditValue(e.target.value.replace(/[^\x20-\x7E]/g, '').slice(0, 12))}
           onBlur={handleSave}
           onKeyDown={handleKeyDown}
           autoFocus
+          maxLength={12}
           placeholder="Nom du patch"
         />
       ) : (
@@ -269,7 +277,7 @@ export default function App() {
   const [showCCTester, setShowCCTester] = useState(false);
   const { t } = useTranslation();
   const { theme } = useThemeStore();
-  const { sendPatch, receivePatch, isReceiving, midi } = useMidiActions();
+  const { sendPatch, receivePatch, isReceiving, isSending, midi } = useMidiActions();
 
   // Keyboard shortcut: Ctrl+T to toggle CC Tester
   useEffect(() => {
@@ -304,6 +312,9 @@ export default function App() {
             <button onClick={() => setCurrentScreen('library')} className={currentScreen === 'library' ? 'active' : ''}>
               {t('nav.library')}
             </button>
+            <button onClick={() => setCurrentScreen('mutation')} className={currentScreen === 'mutation' ? 'active' : ''}>
+              {t('nav.mutation')}
+            </button>
           </div>
           
           
@@ -316,9 +327,10 @@ export default function App() {
             <MidiMenu />
             <MidiQuickButtons>
               <QuickMidiButton 
-                onClick={sendPatch}
-                disabled={!midi.selectedOutput}
-                title="Push vers PreenFM3"
+                onClick={() => sendPatch()}
+                disabled={!midi.selectedOutput || isSending}
+                $isSending={isSending}
+                title={isSending ? "Envoi en cours…" : "Push vers PreenFM3"}
               >
                 ↑
               </QuickMidiButton>
@@ -342,6 +354,7 @@ export default function App() {
           {currentScreen === 'arpfilter' && <ArpFilterEditor />}
           {currentScreen === 'effects' && <EffectsEditor />}
           {currentScreen === 'library' && <PatchLibrary />}
+          {currentScreen === 'mutation' && <MutationEditor />}
         </Main>
         
         {showCCTester && <MidiCCTester onClose={() => setShowCCTester(false)} />}

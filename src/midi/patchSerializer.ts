@@ -820,41 +820,74 @@ function nrpnMsg(paramMSB: number, paramLSB: number, value: number): NRPNMsg {
  *   MSB=2, LSB 0-15:    StepSeq1 steps
  *   MSB=3, LSB 0-15:    StepSeq2 steps
  */
-export function patchToNRPNMessages(patch: Patch): NRPNMsg[] {
-  const msgs: NRPNMsg[] = [];
+export interface PatchToNRPNOptions {
+  /**
+   * Set of NRPN addresses to skip, formatted as "MSB:LSB" strings.
+   * Use MUTATION_EXCLUDED_NRPNS for mutation mode.
+   */
+  exclude?: Set<string>;
+}
+
+/**
+ * NRPN addresses that should NOT be sent during a mutation push.
+ * Polyphony [0,2] and arpeggiator [0,28-35] are excluded because
+ * interpolating them can produce invalid values that break playback.
+ */
+export const MUTATION_EXCLUDED_NRPNS = new Set([
+  '0:2',   // polyphony / play mode
+  '0:28',  // arp clock source
+  '0:29',  // arp BPM
+  '0:30',  // arp direction
+  '0:31',  // arp octave
+  '0:32',  // arp pattern
+  '0:33',  // arp division
+  '0:34',  // arp duration
+  '0:35',  // arp latch
+]);
+
+export function patchToNRPNMessages(patch: Patch, options?: PatchToNRPNOptions): NRPNMsg[] {
+  const allMsgs: NRPNMsg[] = [];
+  const exclude = options?.exclude;
+
+  /** Push a message, skipping if its address is in the exclude set. */
+  const push = (msg: NRPNMsg) => {
+    if (exclude && exclude.has(`${msg.paramMSB}:${msg.paramLSB}`)) return;
+    allMsgs.push(msg);
+  };
+
   const algoIndex = getAlgorithmIndex(patch);
 
   // ── Engine1 ─────────────────────────────────────────────────────────────────
-  msgs.push(nrpnMsg(0, 0, algoIndex));
-  msgs.push(nrpnMsg(0, 1, patch.global.velocitySensitivity));
-  msgs.push(nrpnMsg(0, 2, patch.global.polyphony));
-  msgs.push(nrpnMsg(0, 3, patch.global.glideTime));
+  push(nrpnMsg(0, 0, algoIndex));
+  push(nrpnMsg(0, 1, patch.global.velocitySensitivity));
+  push(nrpnMsg(0, 2, patch.global.polyphony));
+  push(nrpnMsg(0, 3, patch.global.glideTime));
 
   // ── IM / Velo (interleaved) ─────────────────────────────────────────────────
   const { ims, imVelos } = extractIMValues(patch);
   // LSB 4-15: im1, velo1, im2, velo2, im3, velo3, im4, velo4, im5, velo5, im6, velo6
   for (let i = 0; i < 6; i++) {
-    msgs.push(nrpnMsg(0, 4 + i * 2, ims[i]));
-    msgs.push(nrpnMsg(0, 5 + i * 2, imVelos[i]));
+    push(nrpnMsg(0, 4 + i * 2, ims[i]));
+    push(nrpnMsg(0, 5 + i * 2, imVelos[i]));
   }
 
   // ── Mix / Pan ───────────────────────────────────────────────────────────────
   const { mixes, pans } = buildMixPanSlots(patch);
   for (let i = 0; i < 6; i++) {
-    msgs.push(nrpnMsg(0, 16 + i * 2, mixes[i]));
-    msgs.push(nrpnMsg(0, 17 + i * 2, pans[i]));
+    push(nrpnMsg(0, 16 + i * 2, mixes[i]));
+    push(nrpnMsg(0, 17 + i * 2, pans[i]));
   }
 
   // ── Arpeggiator ─────────────────────────────────────────────────────────────
   const arp = patch.arpeggiator;
-  msgs.push(nrpnMsg(0, 28, indexOf(ARP_CLOCKS, arp.clockSource)));  // clock source (Off/Int/Ext)
-  msgs.push(nrpnMsg(0, 29, arp.clock));    // BPM
-  msgs.push(nrpnMsg(0, 30, indexOf(ARP_DIRECTIONS, arp.direction)));
-  msgs.push(nrpnMsg(0, 31, arp.octave));
-  msgs.push(nrpnMsg(0, 32, indexOf(ARP_PATTERNS, arp.pattern)));
-  msgs.push(nrpnMsg(0, 33, indexOf(ARP_DIVISIONS, arp.division, 12)));
-  msgs.push(nrpnMsg(0, 34, indexOf(ARP_DURATIONS, arp.duration, 12)));
-  msgs.push(nrpnMsg(0, 35, indexOf(ARP_LATCH, arp.latch)));
+  push(nrpnMsg(0, 28, indexOf(ARP_CLOCKS, arp.clockSource)));  // clock source (Off/Int/Ext)
+  push(nrpnMsg(0, 29, arp.clock));    // BPM
+  push(nrpnMsg(0, 30, indexOf(ARP_DIRECTIONS, arp.direction)));
+  push(nrpnMsg(0, 31, arp.octave));
+  push(nrpnMsg(0, 32, indexOf(ARP_PATTERNS, arp.pattern)));
+  push(nrpnMsg(0, 33, indexOf(ARP_DIVISIONS, arp.division, 12)));
+  push(nrpnMsg(0, 34, indexOf(ARP_DURATIONS, arp.duration, 12)));
+  push(nrpnMsg(0, 35, indexOf(ARP_LATCH, arp.latch)));
 
   // ── Filter ──────────────────────────────────────────────────────────────────
   const filter1 = patch.filters?.[0];
@@ -864,10 +897,10 @@ export function patchToNRPNMessages(patch: Patch): NRPNMsg[] {
       typeIdx = FILTER2_TYPE_LIST.indexOf(filter1.type as typeof FILTER2_TYPE_LIST[number]);
       if (typeIdx < 0) typeIdx = 0;
     }
-    msgs.push(nrpnMsg(0, 40, typeIdx));
-    msgs.push(nrpnMsg(0, 41, filter1.param1 * 100));
-    msgs.push(nrpnMsg(0, 42, filter1.param2 * 100));
-    msgs.push(nrpnMsg(0, 43, filter1.gain * 100));
+    push(nrpnMsg(0, 40, typeIdx));
+    push(nrpnMsg(0, 41, filter1.param1 * 100));
+    push(nrpnMsg(0, 42, filter1.param2 * 100));
+    push(nrpnMsg(0, 43, filter1.gain * 100));
   }
 
   // ── Filter 2 (LSB 44-47 — wait, 44 starts Osc!) ────────────────────────────
@@ -896,10 +929,10 @@ export function patchToNRPNMessages(patch: Patch): NRPNMsg[] {
     else freqType = 2;
     const freqMul = Math.round(op.frequency * 100);
     const detune = Math.round(op.detune * 100) + 1600;
-    msgs.push(nrpnMsg(0, baseLsb, shape));
-    msgs.push(nrpnMsg(0, baseLsb + 1, freqType));
-    msgs.push(nrpnMsg(0, baseLsb + 2, freqMul));
-    msgs.push(nrpnMsg(0, baseLsb + 3, detune));
+    push(nrpnMsg(0, baseLsb, shape));
+    push(nrpnMsg(0, baseLsb + 1, freqType));
+    push(nrpnMsg(0, baseLsb + 2, freqMul));
+    push(nrpnMsg(0, baseLsb + 3, detune));
   }
 
   // ── Envelopes ───────────────────────────────────────────────────────────────
@@ -912,14 +945,14 @@ export function patchToNRPNMessages(patch: Patch): NRPNMsg[] {
     const decTimeRel = Math.round((adsr.decay.time - adsr.attack.time) * 100);
     const susTimeRel = Math.round((adsr.sustain.time - adsr.decay.time) * 100);
     const relTimeRel = Math.round((adsr.release.time - adsr.sustain.time) * 100);
-    msgs.push(nrpnMsg(0, baseLsb, atkTimeRel));
-    msgs.push(nrpnMsg(0, baseLsb + 1, adsr.attack.level));
-    msgs.push(nrpnMsg(0, baseLsb + 2, decTimeRel));
-    msgs.push(nrpnMsg(0, baseLsb + 3, adsr.decay.level));
-    msgs.push(nrpnMsg(0, baseLsb + 4, susTimeRel));
-    msgs.push(nrpnMsg(0, baseLsb + 5, adsr.sustain.level));
-    msgs.push(nrpnMsg(0, baseLsb + 6, relTimeRel));
-    msgs.push(nrpnMsg(0, baseLsb + 7, adsr.release.level));
+    push(nrpnMsg(0, baseLsb, atkTimeRel));
+    push(nrpnMsg(0, baseLsb + 1, adsr.attack.level));
+    push(nrpnMsg(0, baseLsb + 2, decTimeRel));
+    push(nrpnMsg(0, baseLsb + 3, adsr.decay.level));
+    push(nrpnMsg(0, baseLsb + 4, susTimeRel));
+    push(nrpnMsg(0, baseLsb + 5, adsr.sustain.level));
+    push(nrpnMsg(0, baseLsb + 6, relTimeRel));
+    push(nrpnMsg(0, baseLsb + 7, adsr.release.level));
   }
 
   // ── Modulation Matrix ───────────────────────────────────────────────────────
@@ -933,17 +966,17 @@ export function patchToNRPNMessages(patch: Patch): NRPNMsg[] {
     if (row < 3) {
       // Rows 1-3: MSB=0, LSB=116+row*4
       const baseLsb = 116 + row * 4;
-      msgs.push(nrpnMsg(0, baseLsb, source));
-      msgs.push(nrpnMsg(0, baseLsb + 1, mul));
-      msgs.push(nrpnMsg(0, baseLsb + 2, dest1));
-      msgs.push(nrpnMsg(0, baseLsb + 3, dest2));
+      push(nrpnMsg(0, baseLsb, source));
+      push(nrpnMsg(0, baseLsb + 1, mul));
+      push(nrpnMsg(0, baseLsb + 2, dest1));
+      push(nrpnMsg(0, baseLsb + 3, dest2));
     } else {
       // Rows 4-12: MSB=1, LSB=(row-3)*4
       const baseLsb = (row - 3) * 4;
-      msgs.push(nrpnMsg(1, baseLsb, source));
-      msgs.push(nrpnMsg(1, baseLsb + 1, mul));
-      msgs.push(nrpnMsg(1, baseLsb + 2, dest1));
-      msgs.push(nrpnMsg(1, baseLsb + 3, dest2));
+      push(nrpnMsg(1, baseLsb, source));
+      push(nrpnMsg(1, baseLsb + 1, mul));
+      push(nrpnMsg(1, baseLsb + 2, dest1));
+      push(nrpnMsg(1, baseLsb + 3, dest2));
     }
   }
 
@@ -956,21 +989,21 @@ export function patchToNRPNMessages(patch: Patch): NRPNMsg[] {
   for (let i = 0; i < 3; i++) {
     const lfo = lfos[i];
     const baseLsb = 40 + i * 4;
-    msgs.push(nrpnMsg(1, baseLsb, encodeLfoShape(lfo.shape)));
-    msgs.push(nrpnMsg(1, baseLsb + 1, lfo.syncMode === 'Ext'
+    push(nrpnMsg(1, baseLsb, encodeLfoShape(lfo.shape)));
+    push(nrpnMsg(1, baseLsb + 1, lfo.syncMode === 'Ext'
       ? lfoFrequencyToNrpn(lfo.midiClockMode)
       : lfoFrequencyToNrpn(lfo.frequency)));
-    msgs.push(nrpnMsg(1, baseLsb + 2, encodeLfoBias(lfo.bias)));
-    msgs.push(nrpnMsg(1, baseLsb + 3, encodeLfoKeysync(lfo.keysync)));
+    push(nrpnMsg(1, baseLsb + 2, encodeLfoBias(lfo.bias)));
+    push(nrpnMsg(1, baseLsb + 3, encodeLfoKeysync(lfo.keysync)));
   }
 
   // ── LFO Env1 (MSB=1, LSB=52-55) ────────────────────────────────────────────
   const lfoEnv1 = patch.lfoEnvelopes?.[0];
   if (lfoEnv1) {
-    msgs.push(nrpnMsg(1, 52, lfoEnv1.adsr.attack.time * 100));
-    msgs.push(nrpnMsg(1, 53, lfoEnv1.adsr.decay.time * 100));
-    msgs.push(nrpnMsg(1, 54, lfoEnv1.adsr.sustain.time * 100));
-    msgs.push(nrpnMsg(1, 55, lfoEnv1.adsr.release.time * 100));
+    push(nrpnMsg(1, 52, lfoEnv1.adsr.attack.time * 100));
+    push(nrpnMsg(1, 53, lfoEnv1.adsr.decay.time * 100));
+    push(nrpnMsg(1, 54, lfoEnv1.adsr.sustain.time * 100));
+    push(nrpnMsg(1, 55, lfoEnv1.adsr.release.time * 100));
   }
 
   // ── LFO Env2 (MSB=1, LSB=56-59) ────────────────────────────────────────────
@@ -978,35 +1011,35 @@ export function patchToNRPNMessages(patch: Patch): NRPNMsg[] {
   if (lfoEnv2) {
     const loopModes = ['Off', 'Silence', 'Attack'] as const;
     const loopVal = loopModes.indexOf(lfoEnv2.loopMode);
-    msgs.push(nrpnMsg(1, 56, lfoEnv2.silence * 100));
-    msgs.push(nrpnMsg(1, 57, lfoEnv2.adsr.attack.time * 100));
-    msgs.push(nrpnMsg(1, 58, lfoEnv2.adsr.decay.time * 100));
-    msgs.push(nrpnMsg(1, 59, loopVal >= 0 ? loopVal : 0));
+    push(nrpnMsg(1, 56, lfoEnv2.silence * 100));
+    push(nrpnMsg(1, 57, lfoEnv2.adsr.attack.time * 100));
+    push(nrpnMsg(1, 58, lfoEnv2.adsr.decay.time * 100));
+    push(nrpnMsg(1, 59, loopVal >= 0 ? loopVal : 0));
   }
 
   // ── StepSeq params ──────────────────────────────────────────────────────────
   const seqs = patch.stepSequencers;
   if (seqs) {
-    msgs.push(nrpnMsg(1, 60, seqs[0].bpm));
-    msgs.push(nrpnMsg(1, 61, seqs[0].gate * 100));
-    msgs.push(nrpnMsg(1, 62, seqs[1].gate * 100));
-    msgs.push(nrpnMsg(1, 63, 0));  // unused
-    msgs.push(nrpnMsg(1, 64, seqs[1].bpm));
-    msgs.push(nrpnMsg(1, 65, 0));  // unused
-    msgs.push(nrpnMsg(1, 66, 0));  // unused
-    msgs.push(nrpnMsg(1, 67, 0));  // unused
+    push(nrpnMsg(1, 60, seqs[0].bpm));
+    push(nrpnMsg(1, 61, seqs[0].gate * 100));
+    push(nrpnMsg(1, 62, seqs[1].gate * 100));
+    push(nrpnMsg(1, 63, 0));  // unused
+    push(nrpnMsg(1, 64, seqs[1].bpm));
+    push(nrpnMsg(1, 65, 0));  // unused
+    push(nrpnMsg(1, 66, 0));  // unused
+    push(nrpnMsg(1, 67, 0));  // unused
   }
 
   // ── LFO Phases (MSB=1, LSB=68-70) ──────────────────────────────────────────
   for (let i = 0; i < 3; i++) {
-    msgs.push(nrpnMsg(1, 68 + i, (lfos[i]?.phase ?? 0) * 100));
+    push(nrpnMsg(1, 68 + i, (lfos[i]?.phase ?? 0) * 100));
   }
 
   // ── Preset Name (MSB=1, LSB=100-111) ───────────────────────────────────────
   const name = (patch.name || 'Init').substring(0, 12);
   for (let i = 0; i < 12; i++) {
     const charCode = i < name.length ? name.charCodeAt(i) : 0;
-    msgs.push(nrpnMsg(1, 100 + i, charCode));
+    push(nrpnMsg(1, 100 + i, charCode));
   }
 
   // ── Note Curves (MSB=0, LSB=200-207) ───────────────────────────────────────
@@ -1017,10 +1050,10 @@ export function patchToNRPNMessages(patch: Patch): NRPNMsg[] {
   for (let i = 0; i < 2; i++) {
     const nc = noteCurves[i];
     const baseLsb = 200 + i * 4;
-    msgs.push(nrpnMsg(0, baseLsb, NOTE_CURVE_TYPE_TO_NRPN[nc.before] ?? 0));
-    msgs.push(nrpnMsg(0, baseLsb + 1, nc.breakNote));
-    msgs.push(nrpnMsg(0, baseLsb + 2, NOTE_CURVE_TYPE_TO_NRPN[nc.after] ?? 0));
-    msgs.push(nrpnMsg(0, baseLsb + 3, 0)); // unused
+    push(nrpnMsg(0, baseLsb, NOTE_CURVE_TYPE_TO_NRPN[nc.before] ?? 0));
+    push(nrpnMsg(0, baseLsb + 1, nc.breakNote));
+    push(nrpnMsg(0, baseLsb + 2, NOTE_CURVE_TYPE_TO_NRPN[nc.after] ?? 0));
+    push(nrpnMsg(0, baseLsb + 3, 0)); // unused
   }
 
   // ── StepSeq Steps (MSB=2/3, LSB=0-15) ──────────────────────────────────────
@@ -1030,10 +1063,10 @@ export function patchToNRPNMessages(patch: Patch): NRPNMsg[] {
       for (let i = 0; i < 16; i++) {
         const uiValue = seqs[s].steps[i] ?? 50;
         const firmwareValue = Math.round((uiValue * 15) / 100);
-        msgs.push(nrpnMsg(msbSeq, i, firmwareValue));
+        push(nrpnMsg(msbSeq, i, firmwareValue));
       }
     }
   }
 
-  return msgs;
+  return allMsgs;
 }
