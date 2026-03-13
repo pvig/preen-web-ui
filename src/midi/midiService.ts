@@ -221,8 +221,8 @@ export function sendLfoEnvelope2(params: { silence: number, attack: number, rele
  * envelope: { attack, decay, sustain, release } (temps en secondes, level 0-1)
  */
 export function sendLfoEnvelope(envIndex: 0 | 1, envelope: { attack: number, decay: number, sustain: number, release: number }) {
-  // NRPN MSB=1, LSB fixes : Env1=52-55, Env2=57-60
-  const lsbs = envIndex === 0 ? [52, 53, 54, 55] : [57, 58, 59, 60];
+  // NRPN MSB=1, LSB fixes : Env1=52-55, Env2=56-59
+  const lsbs = envIndex === 0 ? [52, 53, 54, 55] : [56, 57, 58, 59];
   const values = [
     Math.round(envelope.attack * 100),   // Attack time (centièmes de seconde)
     Math.round(envelope.decay * 100),    // Decay time
@@ -287,6 +287,10 @@ export function sendArpeggiatorBpm(bpm: number, channel: number = currentChannel
 export function sendArpeggiatorDirection(direction: string, channel: number = currentChannel) {
   const directions = ['Up', 'Down', 'UpDown', 'Played', 'Random', 'Chord', 'Rotate U', 'Rotate D', 'Shift U', 'Shift D'];
   const value = directions.indexOf(direction);
+  if (value === -1) {
+    console.warn('⚠️ Unknown arpeggiator direction:', direction);
+    return;
+  }
   
   const nrpn = {
     paramMSB: 0,
@@ -324,6 +328,10 @@ export function sendArpeggiatorPattern(pattern: string, channel: number = curren
     '21', '22', 'Usr1', 'Usr2', 'Usr3', 'Usr4'
   ];
   const value = patterns.indexOf(pattern);
+  if (value === -1) {
+    console.warn('⚠️ Unknown arpeggiator pattern:', pattern);
+    return;
+  }
   
   const nrpn = {
     paramMSB: 0,
@@ -345,6 +353,10 @@ export function sendArpeggiatorDivision(division: string, channel: number = curr
     '1/6', '1/8', '1/12', '1/16', '1/24', '1/32', '1/48', '1/96'
   ];
   const value = divisions.indexOf(division);
+  if (value === -1) {
+    console.warn('⚠️ Unknown arpeggiator division:', division);
+    return;
+  }
   
   const nrpn = {
     paramMSB: 0,
@@ -366,6 +378,10 @@ export function sendArpeggiatorDuration(duration: string, channel: number = curr
     '1/6', '1/8', '1/12', '1/16', '1/24', '1/32', '1/48', '1/96'
   ];
   const value = durations.indexOf(duration);
+  if (value === -1) {
+    console.warn('⚠️ Unknown arpeggiator duration:', duration);
+    return;
+  }
   
   const nrpn = {
     paramMSB: 0,
@@ -384,6 +400,10 @@ export function sendArpeggiatorDuration(duration: string, channel: number = curr
 export function sendArpeggiatorLatch(latch: string, channel: number = currentChannel) {
   const latches = ['Off', 'On'];
   const value = latches.indexOf(latch);
+  if (value === -1) {
+    console.warn('⚠️ Unknown arpeggiator latch:', latch);
+    return;
+  }
   
   const nrpn = {
     paramMSB: 0,
@@ -727,7 +747,7 @@ export function sendPatchName(name: string, channel: number = currentChannel) {
       paramMSB: 1,
       paramLSB: 100 + i,
       valueMSB: 0,
-      valueLSB: 0  // ASCII 0 (null character) to clear
+      valueLSB: 0x20  // ASCII space to clear position
     };
     sendNRPN(nrpn, channel);
   }
@@ -1012,38 +1032,7 @@ export function sendIMChange(imNumber: number, value: number, channel: number = 
   }
 }
 
-/**
- * Send envelope attack for an operator (1-6)
- */
-export function sendEnvelopeAttack(opNumber: number, value: number, channel: number = currentChannel) {
-  if (opNumber < 1 || opNumber > 6) {
-    console.error('Invalid operator number:', opNumber);
-    return;
-  }
-  
-  // Scale 0-16 (seconds) to 0-127
-  const ccValue = Math.round(value * 8); // value * 64 / 8 for 0-16 range
-  
-  if (opNumber === 1) {
-    sendCC(PREENFM3_CC.ENV_ATK_OP1, ccValue, channel);
-  } else {
-    sendCC(PREENFM3_CC.ENV_ATK_OP2 + (opNumber - 2), ccValue, channel);
-  }
-}
 
-/**
- * Send envelope release for an operator (1-6)
- */
-export function sendEnvelopeRelease(opNumber: number, value: number, channel: number = currentChannel) {
-  if (opNumber < 1 || opNumber > 6) {
-    console.error('Invalid operator number:', opNumber);
-    return;
-  }
-  
-  // Scale 0-32 (seconds) to 0-127
-  const ccValue = Math.round(value * 4); // value * 127 / 32
-  sendCC(PREENFM3_CC.ENV_REL_OP1 + (opNumber - 1), ccValue, channel);
-}
 
 /**
  * Send operator mix/volume (amplitude) for operators 1-4

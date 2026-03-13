@@ -13,8 +13,6 @@ import {
   setMidiChannel,
   sendAlgorithmChange,
   sendIMChange,
-  sendEnvelopeAttack,
-  sendEnvelopeRelease,
   sendCC,
   sendNRPN,
   onControlChange,
@@ -256,10 +254,6 @@ export function usePreenFM3Midi() {
       sendAlgorithmChange(algoId, useMidiStore.getState().channel), []),
     sendIMChange: useCallback((imNumber: number, value: number) => 
       sendIMChange(imNumber, value, useMidiStore.getState().channel), []),
-    sendEnvelopeAttack: useCallback((opNumber: number, value: number) => 
-      sendEnvelopeAttack(opNumber, value, useMidiStore.getState().channel), []),
-    sendEnvelopeRelease: useCallback((opNumber: number, value: number) => 
-      sendEnvelopeRelease(opNumber, value, useMidiStore.getState().channel), []),
     sendCC: useCallback((controller: number, value: number) => 
       sendCC(controller, value, useMidiStore.getState().channel), []),
     sendNRPN: useCallback((nrpn: NRPNMessage) => 
@@ -299,18 +293,9 @@ export function usePatchMidiSync(enabled: boolean = false) {
     }
   }, [enabled, midi]);
 
-  // Sync envelope changes
-  const syncEnvelope = useCallback((opNumber: number, attack: number, release: number) => {
-    if (enabled && midi.enabled && midi.selectedOutput) {
-      midi.sendEnvelopeAttack(opNumber, attack);
-      midi.sendEnvelopeRelease(opNumber, release);
-    }
-  }, [enabled, midi]);
-
   return {
     midi,
     syncAlgorithm,
     syncModulationIndex,
-    syncEnvelope,
   };
 }
