@@ -6,7 +6,7 @@ import { ModulationsEditor } from './screens/modulationsEditor';
 import { ArpFilterEditor } from './screens/ArpFilterEditor';
 import { EffectsEditor } from './screens/EffectsEditor';
 import { PatchLibrary } from './screens/PatchLibrary';
-import { MutationEditor } from './screens/MutationEditor';
+
 import { MidiMenu } from './components/MidiMenu';
 import { MidiCCTester } from './components/MidiCCTester';
 import { HamburgerMenu } from './components/HamburgerMenu';
@@ -16,7 +16,7 @@ import { useMidiActions } from './midi/useMidiActions';
 import { useCurrentPatch, usePatchStore } from './stores/patchStore';
 import { useMutationStore } from './stores/mutationStore';
 
-type AppScreen = 'patch' | 'matrix' | 'arpfilter' | 'effects' | 'library' | 'mutation';
+type AppScreen = 'patch' | 'matrix' | 'arpfilter' | 'effects' | 'library';
 
 const AppContainer = styled.div`
   background-color: ${props => props.theme.colors.background};
@@ -48,19 +48,18 @@ const MidiQuickButtons = styled.div`
 `;
 
 const QuickMidiButton = styled.button<{ $isReceiving?: boolean; $isSending?: boolean }>`
-  width: 24px !important;
-  height: 34px !important;
+  width: 36px !important;
+  height: 36px !important;
   padding: 0 !important;
   display: flex;
   align-items: center;
   justify-content: center;
   background: ${props => (props.$isReceiving || props.$isSending) ? '#10b981' : props.theme.colors.primary};
   color: ${props => props.theme.colors.background};
-  border: 1px solid ${props => props.theme.colors.border};
-  border-radius: 3px;
-  font-size: 1.8em!important;
+  border: 2px solid ${props => props.theme.colors.border};
+  border-radius: 6px;
+  font-size: 1.25rem !important;
   font-weight: bold;
-  font-family: monospace;
   cursor: pointer;
   transition: all 0.2s;
   
@@ -310,9 +309,6 @@ export default function App() {
             <button onClick={() => setCurrentScreen('library')} className={currentScreen === 'library' ? 'active' : ''}>
               {t('nav.library')}
             </button>
-            <button onClick={() => setCurrentScreen('mutation')} className={currentScreen === 'mutation' ? 'active' : ''}>
-              {t('nav.mutation')}
-            </button>
           </div>
           
           
@@ -330,7 +326,7 @@ export default function App() {
                 $isSending={isSending}
                 title={isSending ? "Envoi en cours…" : "Push vers PreenFM3"}
               >
-                ↑
+                ▲
               </QuickMidiButton>
               <QuickMidiButton 
                 onClick={receivePatch}
@@ -338,7 +334,7 @@ export default function App() {
                 $isReceiving={isReceiving}
                 title={isReceiving ? "Réception en cours..." : "Pull depuis PreenFM3"}
               >
-                ↓
+                ▼
               </QuickMidiButton>
             </MidiQuickButtons>
             <HamburgerMenu />
@@ -352,7 +348,6 @@ export default function App() {
           {currentScreen === 'arpfilter' && <ArpFilterEditor />}
           {currentScreen === 'effects' && <EffectsEditor />}
           {currentScreen === 'library' && <PatchLibrary />}
-          {currentScreen === 'mutation' && <MutationEditor />}
         </Main>
         
         {showCCTester && <MidiCCTester onClose={() => setShowCCTester(false)} />}

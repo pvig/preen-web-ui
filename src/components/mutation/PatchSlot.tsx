@@ -55,6 +55,7 @@ const SlotLabel = styled.div`
   color: ${({ theme }) => theme.colors.primary};
   text-transform: uppercase;
   letter-spacing: 0.1em;
+  user-select: none;
 `;
 
 const PatchName = styled.div`

@@ -134,3 +134,8 @@ h3 {
 .MuiSelect-select.MuiSelect-standard.MuiInputBase-input.MuiInput-input.MuiInputBase-inputSizeSmall {
   color: white;
 }
+label, .label, h1, h2, h3, h4, button {
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}

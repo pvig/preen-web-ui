@@ -28,7 +28,7 @@ function KnobBase({
   min = 0,
   max = 100,
   value = 0,
-  onChange = (arg) => { console.log("arg", arg)},
+  onChange = (arg) => { console.log("arg", arg) },
   step,
   color = "#000",
   backgroundColor = "#eee",
@@ -97,7 +97,7 @@ function KnobBase({
   };
 
   const updateFromEvent = (e: { clientX: number; clientY: number }) => {
-    if (!svgRef.current) return; 
+    if (!svgRef.current) return;
     const angle = getAngleFromEvent(e);
     const clampedAngle = Math.max(START_ANGLE, Math.min(END_ANGLE, angle));
     const rawValue = valueForAngle(clampedAngle);
@@ -220,6 +220,8 @@ function KnobBase({
       {/* Label à gauche */}
       {labelPosition === 'left' && label && (
         <div
+          className='label'
+
           style={{
             fontSize: 11,
             color: theme.colors.knobLabel,
@@ -320,6 +322,7 @@ function KnobBase({
         {/* Label au-dessus */}
         {labelPosition === 'top' && label && (
           <div
+            className='label'
             style={{
               position: "absolute",
               top: -12,
@@ -339,6 +342,7 @@ function KnobBase({
         {/* Valeur en dessous */}
         {valuePosition === 'bottom' && (
           <div
+            className='label'
             style={{
               position: "absolute",
               bottom: -8,

@@ -175,8 +175,7 @@
     "patch": "Patch",
     "modulations": "Modulations",
     "arpFilter": "Arp/Filter",
-    "library": "Library",
-    "mutation": "Mutations"
+    "library": "Library"
   },
   "mutation": {
     "title": "Patch Mutation",

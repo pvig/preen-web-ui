@@ -6,11 +6,11 @@ import { type AdsrState, type CurveType } from '../../../types/adsr';
 import { useThemeStore } from '../../../theme/themeStore';
 
 const AdsrContainer = styled.div`
+  position: relative;
   background: ${props => props.theme.colors.background};
   margin-top: 10px;
   margin-bottom: 10px;
   border-radius: 4px;
-  overflow: hidden;
 `;
 
 const StyledSvg = styled.svg`
@@ -41,6 +41,7 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
 
   const svgRef = useRef<SVGSVGElement>(null);
   const [dragging, setDragging] = useState<string | null>(null);
+  const [dragInfo, setDragInfo] = useState<{ key: string; time: number; level: number } | null>(null);
   const [hoverInfo, setHoverInfo] = useState<{ key: string; time: number; level: number } | null>(null);
   const maxSegmentSize = 16; // Limite fixe de 16 pour chaque segment
   const margin = { top: 20, right: 20, bottom: 20, left: 30 };
@@ -74,11 +75,14 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
       let factor: number;
 
       switch (curveType) {
+        // Inverser la logique pour correspondre au PreenFM :
         case 'exponential':
-          factor = t === 0 ? 0 : Math.pow(2, 10 * (t - 1));
+          // PreenFM: exponentielle = montée rapide puis plateau (utiliser ancien logarithmic)
+          factor = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
           break;
         case 'logarithmic':
-          factor = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+          // PreenFM: logarithmique = montée lente puis rapide (utiliser ancien exponentielle)
+          factor = t === 0 ? 0 : Math.pow(2, 10 * (t - 1));
           break;
         case 'user':
           factor = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
@@ -101,9 +105,9 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
     const fullPath: Point[] = [];
 
     fullPath.push(...generateCurvePoints(points[0], points[1], envelope.curves?.attack || 'linear'));
-    fullPath.push(...generateCurvePoints(points[1], points[2], envelope.curves?.decay || 'linear').slice(1));
+    fullPath.push(...generateCurvePoints(points[1], points[2], envelope.curves?.decay || 'exponential').slice(1));
     fullPath.push(...generateCurvePoints(points[2], points[3], envelope.curves?.sustain || 'linear').slice(1));
-    fullPath.push(...generateCurvePoints(points[3], points[4], envelope.curves?.release || 'linear').slice(1));
+    fullPath.push(...generateCurvePoints(points[3], points[4], envelope.curves?.release || 'exponential').slice(1));
 
     return fullPath;
   };
@@ -183,6 +187,15 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
 
     // Gestion du drag
     const dragHandler = d3.drag<SVGCircleElement, Point, Point>()
+
+
+
+
+
+
+
+
+
       .on('start', function (event) {
         const key = d3.select(this).attr('data-key');
         setDragging(key);
@@ -197,6 +210,7 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
           y: mouseY - point.y
         };
 
+        setDragInfo({ key, time: point.x, level: point.y });
         d3.select(this).attr('fill', theme.colors.accent);
       })
       .on('drag', function (event) {
@@ -209,7 +223,7 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
         // Application des contraintes avec possibilité de pousser les points suivants
         // maxSegmentSize est fixé à 16 pour tous les segments
         const [, a, d, s, r] = currentPoints.current;
-        
+
         // Contraindre la nouvelle position
         newX = Math.max(0, newX);
         const constrainedY = Math.max(0, Math.min(100, newY));
@@ -217,63 +231,45 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
         // Logique de poussée des points suivants en cascade
         switch (key) {
           case 'attack': {
-            // Attack peut aller de 0 à maxSegmentSize (16)
             let constrainedX = Math.min(newX, maxSegmentSize);
-            
-            // Si Attack pousse Decay, déplacer Decay en cascade
             if (constrainedX > d.x) {
               currentPoints.current[2].x = constrainedX;
-              
-              // Si Decay pousse maintenant Sustain, le déplacer aussi
               if (currentPoints.current[2].x > s.x) {
                 currentPoints.current[3].x = currentPoints.current[2].x;
-                
-                // Si Sustain pousse maintenant Release, le déplacer aussi
                 if (currentPoints.current[3].x > r.x) {
                   currentPoints.current[4].x = currentPoints.current[3].x;
                 }
               }
             }
-            
             currentPoints.current[1] = { x: constrainedX, y: constrainedY };
+            setDragInfo({ key, time: constrainedX, level: constrainedY });
             break;
           }
-          
           case 'decay': {
-            // Decay peut aller de attack.x à attack.x + maxSegmentSize (16)
             let constrainedX = Math.max(a.x, Math.min(newX, a.x + maxSegmentSize));
-            
-            // Si Decay pousse Sustain, déplacer Sustain en cascade
             if (constrainedX > s.x) {
               currentPoints.current[3].x = constrainedX;
-              
-              // Si Sustain pousse maintenant Release, le déplacer aussi
               if (currentPoints.current[3].x > r.x) {
                 currentPoints.current[4].x = currentPoints.current[3].x;
               }
             }
-            
             currentPoints.current[2] = { x: constrainedX, y: constrainedY };
+            setDragInfo({ key, time: constrainedX, level: constrainedY });
             break;
           }
-          
           case 'sustain': {
-            // Sustain peut aller de decay.x à decay.x + maxSegmentSize (16)
             let constrainedX = Math.max(d.x, Math.min(newX, d.x + maxSegmentSize));
-            
-            // Si Sustain pousse Release, le déplacer
             if (constrainedX > r.x) {
               currentPoints.current[4].x = constrainedX;
             }
-            
             currentPoints.current[3] = { x: constrainedX, y: constrainedY };
+            setDragInfo({ key, time: constrainedX, level: constrainedY });
             break;
           }
-          
           case 'release': {
-            // Release peut aller de sustain.x à sustain.x + maxSegmentSize (16)
             const constrainedX = Math.max(s.x, Math.min(newX, s.x + maxSegmentSize));
             currentPoints.current[4] = { x: constrainedX, y: constrainedY };
+            setDragInfo({ key, time: constrainedX, level: constrainedY });
             break;
           }
         }
@@ -287,10 +283,10 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
         });
 
         lineRef.current?.datum(generateFullPath(currentPoints.current)).attr('d', lineGenerator);
-
       })
       .on('end', function () {
         setDragging(null);
+        setDragInfo(null);
         dragOffset.current = null;
         const key = d3.select(this).attr('data-key');
         d3.select(this).attr('fill', pointColors[key as keyof typeof pointColors]);
@@ -302,8 +298,6 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
           sustain: { time: currentPoints.current[3].x, level: currentPoints.current[3].y },
           release: { time: currentPoints.current[4].x, level: currentPoints.current[4].y }
         };
-        
-        // Notification du changement
         requestAnimationFrame(() => {
           updateADSR(operatorId, updates);
         });
@@ -341,42 +335,17 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
   return (
     <AdsrContainer>
       <StyledSvg ref={svgRef} />
-      {/* Tooltip pendant le drag */}
-      {dragging && (
-        <Tooltip>
-          Editing: {dragging} |
-          Time: {(
-            dragging === 'attack' ? envelope.attack.time :
-              dragging === 'decay' ? envelope.decay.time :
-                dragging === 'sustain' ? envelope.sustain.time : envelope.release.time
-          ).toFixed(1)} |
-          Level: {Math.round(
-            dragging === 'attack' ? envelope.attack.level :
-              dragging === 'decay' ? envelope.decay.level :
-                dragging === 'sustain' ? envelope.sustain.level : envelope.release.level
-          )}%
-        </Tooltip>
-      )}
-      {/* Tooltip au survol */}
-      {!dragging && hoverInfo && (
-        <div style={{
-          position: 'absolute',
-          top: '5px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: theme.colors.panel,
-          color: theme.colors.textSecondary,
-          padding: '4px 8px',
-          borderRadius: '4px',
-          fontSize: '12px',
-          pointerEvents: 'none',
-          zIndex: 1000,
-          boxShadow: `0 2px 8px ${theme.colors.border}`
+      {/* Tooltip pendant le drag : affiche dynamiquement la position du point en cours de déplacement */}
+      {dragging && dragInfo && (
+        <Tooltip style={{
+          top: '4px',
+          left: '-25px'
         }}>
-          {hoverInfo.key.charAt(0).toUpperCase() + hoverInfo.key.slice(1)} - 
-          Time: {hoverInfo.time.toFixed(1)} | 
-          Level: {hoverInfo.level.toFixed(1)}%
-        </div>
+          {/* Affiche le nom du point, le temps et le niveau en temps réel */}
+          Editing: {dragInfo.key} |
+          Time: {dragInfo.time.toFixed(1)} |
+          Level: {Math.round(dragInfo.level)}%
+        </Tooltip>
       )}
     </AdsrContainer>
   );
