@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 import { PatchSavePanel, BankOrganizerPanel } from '../components/PatchManager';
 import { MutationEditor } from './MutationEditor';
 import styled from 'styled-components';
