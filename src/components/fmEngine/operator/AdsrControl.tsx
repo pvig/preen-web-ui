@@ -332,19 +332,20 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
 
   }, [envelope, theme]); // Rafraîchir quand l'enveloppe ou le thème change
 
+  // Détermine si on doit afficher le tooltip (drag ou hover)
+  const infoToShow = dragInfo || hoverInfo;
   return (
     <AdsrContainer>
       <StyledSvg ref={svgRef} />
-      {/* Tooltip pendant le drag : affiche dynamiquement la position du point en cours de déplacement */}
-      {dragging && dragInfo && (
+      {/* Tooltip affiché au même endroit pour drag et hover */}
+      {infoToShow && (
         <Tooltip style={{
           top: '4px',
           left: '-25px'
         }}>
-          {/* Affiche le nom du point, le temps et le niveau en temps réel */}
-          Editing: {dragInfo.key} |
-          Time: {dragInfo.time.toFixed(1)} |
-          Level: {Math.round(dragInfo.level)}%
+          {dragging ? 'Editing' : 'Point'}: {infoToShow.key} |
+          Time: {infoToShow.time.toFixed(1)} |
+          Level: {Math.round(infoToShow.level)}%
         </Tooltip>
       )}
     </AdsrContainer>
