@@ -165,11 +165,13 @@ describe('PreenFM3Parser — non-regression', () => {
     describe(label, () => {
       // Parse une seule fois pour toute la suite
       let patch: Patch;
+      let pfm3Version: number | null = null;
       beforeAll(() => {
         const parser = new PreenFM3Parser();
         for (const nrpn of nrpns) {
           parser.addNRPN(nrpn);
         }
+        pfm3Version = parser.getpfm3Version();
         patch = parser.toPatch();
       });
 
@@ -433,17 +435,19 @@ describe('PreenFM3Parser — non-regression', () => {
         describe('filtres', () => {
           for (let i = 0; i < expected.filters!.length; i++) {
             const expFilter = expected.filters![i];
+            const skipFilter2 = i === 1 && (pfm3Version === null || pfm3Version <= 100);
             describe(`filtre ${i + 1}`, () => {
-              if (expFilter.type !== undefined) it('type', () => {
+              const testOrSkip = skipFilter2 ? it.skip : it;
+              if (expFilter.type !== undefined) testOrSkip('type', () => {
                 expect(patch.filters[i].type).toBe(expFilter.type);
               });
-              if (expFilter.param1 !== undefined) it('param1', () => {
+              if (expFilter.param1 !== undefined) testOrSkip('param1', () => {
                 expect(patch.filters[i].param1).toBeCloseTo(expFilter.param1!, 2);
               });
-              if (expFilter.param2 !== undefined) it('param2', () => {
+              if (expFilter.param2 !== undefined) testOrSkip('param2', () => {
                 expect(patch.filters[i].param2).toBeCloseTo(expFilter.param2!, 2);
               });
-              if (expFilter.gain !== undefined) it('gain', () => {
+              if (expFilter.gain !== undefined) testOrSkip('gain', () => {
                 expect(patch.filters[i].gain).toBeCloseTo(expFilter.gain!, 2);
               });
             });

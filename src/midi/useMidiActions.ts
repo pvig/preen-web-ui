@@ -124,6 +124,7 @@ export const useMidiActions = () => {
 
         // ── Génération de la fixture de test (dev only) ───────────────────
         if (import.meta.env.DEV) {
+          // Générer la fixture en conservant l'ordre exact de réception des NRPN (aucun tri ni regroupement)
           const fixtureData = {
             description: `${stats.name || 'patch'} — ${new Date().toISOString().slice(0, 10)}`,
             nrpns: parserRef.current.getRawNRPNs(),
@@ -131,7 +132,7 @@ export const useMidiActions = () => {
               name: patch.name,
               algorithm: { id: patch.algorithm.id, name: patch.algorithm.name },
               operators: patch.operators.map(op => ({
-                 waveform: op.waveform,
+                waveform: op.waveform,
                 frequency: op.frequency,
                 keyboardTracking: op.keyboardTracking,
               })),

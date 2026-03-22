@@ -1,23 +1,34 @@
 {
-  "description": "H3O+ — 2026-03-05",
+  "description": "triw - pfm3version 110 — 2026-03-22 - 12 NRPNs for patch name followed by 93 NRPNs for parameters, in exact reception order",
   "nrpns": [
+    { "paramMSB": 1, "paramLSB": 100, "valueMSB": 0, "valueLSB": 116 },
+    { "paramMSB": 1, "paramLSB": 101, "valueMSB": 0, "valueLSB": 114 },
+    { "paramMSB": 1, "paramLSB": 102, "valueMSB": 0, "valueLSB": 105 },
+    { "paramMSB": 1, "paramLSB": 103, "valueMSB": 0, "valueLSB": 119 },
+    { "paramMSB": 1, "paramLSB": 104, "valueMSB": 0, "valueLSB": 0 },
+    { "paramMSB": 1, "paramLSB": 105, "valueMSB": 0, "valueLSB": 0 },
+    { "paramMSB": 1, "paramLSB": 106, "valueMSB": 0, "valueLSB": 0 },
+    { "paramMSB": 1, "paramLSB": 107, "valueMSB": 0, "valueLSB": 0 },
+    { "paramMSB": 1, "paramLSB": 108, "valueMSB": 0, "valueLSB": 0 },
+    { "paramMSB": 1, "paramLSB": 109, "valueMSB": 0, "valueLSB": 0 },
+    { "paramMSB": 1, "paramLSB": 110, "valueMSB": 0, "valueLSB": 0 },
     {
       "paramMSB": 0,
       "paramLSB": 0,
       "valueMSB": 0,
-      "valueLSB": 29
+      "valueLSB": 31
     },
     {
       "paramMSB": 0,
       "paramLSB": 1,
       "valueMSB": 0,
-      "valueLSB": 14
+      "valueLSB": 8
     },
     {
       "paramMSB": 0,
       "paramLSB": 2,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 1
     },
     {
       "paramMSB": 0,
@@ -28,8 +39,8 @@
     {
       "paramMSB": 0,
       "paramLSB": 4,
-      "valueMSB": 0,
-      "valueLSB": 0
+      "valueMSB": 1,
+      "valueLSB": 62
     },
     {
       "paramMSB": 0,
@@ -53,31 +64,31 @@
       "paramMSB": 0,
       "paramLSB": 8,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 93
     },
     {
       "paramMSB": 0,
       "paramLSB": 9,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 42
     },
     {
       "paramMSB": 0,
       "paramLSB": 10,
       "valueMSB": 0,
-      "valueLSB": 75
+      "valueLSB": 27
     },
     {
       "paramMSB": 0,
       "paramLSB": 11,
       "valueMSB": 0,
-      "valueLSB": 30
+      "valueLSB": 0
     },
     {
       "paramMSB": 0,
       "paramLSB": 12,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 12
     },
     {
       "paramMSB": 0,
@@ -101,13 +112,13 @@
       "paramMSB": 0,
       "paramLSB": 16,
       "valueMSB": 0,
-      "valueLSB": 79
+      "valueLSB": 91
     },
     {
       "paramMSB": 0,
       "paramLSB": 17,
       "valueMSB": 0,
-      "valueLSB": 82
+      "valueLSB": 100
     },
     {
       "paramMSB": 0,
@@ -119,37 +130,37 @@
       "paramMSB": 0,
       "paramLSB": 19,
       "valueMSB": 0,
-      "valueLSB": 91
+      "valueLSB": 100
     },
     {
       "paramMSB": 0,
       "paramLSB": 20,
       "valueMSB": 0,
-      "valueLSB": 83
+      "valueLSB": 100
     },
     {
       "paramMSB": 0,
       "paramLSB": 21,
       "valueMSB": 0,
-      "valueLSB": 116
+      "valueLSB": 100
     },
     {
       "paramMSB": 0,
       "paramLSB": 22,
       "valueMSB": 0,
-      "valueLSB": 77
+      "valueLSB": 100
     },
     {
       "paramMSB": 0,
       "paramLSB": 23,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 100
     },
     {
       "paramMSB": 0,
       "paramLSB": 24,
       "valueMSB": 0,
-      "valueLSB": 99
+      "valueLSB": 100
     },
     {
       "paramMSB": 0,
@@ -245,7 +256,7 @@
       "paramMSB": 0,
       "paramLSB": 40,
       "valueMSB": 0,
-      "valueLSB": 47
+      "valueLSB": 48
     },
     {
       "paramMSB": 0,
@@ -257,7 +268,7 @@
       "paramMSB": 0,
       "paramLSB": 42,
       "valueMSB": 0,
-      "valueLSB": 67
+      "valueLSB": 37
     },
     {
       "paramMSB": 0,
@@ -275,19 +286,19 @@
       "paramMSB": 0,
       "paramLSB": 45,
       "valueMSB": 0,
-      "valueLSB": 2
+      "valueLSB": 0
     },
     {
       "paramMSB": 0,
       "paramLSB": 46,
-      "valueMSB": 2,
-      "valueLSB": 85
+      "valueMSB": 0,
+      "valueLSB": 100
     },
     {
       "paramMSB": 0,
       "paramLSB": 47,
       "valueMSB": 7,
-      "valueLSB": 5
+      "valueLSB": 4
     },
     {
       "paramMSB": 0,
@@ -299,19 +310,19 @@
       "paramMSB": 0,
       "paramLSB": 49,
       "valueMSB": 0,
-      "valueLSB": 2
+      "valueLSB": 0
     },
     {
       "paramMSB": 0,
       "paramLSB": 50,
-      "valueMSB": 0,
-      "valueLSB": 100
+      "valueMSB": 2,
+      "valueLSB": 44
     },
     {
       "paramMSB": 0,
       "paramLSB": 51,
-      "valueMSB": 8,
-      "valueLSB": 75
+      "valueMSB": 7,
+      "valueLSB": 4
     },
     {
       "paramMSB": 0,
@@ -328,14 +339,14 @@
     {
       "paramMSB": 0,
       "paramLSB": 54,
-      "valueMSB": 0,
-      "valueLSB": 50
+      "valueMSB": 5,
+      "valueLSB": 110
     },
     {
       "paramMSB": 0,
       "paramLSB": 55,
-      "valueMSB": 9,
-      "valueLSB": 32
+      "valueMSB": 7,
+      "valueLSB": 4
     },
     {
       "paramMSB": 0,
@@ -347,7 +358,7 @@
       "paramMSB": 0,
       "paramLSB": 57,
       "valueMSB": 0,
-      "valueLSB": 2
+      "valueLSB": 0
     },
     {
       "paramMSB": 0,
@@ -359,13 +370,13 @@
       "paramMSB": 0,
       "paramLSB": 59,
       "valueMSB": 7,
-      "valueLSB": 51
+      "valueLSB": 4
     },
     {
       "paramMSB": 0,
       "paramLSB": 60,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 2
     },
     {
       "paramMSB": 0,
@@ -376,20 +387,20 @@
     {
       "paramMSB": 0,
       "paramLSB": 62,
-      "valueMSB": 0,
-      "valueLSB": 100
+      "valueMSB": 1,
+      "valueLSB": 22
     },
     {
       "paramMSB": 0,
       "paramLSB": 63,
       "valueMSB": 7,
-      "valueLSB": 3
+      "valueLSB": 4
     },
     {
       "paramMSB": 0,
       "paramLSB": 64,
       "valueMSB": 0,
-      "valueLSB": 1
+      "valueLSB": 0
     },
     {
       "paramMSB": 0,
@@ -401,19 +412,19 @@
       "paramMSB": 0,
       "paramLSB": 66,
       "valueMSB": 1,
-      "valueLSB": 72
+      "valueLSB": 22
     },
     {
       "paramMSB": 0,
       "paramLSB": 67,
       "valueMSB": 7,
-      "valueLSB": 3
+      "valueLSB": 4
     },
     {
       "paramMSB": 0,
       "paramLSB": 68,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 2
     },
     {
       "paramMSB": 0,
@@ -424,32 +435,32 @@
     {
       "paramMSB": 0,
       "paramLSB": 70,
-      "valueMSB": 1,
-      "valueLSB": 122
+      "valueMSB": 0,
+      "valueLSB": 0
     },
     {
       "paramMSB": 0,
       "paramLSB": 71,
       "valueMSB": 0,
-      "valueLSB": 90
+      "valueLSB": 100
     },
     {
       "paramMSB": 0,
       "paramLSB": 72,
-      "valueMSB": 12,
-      "valueLSB": 64
+      "valueMSB": 0,
+      "valueLSB": 0
     },
     {
       "paramMSB": 0,
       "paramLSB": 73,
       "valueMSB": 0,
-      "valueLSB": 93
+      "valueLSB": 100
     },
     {
       "paramMSB": 0,
       "paramLSB": 74,
-      "valueMSB": 2,
-      "valueLSB": 85
+      "valueMSB": 1,
+      "valueLSB": 72
     },
     {
       "paramMSB": 0,
@@ -461,67 +472,67 @@
       "paramMSB": 0,
       "paramLSB": 76,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 8
     },
     {
       "paramMSB": 0,
       "paramLSB": 77,
       "valueMSB": 0,
-      "valueLSB": 100
+      "valueLSB": 49
     },
     {
       "paramMSB": 0,
       "paramLSB": 78,
-      "valueMSB": 12,
-      "valueLSB": 64
+      "valueMSB": 0,
+      "valueLSB": 24
     },
     {
       "paramMSB": 0,
       "paramLSB": 79,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 12
     },
     {
       "paramMSB": 0,
       "paramLSB": 80,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 4
     },
     {
       "paramMSB": 0,
       "paramLSB": 81,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 52
     },
     {
       "paramMSB": 0,
       "paramLSB": 82,
       "valueMSB": 0,
-      "valueLSB": 110
+      "valueLSB": 12
     },
     {
       "paramMSB": 0,
       "paramLSB": 83,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 100
     },
     {
       "paramMSB": 0,
       "paramLSB": 84,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 24
     },
     {
       "paramMSB": 0,
       "paramLSB": 85,
       "valueMSB": 0,
-      "valueLSB": 100
+      "valueLSB": 43
     },
     {
       "paramMSB": 0,
       "paramLSB": 86,
-      "valueMSB": 12,
-      "valueLSB": 64
+      "valueMSB": 0,
+      "valueLSB": 19
     },
     {
       "paramMSB": 0,
@@ -533,55 +544,55 @@
       "paramMSB": 0,
       "paramLSB": 88,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 26
     },
     {
       "paramMSB": 0,
       "paramLSB": 89,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 60
     },
     {
       "paramMSB": 0,
       "paramLSB": 90,
       "valueMSB": 0,
-      "valueLSB": 110
+      "valueLSB": 0
     },
     {
       "paramMSB": 0,
       "paramLSB": 91,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 100
     },
     {
       "paramMSB": 0,
       "paramLSB": 92,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 7
     },
     {
       "paramMSB": 0,
       "paramLSB": 93,
       "valueMSB": 0,
-      "valueLSB": 100
+      "valueLSB": 0
     },
     {
       "paramMSB": 0,
       "paramLSB": 94,
-      "valueMSB": 12,
-      "valueLSB": 47
+      "valueMSB": 0,
+      "valueLSB": 25
     },
     {
       "paramMSB": 0,
       "paramLSB": 95,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 96
     },
     {
       "paramMSB": 0,
       "paramLSB": 96,
-      "valueMSB": 12,
-      "valueLSB": 64
+      "valueMSB": 0,
+      "valueLSB": 93
     },
     {
       "paramMSB": 0,
@@ -592,44 +603,44 @@
     {
       "paramMSB": 0,
       "paramLSB": 98,
-      "valueMSB": 3,
-      "valueLSB": 91
+      "valueMSB": 0,
+      "valueLSB": 0
     },
     {
       "paramMSB": 0,
       "paramLSB": 99,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 100
     },
     {
       "paramMSB": 0,
       "paramLSB": 100,
-      "valueMSB": 2,
-      "valueLSB": 1
+      "valueMSB": 0,
+      "valueLSB": 9
     },
     {
       "paramMSB": 0,
       "paramLSB": 101,
       "valueMSB": 0,
-      "valueLSB": 100
+      "valueLSB": 0
     },
     {
       "paramMSB": 0,
       "paramLSB": 102,
-      "valueMSB": 1,
-      "valueLSB": 77
+      "valueMSB": 0,
+      "valueLSB": 11
     },
     {
       "paramMSB": 0,
       "paramLSB": 103,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 100
     },
     {
       "paramMSB": 0,
       "paramLSB": 104,
-      "valueMSB": 12,
-      "valueLSB": 64
+      "valueMSB": 0,
+      "valueLSB": 5
     },
     {
       "paramMSB": 0,
@@ -640,44 +651,44 @@
     {
       "paramMSB": 0,
       "paramLSB": 106,
-      "valueMSB": 2,
-      "valueLSB": 64
+      "valueMSB": 0,
+      "valueLSB": 0
     },
     {
       "paramMSB": 0,
       "paramLSB": 107,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 100
     },
     {
       "paramMSB": 0,
       "paramLSB": 108,
-      "valueMSB": 2,
-      "valueLSB": 1
+      "valueMSB": 0,
+      "valueLSB": 0
     },
     {
       "paramMSB": 0,
       "paramLSB": 109,
       "valueMSB": 0,
-      "valueLSB": 100
+      "valueLSB": 89
     },
     {
       "paramMSB": 0,
       "paramLSB": 110,
-      "valueMSB": 1,
-      "valueLSB": 77
+      "valueMSB": 0,
+      "valueLSB": 6
     },
     {
       "paramMSB": 0,
       "paramLSB": 111,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 82
     },
     {
       "paramMSB": 0,
       "paramLSB": 112,
-      "valueMSB": 12,
-      "valueLSB": 64
+      "valueMSB": 9,
+      "valueLSB": 33
     },
     {
       "paramMSB": 0,
@@ -688,8 +699,8 @@
     {
       "paramMSB": 0,
       "paramLSB": 114,
-      "valueMSB": 2,
-      "valueLSB": 64
+      "valueMSB": 0,
+      "valueLSB": 37
     },
     {
       "paramMSB": 0,
@@ -706,14 +717,14 @@
     {
       "paramMSB": 0,
       "paramLSB": 117,
-      "valueMSB": 7,
-      "valueLSB": 104
+      "valueMSB": 9,
+      "valueLSB": 121
     },
     {
       "paramMSB": 0,
       "paramLSB": 118,
       "valueMSB": 0,
-      "valueLSB": 23
+      "valueLSB": 38
     },
     {
       "paramMSB": 0,
@@ -725,43 +736,43 @@
       "paramMSB": 0,
       "paramLSB": 120,
       "valueMSB": 0,
-      "valueLSB": 4
+      "valueLSB": 1
     },
     {
       "paramMSB": 0,
       "paramLSB": 121,
       "valueMSB": 7,
-      "valueLSB": 121
+      "valueLSB": 27
     },
     {
       "paramMSB": 0,
       "paramLSB": 122,
       "valueMSB": 0,
-      "valueLSB": 17
+      "valueLSB": 19
     },
     {
       "paramMSB": 0,
       "paramLSB": 123,
       "valueMSB": 0,
-      "valueLSB": 2
+      "valueLSB": 0
     },
     {
       "paramMSB": 0,
       "paramLSB": 124,
       "valueMSB": 0,
-      "valueLSB": 1
+      "valueLSB": 2
     },
     {
       "paramMSB": 0,
       "paramLSB": 125,
-      "valueMSB": 7,
-      "valueLSB": 104
+      "valueMSB": 8,
+      "valueLSB": 37
     },
     {
       "paramMSB": 0,
       "paramLSB": 126,
       "valueMSB": 0,
-      "valueLSB": 2
+      "valueLSB": 25
     },
     {
       "paramMSB": 0,
@@ -773,19 +784,19 @@
       "paramMSB": 1,
       "paramLSB": 0,
       "valueMSB": 0,
-      "valueLSB": 11
+      "valueLSB": 2
     },
     {
       "paramMSB": 1,
       "paramLSB": 1,
-      "valueMSB": 12,
-      "valueLSB": 52
+      "valueMSB": 8,
+      "valueLSB": 34
     },
     {
       "paramMSB": 1,
       "paramLSB": 2,
       "valueMSB": 0,
-      "valueLSB": 33
+      "valueLSB": 50
     },
     {
       "paramMSB": 1,
@@ -797,19 +808,19 @@
       "paramMSB": 1,
       "paramLSB": 4,
       "valueMSB": 0,
-      "valueLSB": 1
+      "valueLSB": 3
     },
     {
       "paramMSB": 1,
       "paramLSB": 5,
       "valueMSB": 7,
-      "valueLSB": 104
+      "valueLSB": 119
     },
     {
       "paramMSB": 1,
       "paramLSB": 6,
       "valueMSB": 0,
-      "valueLSB": 2
+      "valueLSB": 52
     },
     {
       "paramMSB": 1,
@@ -821,7 +832,7 @@
       "paramMSB": 1,
       "paramLSB": 8,
       "valueMSB": 0,
-      "valueLSB": 1
+      "valueLSB": 4
     },
     {
       "paramMSB": 1,
@@ -833,7 +844,7 @@
       "paramMSB": 1,
       "paramLSB": 10,
       "valueMSB": 0,
-      "valueLSB": 2
+      "valueLSB": 0
     },
     {
       "paramMSB": 1,
@@ -845,19 +856,19 @@
       "paramMSB": 1,
       "paramLSB": 12,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 2
     },
     {
       "paramMSB": 1,
       "paramLSB": 13,
-      "valueMSB": 8,
-      "valueLSB": 125
+      "valueMSB": 7,
+      "valueLSB": 127
     },
     {
       "paramMSB": 1,
       "paramLSB": 14,
       "valueMSB": 0,
-      "valueLSB": 7
+      "valueLSB": 51
     },
     {
       "paramMSB": 1,
@@ -869,19 +880,19 @@
       "paramMSB": 1,
       "paramLSB": 16,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 6
     },
     {
       "paramMSB": 1,
       "paramLSB": 17,
-      "valueMSB": 8,
-      "valueLSB": 54
+      "valueMSB": 5,
+      "valueLSB": 120
     },
     {
       "paramMSB": 1,
       "paramLSB": 18,
       "valueMSB": 0,
-      "valueLSB": 9
+      "valueLSB": 3
     },
     {
       "paramMSB": 1,
@@ -893,19 +904,19 @@
       "paramMSB": 1,
       "paramLSB": 20,
       "valueMSB": 0,
-      "valueLSB": 12
+      "valueLSB": 7
     },
     {
       "paramMSB": 1,
       "paramLSB": 21,
-      "valueMSB": 7,
-      "valueLSB": 124
+      "valueMSB": 10,
+      "valueLSB": 106
     },
     {
       "paramMSB": 1,
       "paramLSB": 22,
       "valueMSB": 0,
-      "valueLSB": 4
+      "valueLSB": 1
     },
     {
       "paramMSB": 1,
@@ -917,67 +928,67 @@
       "paramMSB": 1,
       "paramLSB": 24,
       "valueMSB": 0,
-      "valueLSB": 10
+      "valueLSB": 8
     },
     {
       "paramMSB": 1,
       "paramLSB": 25,
-      "valueMSB": 7,
-      "valueLSB": 104
+      "valueMSB": 6,
+      "valueLSB": 93
     },
     {
       "paramMSB": 1,
       "paramLSB": 26,
       "valueMSB": 0,
-      "valueLSB": 2
+      "valueLSB": 10
     },
     {
       "paramMSB": 1,
       "paramLSB": 27,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 52
     },
     {
       "paramMSB": 1,
       "paramLSB": 28,
       "valueMSB": 0,
-      "valueLSB": 8
+      "valueLSB": 9
     },
     {
       "paramMSB": 1,
       "paramLSB": 29,
-      "valueMSB": 14,
-      "valueLSB": 98
+      "valueMSB": 8,
+      "valueLSB": 76
     },
     {
       "paramMSB": 1,
       "paramLSB": 30,
       "valueMSB": 0,
-      "valueLSB": 17
+      "valueLSB": 23
     },
     {
       "paramMSB": 1,
       "paramLSB": 31,
       "valueMSB": 0,
-      "valueLSB": 18
+      "valueLSB": 0
     },
     {
       "paramMSB": 1,
       "paramLSB": 32,
       "valueMSB": 0,
-      "valueLSB": 9
+      "valueLSB": 10
     },
     {
       "paramMSB": 1,
       "paramLSB": 33,
-      "valueMSB": 14,
-      "valueLSB": 8
+      "valueMSB": 8,
+      "valueLSB": 76
     },
     {
       "paramMSB": 1,
       "paramLSB": 34,
       "valueMSB": 0,
-      "valueLSB": 19
+      "valueLSB": 2
     },
     {
       "paramMSB": 1,
@@ -1018,56 +1029,56 @@
     {
       "paramMSB": 1,
       "paramLSB": 41,
-      "valueMSB": 2,
-      "valueLSB": 17
+      "valueMSB": 5,
+      "valueLSB": 90
     },
     {
       "paramMSB": 1,
       "paramLSB": 42,
       "valueMSB": 0,
-      "valueLSB": 100
+      "valueLSB": 101
     },
     {
       "paramMSB": 1,
       "paramLSB": 43,
       "valueMSB": 0,
-      "valueLSB": 1
+      "valueLSB": 39
     },
     {
       "paramMSB": 1,
       "paramLSB": 44,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 5
     },
     {
       "paramMSB": 1,
       "paramLSB": 45,
-      "valueMSB": 7,
-      "valueLSB": 74
+      "valueMSB": 6,
+      "valueLSB": 112
     },
     {
       "paramMSB": 1,
       "paramLSB": 46,
       "valueMSB": 0,
-      "valueLSB": 100
+      "valueLSB": 81
     },
     {
       "paramMSB": 1,
       "paramLSB": 47,
       "valueMSB": 0,
-      "valueLSB": 1
+      "valueLSB": 30
     },
     {
       "paramMSB": 1,
       "paramLSB": 48,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 2
     },
     {
       "paramMSB": 1,
       "paramLSB": 49,
-      "valueMSB": 1,
-      "valueLSB": 72
+      "valueMSB": 4,
+      "valueLSB": 75
     },
     {
       "paramMSB": 1,
@@ -1079,49 +1090,49 @@
       "paramMSB": 1,
       "paramLSB": 51,
       "valueMSB": 0,
-      "valueLSB": 1
+      "valueLSB": 62
     },
     {
       "paramMSB": 1,
       "paramLSB": 52,
       "valueMSB": 0,
-      "valueLSB": 1
+      "valueLSB": 6
     },
     {
       "paramMSB": 1,
       "paramLSB": 53,
       "valueMSB": 0,
-      "valueLSB": 10
+      "valueLSB": 22
     },
     {
       "paramMSB": 1,
       "paramLSB": 54,
       "valueMSB": 0,
-      "valueLSB": 49
+      "valueLSB": 48
     },
     {
       "paramMSB": 1,
       "paramLSB": 55,
       "valueMSB": 0,
-      "valueLSB": 19
+      "valueLSB": 67
     },
     {
       "paramMSB": 1,
       "paramLSB": 56,
       "valueMSB": 0,
-      "valueLSB": 100
+      "valueLSB": 42
     },
     {
       "paramMSB": 1,
       "paramLSB": 57,
       "valueMSB": 0,
-      "valueLSB": 20
+      "valueLSB": 94
     },
     {
       "paramMSB": 1,
       "paramLSB": 58,
       "valueMSB": 0,
-      "valueLSB": 20
+      "valueLSB": 42
     },
     {
       "paramMSB": 1,
@@ -1132,14 +1143,14 @@
     {
       "paramMSB": 1,
       "paramLSB": 60,
-      "valueMSB": 0,
-      "valueLSB": 100
+      "valueMSB": 1,
+      "valueLSB": 29
     },
     {
       "paramMSB": 1,
       "paramLSB": 61,
       "valueMSB": 0,
-      "valueLSB": 80
+      "valueLSB": 68
     },
     {
       "paramMSB": 1,
@@ -1156,14 +1167,14 @@
     {
       "paramMSB": 1,
       "paramLSB": 64,
-      "valueMSB": 0,
-      "valueLSB": 100
+      "valueMSB": 1,
+      "valueLSB": 29
     },
     {
       "paramMSB": 1,
       "paramLSB": 65,
       "valueMSB": 0,
-      "valueLSB": 80
+      "valueLSB": 28
     },
     {
       "paramMSB": 1,
@@ -1319,73 +1330,145 @@
       "paramMSB": 1,
       "paramLSB": 91,
       "valueMSB": 0,
-      "valueLSB": 100
+      "valueLSB": 110
     },
     {
       "paramMSB": 1,
-      "paramLSB": 100,
+      "paramLSB": 92,
       "valueMSB": 0,
-      "valueLSB": 72
+      "valueLSB": 1
     },
     {
       "paramMSB": 1,
-      "paramLSB": 101,
-      "valueMSB": 0,
-      "valueLSB": 51
-    },
-    {
-      "paramMSB": 1,
-      "paramLSB": 102,
-      "valueMSB": 0,
-      "valueLSB": 79
-    },
-    {
-      "paramMSB": 1,
-      "paramLSB": 103,
-      "valueMSB": 0,
-      "valueLSB": 43
-    },
-    {
-      "paramMSB": 1,
-      "paramLSB": 104,
+      "paramLSB": 93,
       "valueMSB": 0,
       "valueLSB": 0
     },
     {
       "paramMSB": 1,
-      "paramLSB": 105,
+      "paramLSB": 94,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 95,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 96,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 97,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 98,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 99,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 100,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 100,
+      "valueMSB": 0,
+      "valueLSB": 116
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 101,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 101,
       "valueMSB": 0,
       "valueLSB": 114
     },
     {
       "paramMSB": 1,
-      "paramLSB": 106,
+      "paramLSB": 102,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 102,
       "valueMSB": 0,
       "valueLSB": 105
     },
     {
       "paramMSB": 1,
+      "paramLSB": 103,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 103,
+      "valueMSB": 0,
+      "valueLSB": 119
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 104,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 105,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 106,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
       "paramLSB": 107,
       "valueMSB": 0,
-      "valueLSB": 107
+      "valueLSB": 0
     },
     {
       "paramMSB": 1,
       "paramLSB": 108,
       "valueMSB": 0,
-      "valueLSB": 32
+      "valueLSB": 1
     },
     {
       "paramMSB": 1,
       "paramLSB": 109,
       "valueMSB": 0,
-      "valueLSB": 100
+      "valueLSB": 0
     },
     {
       "paramMSB": 1,
       "paramLSB": 110,
       "valueMSB": 0,
-      "valueLSB": 114
+      "valueLSB": 1
     },
     {
       "paramMSB": 1,
@@ -1394,10 +1477,58 @@
       "valueLSB": 0
     },
     {
+      "paramMSB": 1,
+      "paramLSB": 112,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 113,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 114,
+      "valueMSB": 0,
+      "valueLSB": 1
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 115,
+      "valueMSB": 0,
+      "valueLSB": 0
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 116,
+      "valueMSB": 0,
+      "valueLSB": 13
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 117,
+      "valueMSB": 0,
+      "valueLSB": 44
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 118,
+      "valueMSB": 0,
+      "valueLSB": 60
+    },
+    {
+      "paramMSB": 1,
+      "paramLSB": 119,
+      "valueMSB": 0,
+      "valueLSB": 79
+    },
+    {
       "paramMSB": 2,
       "paramLSB": 0,
       "valueMSB": 0,
-      "valueLSB": 3
+      "valueLSB": 11
     },
     {
       "paramMSB": 2,
@@ -1409,25 +1540,25 @@
       "paramMSB": 2,
       "paramLSB": 2,
       "valueMSB": 0,
-      "valueLSB": 7
+      "valueLSB": 0
     },
     {
       "paramMSB": 2,
       "paramLSB": 3,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 7
     },
     {
       "paramMSB": 2,
       "paramLSB": 4,
       "valueMSB": 0,
-      "valueLSB": 12
+      "valueLSB": 14
     },
     {
       "paramMSB": 2,
       "paramLSB": 5,
       "valueMSB": 0,
-      "valueLSB": 15
+      "valueLSB": 8
     },
     {
       "paramMSB": 2,
@@ -1439,73 +1570,73 @@
       "paramMSB": 2,
       "paramLSB": 7,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 9
     },
     {
       "paramMSB": 2,
       "paramLSB": 8,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 14
     },
     {
       "paramMSB": 2,
       "paramLSB": 9,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 2
     },
     {
       "paramMSB": 2,
       "paramLSB": 10,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 3
     },
     {
       "paramMSB": 2,
       "paramLSB": 11,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 8
     },
     {
       "paramMSB": 2,
       "paramLSB": 12,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 11
     },
     {
       "paramMSB": 2,
       "paramLSB": 13,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 9
     },
     {
       "paramMSB": 2,
       "paramLSB": 14,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 5
     },
     {
       "paramMSB": 2,
       "paramLSB": 15,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 6
     },
     {
       "paramMSB": 3,
       "paramLSB": 0,
       "valueMSB": 0,
-      "valueLSB": 3
+      "valueLSB": 15
     },
     {
       "paramMSB": 3,
       "paramLSB": 1,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 4
     },
     {
       "paramMSB": 3,
       "paramLSB": 2,
       "valueMSB": 0,
-      "valueLSB": 7
+      "valueLSB": 4
     },
     {
       "paramMSB": 3,
@@ -1517,225 +1648,222 @@
       "paramMSB": 3,
       "paramLSB": 4,
       "valueMSB": 0,
-      "valueLSB": 12
+      "valueLSB": 15
     },
     {
       "paramMSB": 3,
       "paramLSB": 5,
       "valueMSB": 0,
-      "valueLSB": 15
+      "valueLSB": 7
     },
     {
       "paramMSB": 3,
       "paramLSB": 6,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 6
     },
     {
       "paramMSB": 3,
       "paramLSB": 7,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 6
     },
     {
       "paramMSB": 3,
       "paramLSB": 8,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 13
     },
     {
       "paramMSB": 3,
       "paramLSB": 9,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 2
     },
     {
       "paramMSB": 3,
       "paramLSB": 10,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 3
     },
     {
       "paramMSB": 3,
       "paramLSB": 11,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 2
     },
     {
       "paramMSB": 3,
       "paramLSB": 12,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 13
     },
     {
       "paramMSB": 3,
       "paramLSB": 13,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 5
     },
     {
       "paramMSB": 3,
       "paramLSB": 14,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 1
     },
     {
       "paramMSB": 3,
       "paramLSB": 15,
       "valueMSB": 0,
-      "valueLSB": 0
+      "valueLSB": 2
     }
   ],
   "expected": {
-    "name": "H3O+",
+    "name": "triw",
     "algorithm": {
-      "id": "alg30",
-      "name": "Sync AM 2"
+      "id": "alg32",
+      "name": "Sync AM 4"
     },
     "operators": [
       {
-        "id": 1,
-        "waveform": "SINE",
-        "frequency": 3.41,
-        "keyboardTracking": 2
-      },
-      {
-        "id": 2,
         "waveform": "SINE",
         "frequency": 1,
+        "keyboardTracking": 1
+      },
+      {
+        "waveform": "SINE",
+        "frequency": 3,
+        "keyboardTracking": 1
+      },
+      {
+        "waveform": "SINE",
+        "frequency": 7.5,
         "keyboardTracking": 2
       },
       {
-        "id": 3,
         "waveform": "SINE",
         "frequency": 0.5,
-        "keyboardTracking": 2
-      },
-      {
-        "id": 4,
-        "waveform": "SINE",
-        "frequency": 0.5,
-        "keyboardTracking": 2
+        "keyboardTracking": 1
       }
     ],
     "modulationMatrix": [
       {
         "source": "LFO 1",
-        "destination1": "o* Fq",
+        "destination1": "Lfo3 F",
         "destination2": "None",
-        "amount": 0
+        "amount": 2.73
+      },
+      {
+        "source": "LFO 1",
+        "destination1": "o3 Fq",
+        "destination2": "None",
+        "amount": -0.77
+      },
+      {
+        "source": "LFO 2",
+        "destination1": "Env2 A",
+        "destination2": "None",
+        "amount": 0.61
+      },
+      {
+        "source": "LFO 2",
+        "destination1": "Flt1 G",
+        "destination2": "None",
+        "amount": 0.58
+      },
+      {
+        "source": "LFO 3",
+        "destination1": "Flt2 P2",
+        "destination2": "None",
+        "amount": 0.15
       },
       {
         "source": "LFOEnv1",
-        "destination1": "o1 Fq",
-        "destination2": "IM1",
-        "amount": 0.17
-      },
-      {
-        "source": "LFO 1",
-        "destination1": "IM1",
+        "destination1": "None",
         "destination2": "None",
         "amount": 0
       },
       {
-        "source": "Velocity",
-        "destination1": "Mtx2 x",
+        "source": "LFO 2",
+        "destination1": "Flt2 P1",
         "destination2": "None",
-        "amount": 5.88
+        "amount": 0.23
       },
       {
-        "source": "LFO 1",
-        "destination1": "IM1",
+        "source": "LFOSeq1",
+        "destination1": "IM2",
         "destination2": "None",
-        "amount": 0
+        "amount": -2.4
       },
       {
-        "source": "LFO 1",
-        "destination1": "IM1",
+        "source": "LFOSeq2",
+        "destination1": "Gate",
         "destination2": "None",
-        "amount": 0
+        "amount": 3.86
       },
       {
-        "source": "None",
-        "destination1": "Mix1",
-        "destination2": "None",
-        "amount": 1.49
+        "source": "Modwheel",
+        "destination1": "Pan2",
+        "destination2": "Flt2 P2",
+        "amount": -1.39
       },
       {
-        "source": "None",
-        "destination1": "Mix2",
+        "source": "Pitchbend",
+        "destination1": "o* Fq",
         "destination2": "None",
-        "amount": 0.78
-      },
-      {
-        "source": "Note1",
-        "destination1": "IM3",
-        "destination2": "None",
-        "amount": 0.2
+        "amount": 1
       },
       {
         "source": "Aftertouch",
         "destination1": "IM1",
         "destination2": "None",
-        "amount": 0
-      },
-      {
-        "source": "Modwheel",
-        "destination1": "o1 Fq",
-        "destination2": "o2 Fq",
-        "amount": 8.9
-      },
-      {
-        "source": "Pitchbend",
-        "destination1": "o3 Fq",
-        "destination2": "None",
-        "amount": 8
+        "amount": 1
       }
     ],
     "lfos": [
       {
         "shape": "LFO_SIN",
         "syncMode": "Int",
-        "frequency": 2.73,
+        "frequency": 7.3,
         "midiClockMode": "MC",
         "phase": 0,
-        "bias": 0,
-        "keysync": 0
+        "bias": 0.01,
+        "keysync": 0.38
       },
       {
-        "shape": "LFO_SIN",
+        "shape": "LFO_BROWNIAN",
         "syncMode": "Int",
-        "frequency": 9.7,
+        "frequency": 8.8,
         "midiClockMode": "MC",
         "phase": 0,
-        "bias": 0,
-        "keysync": 0
+        "bias": -0.19,
+        "keysync": 0.29
       },
       {
-        "shape": "LFO_SIN",
+        "shape": "LFO_TRIANGLE",
         "syncMode": "Int",
-        "frequency": 2,
+        "frequency": 5.87,
         "midiClockMode": "MC",
         "phase": 0,
         "bias": 0,
-        "keysync": 0
+        "keysync": 0.61
       }
     ],
     "filters": [
       {
-        "type": "SVFLH",
+        "type": "CRUSH2",
         "param1": 0.61,
-        "param2": 0.67,
+        "param2": 0.37,
         "gain": 1
       },
       {
-        "type": "OFF",
-        "param1": 0.5,
-        "param2": 1,
-        "gain": 1
+        "type": "STEREO_BP",
+        "param1": 0.44,
+        "param2": 0.6,
+        "gain": 0.79
       }
     ],
     "arpeggiator": {
+      "clockSource": "Off",
       "clock": 90,
       "direction": "Up",
       "octave": 1,
