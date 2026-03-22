@@ -1,3 +1,84 @@
+import {
+  FILTER2_TYPE_LIST
+} from '../types/patch';
+/**
+ * Send Filter2 type to PreenFM3 via NRPN (MSB=1, LSB=116)
+ */
+export function sendFilter2Type(type: string, channel: number = currentChannel) {
+  if (!midiOutput) {
+    console.warn('No MIDI output selected for Filter2 type');
+    return;
+  }
+  let filterValue = FILTER2_TYPE_LIST.indexOf(type as typeof FILTER2_TYPE_LIST[number]);
+  if (filterValue === -1) {
+    filterValue = 0;
+  }
+  const nrpn = {
+    paramMSB: 1,
+    paramLSB: 116,
+    valueMSB: (filterValue >> 7) & 0x7F,
+    valueLSB: filterValue & 0x7F
+  };
+  console.log(`📤 Sending Filter2 Type via NRPN: ${type} (${filterValue}) -> [${nrpn.paramMSB},${nrpn.paramLSB}] = [${nrpn.valueMSB},${nrpn.valueLSB}]`);
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send Filter2 param1 (frequency/cutoff) to PreenFM3 via NRPN (MSB=1, LSB=117)
+ */
+export function sendFilter2Param1(value: number, channel: number = currentChannel) {
+  if (!midiOutput) {
+    console.warn('No MIDI output selected for Filter2 param1');
+    return;
+  }
+  const nrpnValue = Math.round(Math.max(0, Math.min(1, value)) * 100);
+  const nrpn = {
+    paramMSB: 1,
+    paramLSB: 117,
+    valueMSB: (nrpnValue >> 7) & 0x7F,
+    valueLSB: nrpnValue & 0x7F
+  };
+  console.log(`📤 Sending Filter2 Param1 via NRPN: ${value} -> ${nrpnValue} -> [${nrpn.paramMSB},${nrpn.paramLSB}] = [${nrpn.valueMSB},${nrpn.valueLSB}]`);
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send Filter2 param2 (resonance/Q) to PreenFM3 via NRPN (MSB=1, LSB=118)
+ */
+export function sendFilter2Param2(value: number, channel: number = currentChannel) {
+  if (!midiOutput) {
+    console.warn('No MIDI output selected for Filter2 param2');
+    return;
+  }
+  const nrpnValue = Math.round(Math.max(0, Math.min(1, value)) * 100);
+  const nrpn = {
+    paramMSB: 1,
+    paramLSB: 118,
+    valueMSB: (nrpnValue >> 7) & 0x7F,
+    valueLSB: nrpnValue & 0x7F
+  };
+  console.log(`📤 Sending Filter2 Param2 via NRPN: ${value} -> ${nrpnValue} -> [${nrpn.paramMSB},${nrpn.paramLSB}] = [${nrpn.valueMSB},${nrpn.valueLSB}]`);
+  sendNRPN(nrpn, channel);
+}
+
+/**
+ * Send Filter2 gain/mix to PreenFM3 via NRPN (MSB=1, LSB=119)
+ */
+export function sendFilter2Gain(value: number, channel: number = currentChannel) {
+  if (!midiOutput) {
+    console.warn('No MIDI output selected for Filter2 gain');
+    return;
+  }
+  const nrpnValue = Math.round(Math.max(0, Math.min(1, value)) * 100);
+  const nrpn = {
+    paramMSB: 1,
+    paramLSB: 119,
+    valueMSB: (nrpnValue >> 7) & 0x7F,
+    valueLSB: nrpnValue & 0x7F
+  };
+  console.log(`📤 Sending Filter2 Gain via NRPN: ${value} -> ${nrpnValue} -> [${nrpn.paramMSB},${nrpn.paramLSB}] = [${nrpn.valueMSB},${nrpn.valueLSB}]`);
+  sendNRPN(nrpn, channel);
+}
 import { encodeLfoBias } from '../types/lfo';
 import { NoteCurveUtils } from '../types/patch';
 import { ALGO_DIAGRAMS } from '../algo/algorithms.static';
@@ -787,23 +868,24 @@ export function sendFilterType(type: string, channel: number = currentChannel) {
   
   // Try to find in Filter1 list first, then Filter2
   let filterValue = FILTER1_TYPE_LIST.indexOf(type);
+  const idx1 = filterValue;
+  const idx2 = FILTER2_TYPE_LIST.indexOf(type);
   if (filterValue === -1) {
-    filterValue = FILTER2_TYPE_LIST.indexOf(type);
+    filterValue = idx2;
   }
-  
-  // If not found, default to OFF (index 0)
+
+  console.log("================================= Filtre type idx:", { type, idx1, idx2, filterValue });
   if (filterValue === -1) {
     console.warn(`Filter type '${type}' not found, using OFF`);
     filterValue = 0;
   }
-
+  console.log(`[sendFilterType] Recherche type='${type}' | idx1=${idx1} | idx2=${idx2} | filterValue=${filterValue}`);
   const nrpn = {
     paramMSB: 0,
     paramLSB: 40,  // Filter Type
     valueMSB: (filterValue >> 7) & 0x7F,
     valueLSB: filterValue & 0x7F
   };
-  
   console.log(`📤 Sending Filter Type via NRPN: ${type} (${filterValue}) -> [${nrpn.paramMSB},${nrpn.paramLSB}] = [${nrpn.valueMSB},${nrpn.valueLSB}]`);
   sendNRPN(nrpn, channel);
 }

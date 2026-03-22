@@ -4,7 +4,7 @@
  */
 
 import type { Patch } from '../types/patch';
-import { FILTER1_TYPE_LIST, NoteCurveUtils } from '../types/patch';
+import { FILTER1_TYPE_LIST, FILTER2_TYPE_LIST, NoteCurveUtils } from '../types/patch';
 // import type { Filter1Type, Filter2Type } from '../types/patch';
 import type { NRPNMessage } from './preenFM3MidiMap';
 import { DEFAULT_ALGORITHMS, DEFAULT_LFO_ENVELOPE } from '../types/patch';
@@ -27,6 +27,8 @@ import {
   // type LfoType
 } from '../types/lfo';
 import type { LFO } from '../types/patch';
+import { ENV_CURVE_NAMES } from '../types/patch';
+import type { CurveType } from '../types/adsr';
 
 /**
  * Conversion functions for Arpeggiator NRPN values
@@ -130,6 +132,8 @@ function parseArpLatch(value: number): ArpLatch {
 export class PreenFM3Parser {
   private nrpnData: Map<number, number> = new Map();
   private presetName: string[] = [];
+  private presetNameReceived = false;
+  private pfm3Version: number | null = null;
   
   /**
    * Ajouter un message NRPN reçu
@@ -137,15 +141,27 @@ export class PreenFM3Parser {
   addNRPN(nrpn: NRPNMessage): void {
     // Calculer l'index NRPN (paramMSB << 7 | paramLSB)
     const paramIndex = (nrpn.paramMSB << 7) | nrpn.paramLSB;
-    
+
     // Calculer la valeur (valueMSB << 7 | valueLSB)
     const value = (nrpn.valueMSB << 7) | nrpn.valueLSB;
-    
+    if (nrpn.paramMSB === 1 && nrpn.paramLSB == 91) {
+        console.log(`🛠️ preenfm3 version ${value}`);
+        this.pfm3Version = value;
+    }
+
     // Nom du preset (NRPN MSB=1, LSB=100-111)
-    if (nrpn.paramMSB === 1 && nrpn.paramLSB >= 100 && nrpn.paramLSB <= 111) {
+    // presetNameReceived permet de séparer la reception du nom des autres paramètres, car le firmware envoie d'abord le nom
+    // il y a conflit de plage NRPN entre le nom du preset et les paramètres classiques, donc on utilise ce flag pour différencier les deux
+    if (!this.presetNameReceived && nrpn.paramMSB === 1 && nrpn.paramLSB >= 100 && nrpn.paramLSB <= 111) {
+      // Accumule le nom courant (nouvelle plage NRPN)
       const charIndex = nrpn.paramLSB - 100;
-      const char = String.fromCharCode(value);
-      this.presetName[charIndex] = char;
+      if (value >= 32 && value <= 126) {
+        const char = String.fromCharCode(value);
+        this.presetName[charIndex] = char;
+      } else {
+        // Caractère non imprimable : fin du nom
+        this.presetNameReceived = true;
+      }
     } else {
       // Stocker le paramètre  
       this.nrpnData.set(paramIndex, value);
@@ -190,6 +206,10 @@ export class PreenFM3Parser {
     return (nullIndex >= 0 ? name.substring(0, nullIndex) : name).trim();
   }
   
+  getpfm3Version(): number | null {
+    return this.pfm3Version;
+  }
+
   /**
    * Obtenir une valeur NRPN brute (méthode publique)
    */
@@ -256,7 +276,8 @@ export class PreenFM3Parser {
    */
   reset(): void {
     this.nrpnData.clear();
-    this.presetName = [];
+   this.presetName = [];
+    this.presetNameReceived = false;
   }
   
   /**
@@ -337,22 +358,53 @@ export class PreenFM3Parser {
       mixDebug.push(mixValue ?? -1);
     }
     console.log('[PreenFM3Parser] NRPN Mix1-6 (LSB 16,18,20,22,24,26) values:', mixDebug);
-    
+
+    // ── LOG ENV CURVES (MSB=1, LSB=92 à 103, 24 valeurs) ──
+    let envCurveTypes: number[] = [];
+    let envCurveNames: string[] = [];
+    if ((this.pfm3Version ?? 0) > 100) {
+      for (let i = 0; i < 24; i++) {
+        const val = this.getValue(1, 92 + i);
+        if (typeof val === 'number') {
+          envCurveTypes.push(val);
+          envCurveNames.push(val >= 0 && val < ENV_CURVE_NAMES.length ? ENV_CURVE_NAMES[val] : '?');
+        } else {
+          console.warn(`[PreenFM3Parser] Valeur de courbe d'enveloppe manquante pour LSB ${92 + i}`, val);
+        }
+      }
+      console.log('🟢 Types de courbe d\'enveloppe (envCurves, NRPN MSB=1, LSB=92-115):', envCurveTypes);
+      console.log('🟢 Noms de courbe d\'enveloppe (envCurves):', envCurveNames);
+    } else {
+      // Firmware <= 100: assign default curves as in AdsrControl.tsx (alternating linear/exponential)
+      // AdsrControl.tsx: attack=linear, decay=exponential, sustain=linear, release=exponential
+      // ENV_CURVE_NAMES: ['Exp', 'Lin', 'Log', ...]
+      // 'Lin' = 1, 'Exp' = 0
+      envCurveTypes = [];
+      envCurveNames = [];
+      for (let op = 0; op < 6; op++) {
+        envCurveTypes.push(1); envCurveNames.push('Lin'); // attack
+        envCurveTypes.push(0); envCurveNames.push('Exp'); // decay
+        envCurveTypes.push(1); envCurveNames.push('Lin'); // sustain
+        envCurveTypes.push(0); envCurveNames.push('Exp'); // release
+      }
+      console.log('[PreenFM3Parser] Firmware <= 100, envelope curves ignored. Using default Lin/Exp alternance.');
+    }
+
     // Récupérer l'algorithme (index 0, valeur 0-31)
     const algoIndex = this.getValue(0, 0);
     console.log(`[PreenFM3Parser] Algorithme NRPN value: ${algoIndex}`);
-    
+
     if (algoIndex === undefined) {
       throw new Error('Algorithme non reçu (NRPN [0,0] manquant). Le patch ne peut pas être chargé.');
     }
-    
+
     if (algoIndex < 0 || algoIndex >= DEFAULT_ALGORITHMS.length) {
       console.warn(`[PreenFM3Parser] Index d'algorithme invalide: ${algoIndex}, utilisation de l'algorithme 0`);
     }
-    
+
     const algorithm = DEFAULT_ALGORITHMS[algoIndex] || DEFAULT_ALGORITHMS[0];
     console.log(`[PreenFM3Parser] Algorithme sélectionné: ${algorithm.id} (${algorithm.name})`);
-    
+
     // Nom du preset
     const name = this.getPresetName() || 'MIDI Patch';
     
@@ -363,11 +415,11 @@ export class PreenFM3Parser {
       // Chaque ROW_OSC a 4 encoders: shape, frequencyType, frequencyMul, detune
       const oscRowBase = 44 + opIndex * 4;
       // Waveform (encoder 0: shape) - correspond aux 14 types du firmware
-      const waveformValue = this.getValue(0, oscRowBase) ?? 0;
       const waveforms: WaveformType[] = [
         'SINE', 'SAW', 'SQUARE', 'SIN_SQUARED', 'SIN_ZERO', 'SIN_POS', 
         'RAND', 'OFF', 'USER1', 'USER2', 'USER3', 'USER4', 'USER5', 'USER6'
       ];
+      const waveformValue = this.getValue(0, oscRowBase) ?? 0;
       const waveform = waveforms[Math.min(waveformValue, 13)] || 'SINE';
       // Frequency Type / Keyboard Tracking (encoder 1: frequencyType)
       // PreenFM3 firmware: 0=Keyboard, 1=Fixed, 2=Finetune
@@ -406,8 +458,43 @@ export class PreenFM3Parser {
       const decayTime = attackTime + decayTimeRel;
       const sustainTime = decayTime + sustainTimeRel;
       const releaseTime = sustainTime + releaseTimeRel;
-      // Note: Les courbes ADSR (ROW_ENV1_CURVE) ne sont pas transmises via NRPN par le firmware
-      // On utilise donc les valeurs par défaut de l'algorithme
+
+      // Récupération des courbes d'enveloppe depuis envCurveTypes (si valides)
+      // envCurveTypes contient 24 valeurs : 4 par opérateur (A, D, S, R) pour 6 opérateurs
+      // Indices : opIndex*4 + 0 = attack, +1 = decay, +2 = sustain, +3 = release
+      const curveIdx = opIndex * 4;
+      const attackCurveIdx = curveIdx + 0;
+      const decayCurveIdx = curveIdx + 1;
+      const sustainCurveIdx = curveIdx + 2;
+      const releaseCurveIdx = curveIdx + 3;
+      // Mapping NRPN curve name (firmware) -> CurveType (UI)
+      const mapCurveNameToCurveType = (name: string): CurveType => {
+        switch (name) {
+          case 'Exp': return 'exponential';
+          case 'Lin': return 'linear';
+          case 'Log': return 'logarithmic';
+          case 'Usr1':
+          case 'Usr2':
+          case 'Usr3':
+          case 'Usr4':
+            return 'user';
+          default: return 'linear';
+        }
+      };
+      const getCurveType = (idx: number): CurveType => {
+        const val = envCurveTypes[idx];
+        const name = (typeof val === 'number' && val >= 0 && val < ENV_CURVE_NAMES.length)
+          ? ENV_CURVE_NAMES[val]
+          : 'Lin';
+        return mapCurveNameToCurveType(name);
+      };
+      const curves = {
+        attack: getCurveType(attackCurveIdx),
+        decay: getCurveType(decayCurveIdx),
+        sustain: getCurveType(sustainCurveIdx),
+        release: getCurveType(releaseCurveIdx),
+      };
+
       return {
         ...op,
         waveform,
@@ -422,7 +509,7 @@ export class PreenFM3Parser {
           decay: { time: decayTime, level: decayLevel },
           sustain: { time: sustainTime, level: sustainLevel },
           release: { time: releaseTime, level: releaseLevel },
-          curves: op.adsr.curves,
+          curves,
         },
       };
     });
@@ -696,19 +783,17 @@ export class PreenFM3Parser {
         });
         return [arr[0], arr[1]] as [import('../types/modulation').StepSequencer, import('../types/modulation').StepSequencer];
       })(),
-      filters: ([0, 1].map(i => {
-        // Filter1: MSB=0, LSB=40-43 | Filter2: MSB=0, LSB=44-47
-        const baseLsb = 40 + i * 4;
-        let typeRaw = this.getValue(0, baseLsb);
-        // Firmware: type = valeur NRPN brute (0=Off, 1=Mix, ...), clamp à la plage supportée (0-48)
-        const MAX_FILTER_TYPE = 48;
-        let typeIndex = 0;
-        if (typeof typeRaw === 'number') {
-          typeIndex = Math.max(0, Math.min(MAX_FILTER_TYPE, typeRaw));
-        }
-        // Use canonical Filter1Type list for mapping
-        const type = FILTER1_TYPE_LIST[typeIndex] || 'OFF';
-        if (i === 0) {
+      filters: [
+        // Filter1: MSB=0, LSB=40-43
+        (() => {
+          const baseLsb = 40;
+          let typeRaw = this.getValue(0, baseLsb);
+          const MAX_FILTER_TYPE = 48;
+          let typeIndex = 0;
+          if (typeof typeRaw === 'number') {
+            typeIndex = Math.max(0, Math.min(MAX_FILTER_TYPE, typeRaw));
+          }
+          const type = FILTER1_TYPE_LIST[typeIndex] || 'OFF';
           console.log('🔎 Filter1 NRPN:', {
             typeRaw,
             type,
@@ -716,23 +801,49 @@ export class PreenFM3Parser {
             param2Raw: this.getValue(0, baseLsb + 2),
             gainRaw: this.getValue(0, baseLsb + 3)
           });
-        }
-        const param1Raw = this.getValue(0, baseLsb + 1);
-        const param2Raw = this.getValue(0, baseLsb + 2);
-        const gainRaw = this.getValue(0, baseLsb + 3);
-        // Firmware: param1/2 = valeur NRPN * 0.01 (0-1), gain = NRPN * 0.01 (0-2 for Filter1, 0-1 for Filter2)
-        const param1 = typeof param1Raw === 'number' ? Math.max(0, Math.min(1, param1Raw * 0.01)) : 0.5;
-        const param2 = typeof param2Raw === 'number' ? Math.max(0, Math.min(1, param2Raw * 0.01)) : 0.5;
-        let gain;
-        if (i === 0) {
-          // Filter1: gain can go up to 2.0
-          gain = typeof gainRaw === 'number' ? Math.max(0, Math.min(2, gainRaw * 0.01)) : 0.5;
-        } else {
+          const param1Raw = this.getValue(0, baseLsb + 1);
+          const param2Raw = this.getValue(0, baseLsb + 2);
+          const gainRaw = this.getValue(0, baseLsb + 3);
+          const param1 = typeof param1Raw === 'number' ? Math.max(0, Math.min(1, param1Raw * 0.01)) : 0.5;
+          const param2 = typeof param2Raw === 'number' ? Math.max(0, Math.min(1, param2Raw * 0.01)) : 0.5;
+          const gain = typeof gainRaw === 'number' ? Math.max(0, Math.min(2, gainRaw * 0.01)) : 0.5;
+          return { type, param1, param2, gain };
+        })(),
+        // Filter2: MSB=1, LSB=116-119 (après courbes d'enveloppe)
+        (() => {
+          const baseMsb = 1;
+          const baseLsb = 116;
+          let typeRaw = this.getValue(baseMsb, baseLsb);
+          const MAX_FILTER_TYPE = 48;
+          let typeIndex = 0;
+          if (typeof typeRaw === 'number') {
+            typeIndex = Math.max(0, Math.min(MAX_FILTER_TYPE, typeRaw));
+          }
+          // Utiliser FILTER2_TYPE_LIST si disponible, sinon fallback sur FILTER1_TYPE_LIST
+          const type = (typeof FILTER2_TYPE_LIST !== 'undefined' && FILTER2_TYPE_LIST[typeIndex])
+            ? FILTER2_TYPE_LIST[typeIndex]
+            : (FILTER1_TYPE_LIST[typeIndex] || 'OFF');
+          const param1Raw = this.getValue(baseMsb, baseLsb + 1);
+          const param2Raw = this.getValue(baseMsb, baseLsb + 2);
+          const gainRaw = this.getValue(baseMsb, baseLsb + 3);
+          // Diagnostic log for Filter2 parsing
+          console.log('🔎 Filter2 NRPN:', {
+            typeRaw,
+            typeIndex,
+            type,
+            param1Raw,
+            param2Raw,
+            gainRaw,
+            FILTER2_TYPE_LIST,
+            FILTER1_TYPE_LIST
+          });
+          const param1 = typeof param1Raw === 'number' ? Math.max(0, Math.min(1, param1Raw * 0.01)) : 0.5;
+          const param2 = typeof param2Raw === 'number' ? Math.max(0, Math.min(1, param2Raw * 0.01)) : 0.5;
           // Filter2: gain/mix is 0-1
-          gain = typeof gainRaw === 'number' ? Math.max(0, Math.min(1, gainRaw * 0.01)) : 0.5;
-        }
-        return { type, param1, param2, gain };
-      }) as unknown as [import('../types/patch').Filter, import('../types/patch').Filter]),
+          const gain = typeof gainRaw === 'number' ? Math.max(0, Math.min(1, gainRaw * 0.01)) : 0.5;
+          return { type, param1, param2, gain };
+        })()
+      ] as [import('../types/patch').Filter, import('../types/patch').Filter],
         noteCurves: [
           this.parseNoteCurve(0), // Note1  
           this.parseNoteCurve(1)  // Note2

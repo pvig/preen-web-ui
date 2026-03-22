@@ -1,3 +1,5 @@
+// Liste des noms de courbe d'enveloppe (firmware: Exp, Lin, Log, Usr1-4)
+export const ENV_CURVE_NAMES = ["Exp", "Lin", "Log", "Usr1", "Usr2", "Usr3", "Usr4"];
 import { AdsrState, AdsrPoint } from './adsr';
 import { WaveformType } from './waveform.ts';
 import { ALGO_DIAGRAMS, type AlgoDiagram } from '../algo/algorithms.static';

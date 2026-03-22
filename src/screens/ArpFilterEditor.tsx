@@ -53,8 +53,7 @@ export function ArpFilterEditor() {
     <ArpFilterContainer>
       <LeftColumn>
         <FilterEditor filterIndex={0} />
-        {/* TODO: Gestion du filtre 2 à implémenter aussi sur le firmware */}
-        {/* <FilterEditor filterIndex={1} /> */}
+        <FilterEditor filterIndex={1} />
         <NoteCurveEditor curveIndex={0} />
         <NoteCurveEditor curveIndex={1} />
       </LeftColumn>

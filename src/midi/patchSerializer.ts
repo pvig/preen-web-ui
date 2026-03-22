@@ -98,7 +98,7 @@ const OFF_LFO_PHASES = 832;       // 4 floats
 const OFF_NOTE_CURVE1 = 848;      // 4 floats
 const OFF_NOTE_CURVE2 = 864;      // 4 floats
 const OFF_ENGINE2 = 880;          // 4 floats
-// OFF_ENV_CURVES = 896           // 24 bytes: envCurves1To4 (16) + envCurves5To6 (8) — left zeroed
+const OFF_ENV_CURVES = 896           // 24 bytes: envCurves1To4 (16) + envCurves5To6 (8) — left zeroed
 const OFF_EFFECT2 = 920;          // 4 floats (Filter 2 / Effect 2, PreenFM3 only)
 const OFF_VERSION_TAG = 1019;     // 4 bytes uint32 (PRESET_VERSION1 = 0)
 
@@ -626,6 +626,11 @@ export function flashSynthParamsToPatch(data: Uint8Array): Patch {
     addNrpn(0, 68 + i, readFloat(OFF_ENV1A + i * 4));
   }
 
+  // Env1-6 Curves: 24 values (224-248)
+  for (let i = 0; i < 24; i++) {
+    addNrpn(1, 92 + i, readFloat(OFF_ENV_CURVES + i * 4));
+  }
+
   // Matrix → NRPN 116-163
   // Rows 1-3: MSB=0, LSB=116-127
   for (let i = 0; i < 12; i++) {
@@ -672,6 +677,11 @@ export function flashSynthParamsToPatch(data: Uint8Array): Patch {
   }
   for (let i = 0; i < 4; i++) {
     addNrpn(0, 204 + i, readFloat(OFF_NOTE_CURVE2 + i * 4));
+  }
+
+  // Engine2 → MSB=0, LSB=220-223 (4 floats)
+  for (let i = 0; i < 4; i++) {
+    addNrpn(0, 220 + i, readFloat(OFF_ENGINE2 + i * 4));
   }
 
   // Step Seq Steps: MSB=2 (seq1) and MSB=3 (seq2), LSB=0-15
@@ -903,19 +913,19 @@ export function patchToNRPNMessages(patch: Patch, options?: PatchToNRPNOptions):
     push(nrpnMsg(0, 43, filter1.gain * 100));
   }
 
-  // ── Filter 2 (LSB 44-47 — wait, 44 starts Osc!) ────────────────────────────
-  // NOTE: Filter2 is on LSB 44-47 in the NRPN send space?
-  // Actually no — the parser reads filter2 at baseLsb = 40 + i*4 where i=1 → LSB 44.
-  // But LSB 44 is also OPERATOR1_SHAPE... The firmware must use a different address
-  // for filter2 in NRPN vs flash. Let's check the parser:
-  // filter1: baseLsb=40 → OK
-  // filter2: baseLsb=44 → conflicts with osc1!
-  // This is actually correct per the parser code which reads filters at [0,40-47]
-  // and osc at [0,44-67]. There IS an overlap at 44-47 between filter2 and osc1.
-  // Looking more carefully at the parser, filter2 uses baseLsb = 40 + 1*4 = 44,
-  // but osc1 also uses oscRowBase = 44 + 0*4 = 44. This appears to be a parser bug
-  // or the firmware shares those addresses. For safety, let's only send filter1
-  // and osc1-6 (the oscillator params will overwrite filter2 if they share the space).
+  // ── Filter 2 (MSB=1, LSB=116-119) ──────────────────────────────────────────
+  const filter2 = patch.filters?.[1];
+  if (filter2) {
+    let typeIdx2 = FILTER2_TYPE_LIST.indexOf(filter2.type as typeof FILTER2_TYPE_LIST[number]);
+    if (typeIdx2 < 0) {
+      typeIdx2 = FILTER1_TYPE_LIST.indexOf(filter2.type as typeof FILTER1_TYPE_LIST[number]);
+      if (typeIdx2 < 0) typeIdx2 = 0;
+    }
+    push(nrpnMsg(1, 116, typeIdx2));
+    push(nrpnMsg(1, 117, filter2.param1 * 100));
+    push(nrpnMsg(1, 118, filter2.param2 * 100));
+    push(nrpnMsg(1, 119, filter2.gain * 100));
+  }
 
   // ── Oscillators ─────────────────────────────────────────────────────────────
   for (let i = 0; i < 6; i++) {

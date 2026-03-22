@@ -4,6 +4,7 @@ import { useCurrentPatch, usePatchStore } from '../stores/patchStore';
 import { requestPatchDump, sendNRPN, clearNRPNQueue, drainNRPNQueue } from './midiService';
 import { PreenFM3Parser } from './preenFM3Parser';
 import { patchToNRPNMessages, type PatchToNRPNOptions } from './patchSerializer';
+import { useSynthStore } from '../stores/synthStore';
 
 export const useMidiActions = () => {
   const midi = usePreenFM3Midi();
@@ -19,7 +20,8 @@ export const useMidiActions = () => {
   const receptionTimeoutRef = useRef<number | null>(null);
   const lastNRPNTimeRef = useRef<number>(0);
   const isReceivingRef = useRef<boolean>(false);
-  const nrpnListenerRef = useRef<((nrpn: any, channel: number) => void) | null>(null);
+  // Stocke la fonction d'unsubscribe retournée par onNRPNScoped
+  const nrpnListenerRef = useRef<(() => void) | null>(null);
 
   // Envoi d'un patch au PreenFM3 (Push)
   const sendPatch = (options?: PatchToNRPNOptions) => {
@@ -73,9 +75,10 @@ export const useMidiActions = () => {
     // Nettoyer le listener précédent si il existe
     if (nrpnListenerRef.current) {
       console.log('🧹 Nettoyage du listener NRPN précédent');
-      // Note: il faudrait idéalement avoir une méthode unlisten dans usePreenFM3Midi
+      nrpnListenerRef.current();
+      nrpnListenerRef.current = null;
     }
-    
+
     // Réinitialiser le parser et l'état
     parserRef.current.reset();
     setReceivedCount(0);
@@ -111,14 +114,14 @@ export const useMidiActions = () => {
       }
       
       console.log(`✅ Algorithme reçu: ${algorithmValue}`);
-      parserRef.current.logAll();
+      //parserRef.current.logAll();
       
       // Convertir les NRPN en Patch et charger dans le store
       try {
         const patch = parserRef.current.toPatch();
         console.log('✅ Patch converti:', patch);
         console.log(`🎵 Algorithme dans le patch converti: ${patch.algorithm?.id} (${patch.algorithm?.name})`);
-        
+
         // ── Génération de la fixture de test (dev only) ───────────────────
         if (import.meta.env.DEV) {
           const fixtureData = {
@@ -128,8 +131,7 @@ export const useMidiActions = () => {
               name: patch.name,
               algorithm: { id: patch.algorithm.id, name: patch.algorithm.name },
               operators: patch.operators.map(op => ({
-                id: op.id,
-                waveform: op.waveform,
+                 waveform: op.waveform,
                 frequency: op.frequency,
                 keyboardTracking: op.keyboardTracking,
               })),
@@ -145,11 +147,12 @@ export const useMidiActions = () => {
           void fixtureData;
         }
         // ─────────────────────────────────────────────────────────────────
-        
-        
+
+        // Synchroniser la version firmware dans le synthStore
+        useSynthStore.getState().setPfm3Version(parserRef.current.getpfm3Version());
         loadPatch(patch);
         console.log('✅ Patch chargé dans l\'UI');
-        
+
         // Mettre à jour les statistiques finales
         setReceivedCount(stats.count);
         setReceivedName(stats.name);
@@ -182,8 +185,12 @@ export const useMidiActions = () => {
       setReceivedName(stats.name);
       
       // Logger de manière plus lisible
-      console.log(`📥 NRPN [${nrpn.paramMSB},${nrpn.paramLSB}] (idx=${paramIndex}) = [${nrpn.valueMSB},${nrpn.valueLSB}] (val=${value})`);
-      
+      let asciiChar = '';
+      if (value >= 32 && value <= 126) {
+        asciiChar = ` (char='${String.fromCharCode(value)}')`;
+      }
+      console.log(`📥 NRPN [${nrpn.paramMSB},${nrpn.paramLSB}] (idx=${paramIndex}) = [${nrpn.valueMSB},${nrpn.valueLSB}] (val=${value})${asciiChar}`);
+
       // Logger spécifiquement l'algorithme
       if (nrpn.paramMSB === 0 && nrpn.paramLSB === 0) {
         console.log(`🎵 ALGORITHME REÇU: ${value}`);
@@ -207,8 +214,7 @@ export const useMidiActions = () => {
     };
     
     // Stocker la référence du listener et l'ajouter
-    nrpnListenerRef.current = nrpnListener;
-    midi.listenToNRPN(nrpnListener);
+    nrpnListenerRef.current = midi.listenToNRPN(nrpnListener);
     
     // Timeout de sécurité (10 secondes max)
     setTimeout(() => {

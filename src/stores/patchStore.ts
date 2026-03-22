@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { WaveformType, getWaveformId } from '../types/waveform';
-import { sendOperatorMix, sendOperatorPan, sendOperatorFrequency, sendOperatorDetune, sendOperatorWaveform, sendOperatorKeyboardTracking, sendOperatorADSR, sendModulationIM, sendModulationVelo, calculateIMIndex, sendStepSequencerStep, sendStepSequencerBpm, sendStepSequencerGate, sendAlgorithmChange, sendGlobalVelocitySensitivity, sendPlayMode, sendGlideTime, sendNoteCurve, sendPatchName, sendFilterType, sendFilterParam1, sendFilterParam2, sendFilterGain } from '../midi/midiService';
+import { sendOperatorMix, sendOperatorPan, sendOperatorFrequency, sendOperatorDetune, sendOperatorWaveform, sendOperatorKeyboardTracking, sendOperatorADSR, sendModulationIM, sendModulationVelo, calculateIMIndex, sendStepSequencerStep, sendStepSequencerBpm, sendStepSequencerGate, sendAlgorithmChange, sendGlobalVelocitySensitivity, sendPlayMode, sendGlideTime, sendNoteCurve, sendPatchName, sendFilterType, sendFilterParam1, sendFilterParam2, sendFilterGain, sendFilter2Type, sendFilter2Param1, sendFilter2Param2, sendFilter2Gain } from '../midi/midiService';
 import { sanitizePatchName } from '../utils/patchNameUtils';
 
 
@@ -512,14 +512,11 @@ export const usePatchStore = create<PatchStore>()(
         if (filterIndex >= 0 && filterIndex < 2) {
           const filter = state.currentPatch.filters[filterIndex];
           const oldFilter = { ...filter };
-          
           Object.assign(filter, changes);
           state.isModified = true;
           updateLastModified(state.currentPatch);
-          
-          // Send MIDI changes to PreenFM3 (only Filter1 for now, PreenFM3 NRPN spec is for one filter)
-          if (filterIndex === 0) {
-            try {
+          try {
+            if (filterIndex === 0) {
               if (changes.type !== undefined && changes.type !== oldFilter.type) {
                 sendFilterType(changes.type);
               }
@@ -532,9 +529,22 @@ export const usePatchStore = create<PatchStore>()(
               if (changes.gain !== undefined && changes.gain !== oldFilter.gain) {
                 sendFilterGain(changes.gain);
               }
-            } catch (error) {
-              console.warn('⚠️ Failed to send filter changes to PreenFM3:', error);
+            } else if (filterIndex === 1) {
+              if (changes.type !== undefined && changes.type !== oldFilter.type) {
+                sendFilter2Type(changes.type);
+              }
+              if (changes.param1 !== undefined && changes.param1 !== oldFilter.param1) {
+                sendFilter2Param1(changes.param1);
+              }
+              if (changes.param2 !== undefined && changes.param2 !== oldFilter.param2) {
+                sendFilter2Param2(changes.param2);
+              }
+              if (changes.gain !== undefined && changes.gain !== oldFilter.gain) {
+                sendFilter2Gain(changes.gain);
+              }
             }
+          } catch (error) {
+            console.warn('⚠️ Failed to send filter changes to PreenFM3:', error);
           }
         }
       }),

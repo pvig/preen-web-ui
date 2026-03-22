@@ -16,6 +16,7 @@ const Container = styled.div`
 const StyledSvg = styled.svg`
   width: 100%;
   height: 100%;
+  user-select: none;
 `;
 
 const ValueLabels = styled.div`

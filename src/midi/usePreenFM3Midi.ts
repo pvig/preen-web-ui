@@ -16,11 +16,12 @@ import {
   sendCC,
   sendNRPN,
   onControlChange,
-  onNRPN,
+  onNRPNScoped,
   onSysEx,
   getMidiStatus,
   logMidiStatus,
 } from './midiService';
+
 import type { NRPNMessage } from './preenFM3MidiMap';
 
 // LocalStorage keys for MIDI preferences
@@ -235,9 +236,10 @@ export function usePreenFM3Midi() {
     onControlChange(callback);
   }, []);
 
+
   // Listen to NRPN changes from PreenFM3
   const listenToNRPN = useCallback((callback: (nrpn: NRPNMessage, channel: number) => void) => {
-    onNRPN(callback);
+    return onNRPNScoped(callback);
   }, []);
 
   // Listen to SysEx messages
@@ -248,7 +250,7 @@ export function usePreenFM3Midi() {
   return {
     // State
     ...state,
-    
+
     // Send functions (use current channel from store)
     sendAlgorithmChange: useCallback((algoId: number | string) => 
       sendAlgorithmChange(algoId, useMidiStore.getState().channel), []),
@@ -258,12 +260,12 @@ export function usePreenFM3Midi() {
       sendCC(controller, value, useMidiStore.getState().channel), []),
     sendNRPN: useCallback((nrpn: NRPNMessage) => 
       sendNRPN(nrpn, useMidiStore.getState().channel), []),
-    
+
     // Listen functions
     listenToCC,
     listenToNRPN,
     listenToSysEx,
-    
+
     // Utility
     getStatus: getMidiStatus,
     logStatus: logMidiStatus,
