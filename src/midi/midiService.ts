@@ -69,7 +69,7 @@ export function sendFilter2Gain(value: number, channel: number = currentChannel)
     console.warn('No MIDI output selected for Filter2 gain');
     return;
   }
-  const nrpnValue = Math.round(Math.max(0, Math.min(1, value)) * 100);
+  const nrpnValue = Math.round(Math.max(0, Math.min(2, value)) * 100);
   const nrpn = {
     paramMSB: 1,
     paramLSB: 119,
@@ -940,7 +940,7 @@ export function sendFilterParam2(value: number, channel: number = currentChannel
 
 /**
  * Send filter gain to PreenFM3 via NRPN
- * @param value - Value 0-2 for Filter1 or 0-1 for Filter2 (converted to 0-200 for NRPN)
+ * @param value - Value 0-2 (converted to 0-200 for NRPN)
  */
 export function sendFilterGain(value: number, channel: number = currentChannel) {
   if (!midiOutput) {

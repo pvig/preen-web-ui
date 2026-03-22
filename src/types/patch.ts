@@ -73,7 +73,7 @@ export interface Filter {
   type: Filter1Type | Filter2Type;
   param1: number;  // Frequency/Cutoff (0-1)
   param2: number;  // Resonance/Q (0-1)
-  gain: number;    // Gain (0-2 for Filter1, 0-1 for Filter2)
+  gain: number;    // Gain (0-2)
 }
 
 export interface Operator {

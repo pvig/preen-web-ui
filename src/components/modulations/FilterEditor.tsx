@@ -93,9 +93,9 @@ export const FilterEditor: React.FC<FilterEditorProps> = ({ filterIndex }) => {
 
   const thirdParamLabel = filterIndex === 0 ? t('filter.gain') : 'Mix';
 
-  // Gain range: 0-2 for Filter1, 0-1 for Filter2
+  // Gain range: 0-2
   const gainMin = 0;
-  const gainMax = filterIndex === 0 ? 2 : 1;
+  const gainMax = 2;
 
   return (
     <FilterContainer>

@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { useSynthStore } from '../stores/synthStore';
 import { FilterEditor } from '../components/modulations/FilterEditor';
 import { ArpeggiatorEditor } from '../components/modulations/ArpeggiatorEditor';
 import { NoteCurveEditor } from '../components/modulations/NoteCurveEditor';
@@ -49,15 +50,17 @@ const RightColumn = styled.div`
  * - Note Curve 2 : Deuxième courbe de scaling des notes (before, break, after)
  */
 export function ArpFilterEditor() {
+  const pfm3Version = useSynthStore(state => state.pfm3Version);
   return (
     <ArpFilterContainer>
       <LeftColumn>
         <FilterEditor filterIndex={0} />
-        <FilterEditor filterIndex={1} />
+        {pfm3Version !== null && pfm3Version > 100 && (
+          <FilterEditor filterIndex={1} />
+        )}
         <NoteCurveEditor curveIndex={0} />
         <NoteCurveEditor curveIndex={1} />
       </LeftColumn>
-      
       <RightColumn>
         <ArpeggiatorEditor />
       </RightColumn>

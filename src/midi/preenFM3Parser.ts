@@ -839,8 +839,7 @@ export class PreenFM3Parser {
           });
           const param1 = typeof param1Raw === 'number' ? Math.max(0, Math.min(1, param1Raw * 0.01)) : 0.5;
           const param2 = typeof param2Raw === 'number' ? Math.max(0, Math.min(1, param2Raw * 0.01)) : 0.5;
-          // Filter2: gain/mix is 0-1
-          const gain = typeof gainRaw === 'number' ? Math.max(0, Math.min(1, gainRaw * 0.01)) : 0.5;
+          const gain = typeof gainRaw === 'number' ? Math.max(0, Math.min(2, gainRaw * 0.01)) : 0.5;
           return { type, param1, param2, gain };
         })()
       ] as [import('../types/patch').Filter, import('../types/patch').Filter],

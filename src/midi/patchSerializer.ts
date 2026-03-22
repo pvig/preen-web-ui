@@ -723,7 +723,7 @@ export function flashSynthParamsToPatch(data: Uint8Array): Patch {
         type: FILTER2_TYPE_LIST[typeIdx2] || 'OFF',
         param1: Math.max(0, Math.min(1, f2Param1Raw * 0.01)),
         param2: Math.max(0, Math.min(1, f2Param2Raw * 0.01)),
-        gain: Math.max(0, Math.min(1, f2GainRaw * 0.01)),
+        gain: Math.max(0, Math.min(2, f2GainRaw * 0.01)),
       };
     } else {
       // Zeroed effect2 → firmware defaults: OFF, 0.5, 0.5, 1.0
