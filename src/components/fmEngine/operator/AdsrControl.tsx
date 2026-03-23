@@ -2,8 +2,10 @@ import * as d3 from 'd3';
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { useOperatorEnvelope, updateADSR } from '../../../stores/patchStore';
-import { type AdsrState, type CurveType } from '../../../types/adsr';
+import { type AdsrState } from '../../../types/adsr';
+import { ADSR_CURVE_TYPES, type CurveType } from '../../../types/patch';
 import { useThemeStore } from '../../../theme/themeStore';
+import { useSynthStore } from '../../../stores/synthStore';
 
 const AdsrContainer = styled.div`
   position: relative;
@@ -35,8 +37,10 @@ interface AdsrControlProps {
 }
 
 const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
+
   const envelope = useOperatorEnvelope(operatorId);
   const { theme } = useThemeStore();
+  const pfm3Version = useSynthStore(state => state.pfm3Version);
 
   if (!envelope) return null;
 
@@ -44,13 +48,13 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
   const [dragging, setDragging] = useState<string | null>(null);
   const [dragInfo, setDragInfo] = useState<{ key: string; time: number; level: number } | null>(null);
   const [hoverInfo, setHoverInfo] = useState<{ key: string; time: number; level: number } | null>(null);
+  const [selectedSegment, setSelectedSegment] = useState<null | 'attack' | 'decay' | 'sustain' | 'release'>(null);
   const maxSegmentSize = 16; // Limite fixe de 16 pour chaque segment
   const margin = { top: 20, right: 20, bottom: 20, left: 30 };
   const width = 250 - margin.left - margin.right;
   const height = 120 - margin.top - margin.bottom;
 
   // Références pour les éléments D3
-  const lineRef = useRef<d3.Selection<SVGPathElement, Point[], null, undefined> | null>(null);
   const circlesRef = useRef<{ [key: string]: d3.Selection<SVGCircleElement, Point, null, undefined> }>({});
 
   // Stocke les positions actuelles avec leur contrainte
@@ -85,8 +89,12 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
           // PreenFM: logarithmique = montée lente puis rapide (utiliser ancien exponentielle)
           factor = t === 0 ? 0 : Math.pow(2, 10 * (t - 1));
           break;
-        case 'user':
-          factor = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        case 'user1':
+        case 'user2':
+        case 'user3':
+        case 'user4':
+          // Courbes utilisateur personnalisées (exemples)
+            factor = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
           break;
         default: // 'linear'
           factor = t;
@@ -101,17 +109,13 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
     return points;
   };
 
-  // Construit le chemin complet de l'enveloppe
-  const generateFullPath = (points: Point[]): Point[] => {
-    const fullPath: Point[] = [];
-
-    fullPath.push(...generateCurvePoints(points[0], points[1], envelope.curves?.attack || 'linear'));
-    fullPath.push(...generateCurvePoints(points[1], points[2], envelope.curves?.decay || 'exponential').slice(1));
-    fullPath.push(...generateCurvePoints(points[2], points[3], envelope.curves?.sustain || 'linear').slice(1));
-    fullPath.push(...generateCurvePoints(points[3], points[4], envelope.curves?.release || 'exponential').slice(1));
-
-    return fullPath;
-  };
+  // Génère les points pour chaque segment (pour interaction)
+  const getSegmentPoints = (points: Point[]) => ([
+    generateCurvePoints(points[0], points[1], envelope.curves?.attack || 'linear'),
+    generateCurvePoints(points[1], points[2], envelope.curves?.decay || 'exponential'),
+    generateCurvePoints(points[2], points[3], envelope.curves?.sustain || 'linear'),
+    generateCurvePoints(points[3], points[4], envelope.curves?.release || 'exponential'),
+  ]);
 
   // Initialise et met à jour les points  
   useEffect(() => {
@@ -151,8 +155,12 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
       // Pour les enveloppes longues, utilise la logique d'origine avec marge fixe
       maxTime = Math.max(actualMaxTime * 1.15, actualMaxTime + 2, 1);
     }
+    // Déplacer xScale/yScale dans le scope du composant pour accès dans le handler drag
     const xScale = d3.scaleLinear().domain([0, maxTime]).range([0, width]);
     const yScale = d3.scaleLinear().domain([100, 0]).range([0, height]);
+    // Stocker les scales dans des refs pour accès stable dans le handler drag
+    (AdsrControl as any)._xScale = xScale;
+    (AdsrControl as any)._yScale = yScale;
 
     // Quadrillage adaptatif pour l'axe Y (levels)
     g.append('g')
@@ -178,13 +186,32 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
       .x(d => xScale(d.x))
       .y(d => yScale(d.y));
 
-    // Dessin de la ligne
-    lineRef.current = g.append('path')
-      .datum(generateFullPath(currentPoints.current))
-      .attr('d', lineGenerator)
-      .attr('stroke', theme.colors.primary)
-      .attr('stroke-width', 2)
-      .attr('fill', 'none');
+
+    // Dessin de chaque segment séparément pour interaction
+    const segmentKeys: Array<'attack' | 'decay' | 'sustain' | 'release'> = ['attack', 'decay', 'sustain', 'release'];
+    const segmentColors = [theme.colors.adsrAttack, theme.colors.adsrDecay, theme.colors.adsrSustain, theme.colors.adsrRelease];
+    const segmentPoints = getSegmentPoints(currentPoints.current);
+    segmentPoints.forEach((seg, i) => {
+      // Large hit area (invisible)
+      g.append('path')
+        .datum(seg)
+        .attr('d', lineGenerator)
+        .attr('stroke', 'transparent')
+        .attr('stroke-width', 18)
+        .attr('fill', 'none')
+        .attr('cursor', 'pointer')
+        .attr('data-segment', segmentKeys[i])
+        .on('click', () => setSelectedSegment(segmentKeys[i]));
+
+      // Visible segment line (as avant)
+      g.append('path')
+        .datum(seg)
+        .attr('d', lineGenerator)
+        .attr('stroke', selectedSegment === segmentKeys[i] ? theme.colors.accent : segmentColors[i])
+        .attr('stroke-width', selectedSegment === segmentKeys[i] ? 4 : 2)
+        .attr('fill', 'none')
+        .attr('pointer-events', 'none'); // Ignore events, only the hit area above is interactive
+    });
 
     // Gestion du drag
     const dragHandler = d3.drag<SVGCircleElement, Point, Point>()
@@ -283,7 +310,6 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
             .attr('cy', yScale(pt.y));
         });
 
-        lineRef.current?.datum(generateFullPath(currentPoints.current)).attr('d', lineGenerator);
       })
       .on('end', function () {
         setDragging(null);
@@ -335,6 +361,28 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
 
   // Détermine si on doit afficher le tooltip (drag ou hover)
   const infoToShow = dragInfo || hoverInfo;
+  // Affiche le menu de sélection de courbe si un segment est sélectionné
+
+  const handleCurveChange = (curve: CurveType) => {
+    if (!selectedSegment) return;
+    // Toujours fournir un objet complet pour curves
+    const prev = envelope.curves ?? {
+      attack: 'linear',
+      decay: 'exponential',
+      sustain: 'linear',
+      release: 'exponential',
+    };
+    updateADSR(operatorId, {
+      curves: {
+        attack: selectedSegment === 'attack' ? curve : prev.attack,
+        decay: selectedSegment === 'decay' ? curve : prev.decay,
+        sustain: selectedSegment === 'sustain' ? curve : prev.sustain,
+        release: selectedSegment === 'release' ? curve : prev.release,
+      }
+    });
+    setSelectedSegment(null);
+  };
+
   return (
     <AdsrContainer>
       <StyledSvg ref={svgRef} />
@@ -347,6 +395,32 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
           {dragging ? 'Editing' : 'Point'}: {infoToShow.key} |
           Time: {infoToShow.time.toFixed(1)} |
           Level: {Math.round(infoToShow.level)}%
+        </Tooltip>
+      )}
+      {/* Menu de sélection de courbe d'enveloppe (uniquement si version > 100) */}
+      {selectedSegment && pfm3Version !== null && pfm3Version > 100 && (
+        <Tooltip style={{ top: '40px', left: '10px', zIndex: 10 }}>
+          <div style={{ marginBottom: 6, fontWeight: 600 }}>
+            {selectedSegment.charAt(0).toUpperCase() + selectedSegment.slice(1)} curve
+          </div>
+          {ADSR_CURVE_TYPES.map(type => (
+            <div key={type} style={{
+              padding: '2px 8px',
+              margin: '2px 0',
+              borderRadius: 3,
+              background: envelope.curves?.[selectedSegment] === type ? theme.colors.accent : 'transparent',
+              color: envelope.curves?.[selectedSegment] === type ? theme.colors.background : theme.colors.text,
+              cursor: 'pointer',
+              fontWeight: envelope.curves?.[selectedSegment] === type ? 700 : 400
+            }}
+              onClick={() => handleCurveChange(type)}
+            >
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+            </div>
+          ))}
+          <div style={{ marginTop: 8 }}>
+            <button onClick={() => setSelectedSegment(null)} style={{ fontSize: 12 }}>Annuler</button>
+          </div>
         </Tooltip>
       )}
     </AdsrContainer>

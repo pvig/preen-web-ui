@@ -1,3 +1,6 @@
+// Types de courbe d'enveloppe ADSR pour l'éditeur (PreenFM3)
+export type CurveType = 'linear' | 'exponential' | 'logarithmic' | 'user1' | 'user2' | 'user3' | 'user4';
+export const ADSR_CURVE_TYPES: CurveType[] = ['linear', 'exponential', 'logarithmic', 'user1', 'user2', 'user3', 'user4'];
 // Liste des noms de courbe d'enveloppe (firmware: Exp, Lin, Log, Usr1-4)
 export const ENV_CURVE_NAMES = ["Exp", "Lin", "Log", "Usr1", "Usr2", "Usr3", "Usr4"];
 import { AdsrState, AdsrPoint } from './adsr';

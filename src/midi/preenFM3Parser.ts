@@ -28,7 +28,7 @@ import {
 } from '../types/lfo';
 import type { LFO } from '../types/patch';
 import { ENV_CURVE_NAMES } from '../types/patch';
-import type { CurveType } from '../types/adsr';
+import type { CurveType } from '../types/patch';
 
 /**
  * Conversion functions for Arpeggiator NRPN values
@@ -473,11 +473,10 @@ export class PreenFM3Parser {
           case 'Exp': return 'exponential';
           case 'Lin': return 'linear';
           case 'Log': return 'logarithmic';
-          case 'Usr1':
-          case 'Usr2':
-          case 'Usr3':
-          case 'Usr4':
-            return 'user';
+          case 'Usr1': return 'user1';
+          case 'Usr2': return 'user2';
+          case 'Usr3': return 'user3';
+          case 'Usr4': return 'user4';
           default: return 'linear';
         }
       };

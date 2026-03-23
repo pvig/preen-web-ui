@@ -1,5 +1,4 @@
-// types/adsr.ts
-export type CurveType = 'linear' | 'exponential' | 'logarithmic' | 'user';
+import { CurveType } from './patch';
 
 export interface AdsrPoint {
     level: number; // 0-100
