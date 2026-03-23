@@ -46,8 +46,8 @@
 
 ```bash
 # Cloner le repository
-git clone https://github.com/votre-repo/preenWebUI.git
-cd preenWebUI
+git clone https://github.com/pvig/preen-web-ui.git
+cd preen-web-ui
 
 # Installer les dépendances
 npm install
@@ -160,15 +160,19 @@ src/
 - ✅ LFO Envelopes interactives
 - ✅ Matrice de modulation
 - ✅ Patch Pull complet (NRPN parser)
+- ✅ Patch Push complet (envoi NRPN de tous les paramètres)
 - ✅ Édition temps réel (volume carriers, algorithme, IM)
+- ✅ Sauvegarde/chargement de patches (`.patch`, 1024 bytes FlashSynthParams)
+- ✅ Organisation de banks (`.bnk`, 128 × 1024 bytes) — drag-and-drop, renommage, import/export de patches
+- ✅ Compatibilité firmware PreenFM3 (format binaire vérifié contre le code source firmware)
 
 ### En cours / À venir
 - ⏳ Step Sequencers (UI + MIDI)
-- ⏳ Patch Push complet (envoyer tous les paramètres)
-- ⏳ Gestion des presets/banks
-- ⏳ Import/Export de patches (JSON)
 - ⏳ Undo/Redo
 - ⏳ Éditeur d'effets (filtres, reverb, etc.)
+
+> 📖 Voir [PATCH_MANAGEMENT.md](PATCH_MANAGEMENT.md) pour la documentation technique détaillée
+> du système de gestion des patches (format binaire, architecture, NRPN, firmware).
 
 ## 🤝 Contribution
 
