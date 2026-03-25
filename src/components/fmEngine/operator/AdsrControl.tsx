@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { useOperatorEnvelope, updateADSR } from '../../../stores/patchStore';
 import { type AdsrState } from '../../../types/adsr';
 import { ADSR_CURVE_TYPES, type CurveType } from '../../../types/patch';
+import { sendOperatorEnvCurve } from '../../../midi/midiService';
 import { useThemeStore } from '../../../theme/themeStore';
 import { useSynthStore } from '../../../stores/synthStore';
 
@@ -380,6 +381,7 @@ const AdsrControl: React.FC<AdsrControlProps> = ({ operatorId }) => {
         release: selectedSegment === 'release' ? curve : prev.release,
       }
     });
+    sendOperatorEnvCurve(operatorId, selectedSegment, curve);
     setSelectedSegment(null);
   };
 

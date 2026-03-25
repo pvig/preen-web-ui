@@ -1,3 +1,74 @@
+/**
+ * Envoie un point de courbe d'enveloppe utilisateur au PreenFM3 via NRPN
+ * @param envNum numéro d'enveloppe utilisateur (0 à 5)
+ * @param pointNum numéro du point (0 à 4)
+ * @param value valeur du point (float, 0..1, encodée sur 14 bits)
+ * @param channel canal MIDI (défaut: currentChannel)
+ *
+ * NRPN index = 300 + (envNum * 5) + pointNum
+ * paramMSB = (index >> 7), paramLSB = (index & 0x7F)
+ * valueMSB/valueLSB = valeur du point (0..1 → 0..16383)
+ */
+export function sendUserEnvCurvePoint(envNum: number, pointNum: number, value: number, channel: number = currentChannel) {
+  if (!midiOutput) {
+    console.warn('No MIDI output selected for user env curve point');
+    return;
+  }
+  if (envNum < 0 || envNum > 5 || pointNum < 0 || pointNum > 4) {
+    console.warn('User env curve point: envNum or pointNum out of range', { envNum, pointNum });
+    return;
+  }
+  const index = 300 + (envNum * 4) + pointNum;
+  // Même logique que sendFilterType : MSB = index >> 7, LSB = index & 0x7F
+  const paramMSB = index >> 7;
+  const paramLSB = index & 0x7F;
+  // Encoder la valeur sur 14 bits (0..1 → 0..16383)
+  const v = Math.max(0, Math.min(1, value));
+  const value14 = Math.round(v * 16383);
+  const valueMSB = value14 >> 7;
+  const valueLSB = value14 & 0x7F;
+  const nrpn = { paramMSB, paramLSB, valueMSB, valueLSB };
+  console.log(`📤 Sending UserEnvCurvePoint envNum=${envNum} pointNum=${pointNum} value=${value} (index=${index}) -> [${paramMSB},${paramLSB}] = [${valueMSB},${valueLSB}]`);
+  sendNRPN(nrpn, channel);
+}
+/**
+ * Envoie la courbe d'enveloppe (A/D/S/R) d'un opérateur via NRPN
+ * opNumber: 1-6 (OP1-6)
+ * segment: 'attack' | 'decay' | 'sustain' | 'release'
+ * curveType: 'linear' | 'exponential' | 'logarithmic' | 'user1' | 'user2' | 'user3' | 'user4'
+ * Mapping NRPN: MSB=1, LSB=92+(opIndex*4)+offset (offset: 0=A, 1=D, 2=S, 3=R)
+ * Value: 0=Exp, 1=Lin, 2=Log, 3=Usr1, 4=Usr2, 5=Usr3, 6=Usr4
+ */
+export function sendOperatorEnvCurve(opNumber: number, segment: 'attack' | 'decay' | 'sustain' | 'release', curveType: string, channel: number = currentChannel) {
+  if (!midiOutput) {
+    console.warn('No MIDI output selected for operator env curve');
+    return;
+  }
+  if (opNumber < 1 || opNumber > 6) {
+    console.warn('⚠️ Operator env curve only available for operators 1-6, got:', opNumber);
+    return;
+  }
+  const segmentOffset = { attack: 0, decay: 1, sustain: 2, release: 3 }[segment];
+  const opIndex = opNumber - 1;
+  // Mapping UI curveType → firmware index (voir ENV_CURVE_NAMES)
+  const curveIdx = ['exponential','linear','logarithmic','user1','user2','user3','user4'].indexOf(curveType);
+  if (curveIdx === -1) {
+    console.warn("Courbe d'enveloppe inconnue:", curveType);
+    return;
+  }
+  // plage NRPN: 300 à 324
+  const nrpnIndex = 300 + opIndex * 4 + segmentOffset;
+  const paramMSB = (nrpnIndex >> 7) & 0x7F;
+  const paramLSB = nrpnIndex & 0x7F;
+  const nrpn = {
+    paramMSB,
+    paramLSB,
+    valueMSB: 0,
+    valueLSB: curveIdx
+  };
+  console.log(`📤 Sending Operator${opNumber} ${segment} curve via NRPN: ${curveType} (idx=${curveIdx}) -> [${paramMSB},${paramLSB}] = [0,${curveIdx}]`);
+  sendNRPN(nrpn, channel);
+}
 import {
   FILTER2_TYPE_LIST
 } from '../types/patch';
