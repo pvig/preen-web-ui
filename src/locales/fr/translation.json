@@ -167,7 +167,7 @@
     "title": "PreenFM3 Web Editor",
     "description1": "Éditeur web pour le synthétiseur FM PreenFM3, permettant la création et l'édition de patches via une interface moderne et intuitive.",
     "description2": "Développé avec React, TypeScript et styled-components. Interface MIDI via Web MIDI API pour communication bidirectionnelle avec le PreenFM3.",
-    "version": "Version: 1.0.0 • Mars 2026",
+    "version": "Version: {{version}}",
     "projectLink": "Projet sur GitHub",
     "close": "Fermer"
   },

@@ -207,7 +207,7 @@ export const HamburgerMenu: React.FC = () => {
             {t('about.description2')}
           </AboutText>
           <AboutText>
-            {t('about.version')}
+            {t('about.version', { version: __APP_VERSION__ })}
           </AboutText>
           <AboutText>
             <AboutLink href="https://github.com/pvig/preen-web-ui" target="_blank" rel="noopener noreferrer">
