@@ -875,9 +875,9 @@ export function sendFilterType(type: string, channel: number = currentChannel) {
   }
 
   // Try to find in Filter1 list first, then Filter2
-  let filterValue = FILTER1_TYPE_LIST.indexOf(type);
+  let filterValue = (FILTER1_TYPE_LIST as readonly string[]).indexOf(type);
   const idx1 = filterValue;
-  const idx2 = FILTER2_TYPE_LIST.indexOf(type);
+  const idx2 = (FILTER2_TYPE_LIST as readonly string[]).indexOf(type);
   if (filterValue === -1) {
     filterValue = idx2;
   }
