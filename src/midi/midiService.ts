@@ -1,37 +1,4 @@
 /**
- * Envoie un point de courbe d'enveloppe utilisateur au PreenFM3 via NRPN
- * @param envNum numéro d'enveloppe utilisateur (0 à 5)
- * @param pointNum numéro du point (0 à 4)
- * @param value valeur du point (float, 0..1, encodée sur 14 bits)
- * @param channel canal MIDI (défaut: currentChannel)
- *
- * NRPN index = 300 + (envNum * 5) + pointNum
- * paramMSB = (index >> 7), paramLSB = (index & 0x7F)
- * valueMSB/valueLSB = valeur du point (0..1 → 0..16383)
- */
-export function sendUserEnvCurvePoint(envNum: number, pointNum: number, value: number, channel: number = currentChannel) {
-  if (!midiOutput) {
-    console.warn('No MIDI output selected for user env curve point');
-    return;
-  }
-  if (envNum < 0 || envNum > 5 || pointNum < 0 || pointNum > 4) {
-    console.warn('User env curve point: envNum or pointNum out of range', { envNum, pointNum });
-    return;
-  }
-  const index = 300 + (envNum * 4) + pointNum;
-  // Même logique que sendFilterType : MSB = index >> 7, LSB = index & 0x7F
-  const paramMSB = index >> 7;
-  const paramLSB = index & 0x7F;
-  // Encoder la valeur sur 14 bits (0..1 → 0..16383)
-  const v = Math.max(0, Math.min(1, value));
-  const value14 = Math.round(v * 16383);
-  const valueMSB = value14 >> 7;
-  const valueLSB = value14 & 0x7F;
-  const nrpn = { paramMSB, paramLSB, valueMSB, valueLSB };
-  console.log(`📤 Sending UserEnvCurvePoint envNum=${envNum} pointNum=${pointNum} value=${value} (index=${index}) -> [${paramMSB},${paramLSB}] = [${valueMSB},${valueLSB}]`);
-  sendNRPN(nrpn, channel);
-}
-/**
  * Envoie la courbe d'enveloppe (A/D/S/R) d'un opérateur via NRPN
  * opNumber: 1-6 (OP1-6)
  * segment: 'attack' | 'decay' | 'sustain' | 'release'
@@ -70,7 +37,14 @@ export function sendOperatorEnvCurve(opNumber: number, segment: 'attack' | 'deca
   sendNRPN(nrpn, channel);
 }
 import {
-  FILTER2_TYPE_LIST
+  FILTER1_TYPE_LIST,
+  FILTER2_TYPE_LIST,
+  ARP_CLOCKS,
+  ARP_DIRECTIONS,
+  ARP_PATTERNS,
+  ARP_DIVISIONS,
+  ARP_DURATIONS,
+  ARP_LATCH,
 } from '../types/patch';
 /**
  * Send Filter2 type to PreenFM3 via NRPN (MSB=1, LSB=116)
@@ -153,6 +127,7 @@ export function sendFilter2Gain(value: number, channel: number = currentChannel)
 import { encodeLfoBias } from '../types/lfo';
 import { NoteCurveUtils } from '../types/patch';
 import { ALGO_DIAGRAMS } from '../algo/algorithms.static';
+import { MATRIX_SOURCE_NAMES, MATRIX_DEST_NAMES } from './preenFmConstants';
 /**
  * Envoie le mode midiClockMode du step sequencer via NRPN
  * @param seqIndex 0 ou 1 (Seq1 ou Seq2)
@@ -404,8 +379,7 @@ export function sendLfoEnvelope(envIndex: 0 | 1, envelope: { attack: number, dec
  * NRPN MSB=0, LSB=28 (0=Off, 1=Internal, 2=External)
  */
 export function sendArpeggiatorClock(clockSource: string, channel: number = currentChannel) {
-  const clockSources = ['Off', 'Int', 'Ext'];
-  const value = clockSources.indexOf(clockSource);
+  const value = ARP_CLOCKS.indexOf(clockSource as typeof ARP_CLOCKS[number]);
   
   const nrpn = {
     paramMSB: 0,
@@ -437,8 +411,7 @@ export function sendArpeggiatorBpm(bpm: number, channel: number = currentChannel
  * NRPN MSB=0, LSB=30 (Direction: 0-9)
  */
 export function sendArpeggiatorDirection(direction: string, channel: number = currentChannel) {
-  const directions = ['Up', 'Down', 'UpDown', 'Played', 'Random', 'Chord', 'Rotate U', 'Rotate D', 'Shift U', 'Shift D'];
-  const value = directions.indexOf(direction);
+  const value = ARP_DIRECTIONS.indexOf(direction as typeof ARP_DIRECTIONS[number]);
   if (value === -1) {
     console.warn('⚠️ Unknown arpeggiator direction:', direction);
     return;
@@ -474,12 +447,7 @@ export function sendArpeggiatorOctave(octave: number, channel: number = currentC
  * NRPN MSB=0, LSB=32 (Pattern: 0-25)
  */
 export function sendArpeggiatorPattern(pattern: string, channel: number = currentChannel) {
-  const patterns = [
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
-    '11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
-    '21', '22', 'Usr1', 'Usr2', 'Usr3', 'Usr4'
-  ];
-  const value = patterns.indexOf(pattern);
+  const value = ARP_PATTERNS.indexOf(pattern as typeof ARP_PATTERNS[number]);
   if (value === -1) {
     console.warn('⚠️ Unknown arpeggiator pattern:', pattern);
     return;
@@ -500,11 +468,7 @@ export function sendArpeggiatorPattern(pattern: string, channel: number = curren
  * NRPN MSB=0, LSB=33 (Division: 0-16)
  */
 export function sendArpeggiatorDivision(division: string, channel: number = currentChannel) {
-  const divisions = [
-    '2/1', '3/2', '1/1', '3/4', '2/3', '1/2', '3/8', '1/3', '1/4',
-    '1/6', '1/8', '1/12', '1/16', '1/24', '1/32', '1/48', '1/96'
-  ];
-  const value = divisions.indexOf(division);
+  const value = ARP_DIVISIONS.indexOf(division as typeof ARP_DIVISIONS[number]);
   if (value === -1) {
     console.warn('⚠️ Unknown arpeggiator division:', division);
     return;
@@ -525,11 +489,7 @@ export function sendArpeggiatorDivision(division: string, channel: number = curr
  * NRPN MSB=0, LSB=34 (Duration: 0-16)
  */
 export function sendArpeggiatorDuration(duration: string, channel: number = currentChannel) {
-  const durations = [
-    '2/1', '3/2', '1/1', '3/4', '2/3', '1/2', '3/8', '1/3', '1/4',
-    '1/6', '1/8', '1/12', '1/16', '1/24', '1/32', '1/48', '1/96'
-  ];
-  const value = durations.indexOf(duration);
+  const value = ARP_DURATIONS.indexOf(duration as typeof ARP_DURATIONS[number]);
   if (value === -1) {
     console.warn('⚠️ Unknown arpeggiator duration:', duration);
     return;
@@ -550,8 +510,7 @@ export function sendArpeggiatorDuration(duration: string, channel: number = curr
  * NRPN MSB=0, LSB=35 (Latch: 0-1)
  */
 export function sendArpeggiatorLatch(latch: string, channel: number = currentChannel) {
-  const latches = ['Off', 'On'];
-  const value = latches.indexOf(latch);
+  const value = ARP_LATCH.indexOf(latch as typeof ARP_LATCH[number]);
   if (value === -1) {
     console.warn('⚠️ Unknown arpeggiator latch:', latch);
     return;
@@ -915,28 +874,6 @@ export function sendFilterType(type: string, channel: number = currentChannel) {
     return;
   }
 
-  // Import filter type lists at the top of the function
-  const FILTER1_TYPE_LIST = [
-    'OFF', 'MIXER', 'LP', 'HP', 'BASS', 'BP', 'CRUSHER',
-    'LP2', 'HP2', 'BP2', 'LP3', 'HP3', 'BP3',
-    'PEAK', 'NOTCH', 'BELL', 'LOWSHELF', 'HIGHSHELF',
-    'LPHP', 'BPds', 'LPWS', 'TILT', 'STEREO',
-    'SAT', 'SIGMOID', 'FOLD', 'WRAP', 'XOR',
-    'TEXTURE1', 'TEXTURE2', 'LPXOR', 'LPXOR2',
-    'LPSIN', 'HPSIN', 'QUADNOTCH',
-    'AP4', 'AP4B', 'AP4D',
-    'ORYX', 'ORYX2', 'ORYX3',
-    '18DB', 'LADDER', 'LADDER2', 'DIOD',
-    'KRMG', 'TEEBEE', 'SVFLH', 'CRUSH2'
-  ];
-  
-  const FILTER2_TYPE_LIST = [
-    'OFF', 'FLANGE', 'DIMENSION', 'CHORUS', 'WIDE',
-    'DOUBLER', 'TRIPLER', 'BODE', 'DELAYCRUNCH',
-    'PINGPONG', 'DIFFUSER', 'GRAIN1', 'GRAIN2',
-    'STEREO_BP', 'PLUCK', 'PLUCK2', 'RESONATORS'
-  ];
-  
   // Try to find in Filter1 list first, then Filter2
   let filterValue = FILTER1_TYPE_LIST.indexOf(type);
   const idx1 = filterValue;
@@ -1833,13 +1770,7 @@ export function sendModulationMatrixParam(
  * Get source index from source name
  */
 function getSourceIndex(sourceName: string): number {
-  const sourceNames = [
-    'None', 'LFO 1', 'LFO 2', 'LFO 3', 'LFOEnv1', 'LFOEnv2', 'LFOSeq1', 'LFOSeq2',
-    'Modwheel', 'Pitchbend', 'Aftertouch', 'Velocity', 'Note1', 'CC1', 'CC2', 'CC3', 'CC4',
-    'Note2', 'Breath', 'MPE Slide', 'Random', 'Poly AT',
-    'User CC1', 'User CC2', 'User CC3', 'User CC4', 'PB MPE', 'AT MPE',
-  ];
-  const index = sourceNames.indexOf(sourceName);
+  const index = MATRIX_SOURCE_NAMES.indexOf(sourceName as typeof MATRIX_SOURCE_NAMES[number]);
   return index >= 0 ? index : 0;
 }
 
@@ -1847,16 +1778,6 @@ function getSourceIndex(sourceName: string): number {
  * Get destination index from destination name
  */
 function getDestinationIndex(destName: string): number {
-  const destNames = [
-    'None', 'Gate', 'IM1', 'IM2', 'IM3', 'IM4', 'IM*',
-    'Mix1', 'Pan1', 'Mix2', 'Pan2', 'Mix3', 'Pan3', 'Mix4', 'Pan4', 'Mix*', 'Pan*',
-    'o1 Fq', 'o2 Fq', 'o3 Fq', 'o4 Fq', 'o5 Fq', 'o6 Fq', 'o* Fq',
-    'Env1 A', 'Env2 A', 'Env3 A', 'Env4 A', 'Env5 A', 'Env6 A', 'Env* A', 'Env* R',
-    'Mtx1 x', 'Mtx2 x', 'Mtx3 x', 'Mtx4 x',
-    'Lfo1 F', 'Lfo2 F', 'Lfo3 F', 'Env2 S', 'Seq1 G', 'Seq2 G',
-    'Flt1 P1', 'o* FqH', 'Env* D', 'EnvM A', 'EnvM D', 'EnvM R',
-    'Mtx FB', 'Flt1 P2', 'Flt1 G', 'Flt2 P1', 'Flt2 P2', 'Flt2 G',
-  ];
-  const index = destNames.indexOf(destName);
+  const index = MATRIX_DEST_NAMES.indexOf(destName as typeof MATRIX_DEST_NAMES[number]);
   return index >= 0 ? index : 0;
 }

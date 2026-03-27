@@ -5,6 +5,8 @@
  */
 
 import { AdsrState } from './adsr';
+import { type StepSeqMidiClockMode, STEP_SEQ_MIDI_CLOCK_MODES } from '../midi/preenFmConstants';
+export { type StepSeqMidiClockMode, STEP_SEQ_MIDI_CLOCK_MODES };
 
 /**
  * Mode de boucle pour LFO Envelope
@@ -25,25 +27,6 @@ export interface LFOEnvelope {
  * Mode de synchronisation pour Step Sequencer
  */
 export type StepSeqSyncMode = 'Int' | 'Ext';
-
-/**
- * Modes MIDI Clock pour Step Sequencer (synchronisation externe)
- * Identiques aux modes des LFOs
- */
-export type StepSeqMidiClockMode = 
-  | 'C/16'   // MIDI Clock / 16
-  | 'Ck/8'   // MIDI Clock / 8
-  | 'Ck/4'   // MIDI Clock / 4
-  | 'Ck/2'   // MIDI Clock / 2
-  | 'Ck'     // MIDI Clock 1:1
-  | 'Ck*2'   // MIDI Clock * 2
-  | 'Ck*3'   // MIDI Clock * 3
-  | 'Ck*4'   // MIDI Clock * 4
-  | 'Ck*8';  // MIDI Clock * 8
-
-export const STEP_SEQ_MIDI_CLOCK_MODES: StepSeqMidiClockMode[] = [
-  'C/16', 'Ck/8', 'Ck/4', 'Ck/2', 'Ck', 'Ck*2', 'Ck*3', 'Ck*4', 'Ck*8'
-];
 
 /**
  * Step Sequencer

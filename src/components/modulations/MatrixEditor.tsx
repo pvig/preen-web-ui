@@ -5,6 +5,7 @@ import { useCurrentPatch, usePatchStore } from '../../stores/patchStore';
 import { useThemeStore } from '../../theme/themeStore';
 import KnobBase from '../knobs/KnobBase';
 import { sendModulationMatrixParam } from '../../midi/midiService';
+import { MATRIX_SOURCE_NAMES, MATRIX_DEST_NAMES } from '../../midi/preenFmConstants';
 
 const MatrixContainer = styled.div`
   background: ${props => props.theme.colors.panel};
@@ -83,25 +84,8 @@ export const MatrixEditor: React.FC = () => {
   const currentPatch = useCurrentPatch();
   const updateModulationMatrixRow = usePatchStore((state) => state.updateModulationMatrixRow);
 
-  // Sources de modulation (SourceEnum du firmware PreenFM3)
-  const modulationSources = [
-    'None', 'LFO 1', 'LFO 2', 'LFO 3', 'LFOEnv1', 'LFOEnv2', 'LFOSeq1', 'LFOSeq2',
-    'Modwheel', 'Pitchbend', 'Aftertouch', 'Velocity', 'Note1', 'CC1', 'CC2', 'CC3', 'CC4',
-    'Note2', 'Breath', 'MPE Slide', 'Random', 'Poly AT', 
-    'User CC1', 'User CC2', 'User CC3', 'User CC4', 'PB MPE', 'AT MPE',
-  ];
-
-  // Destinations possibles (DestinationEnum du firmware PreenFM3)
-  const destinations = [
-    'None', 'Gate', 'IM1', 'IM2', 'IM3', 'IM4', 'IM*',
-    'Mix1', 'Pan1', 'Mix2', 'Pan2', 'Mix3', 'Pan3', 'Mix4', 'Pan4', 'Mix*', 'Pan*',
-    'o1 Fq', 'o2 Fq', 'o3 Fq', 'o4 Fq', 'o5 Fq', 'o6 Fq', 'o* Fq',
-    'Env1 A', 'Env2 A', 'Env3 A', 'Env4 A', 'Env5 A', 'Env6 A', 'Env* A', 'Env* R',
-    'Mtx1 x', 'Mtx2 x', 'Mtx3 x', 'Mtx4 x',
-    'Lfo1 F', 'Lfo2 F', 'Lfo3 F', 'Env2 S', 'Seq1 G', 'Seq2 G',
-    'Flt1 P1', 'o* FqH', 'Env* D', 'EnvM A', 'EnvM D', 'EnvM R',
-    'Mtx FB', 'Flt1 P2', 'Flt1 G', 'Flt2 P1', 'Flt2 P2', 'Flt2 G',
-  ];
+  const modulationSources = MATRIX_SOURCE_NAMES;
+  const destinations = MATRIX_DEST_NAMES;
 
   const handleSourceChange = (rowIndex: number, source: string) => {
     updateModulationMatrixRow(rowIndex, { source });

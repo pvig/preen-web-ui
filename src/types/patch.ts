@@ -1,8 +1,22 @@
-// Types de courbe d'enveloppe ADSR pour l'éditeur (PreenFM3)
-export type CurveType = 'linear' | 'exponential' | 'logarithmic' | 'user1' | 'user2' | 'user3' | 'user4';
-export const ADSR_CURVE_TYPES: CurveType[] = ['linear', 'exponential', 'logarithmic', 'user1', 'user2', 'user3', 'user4'];
-// Liste des noms de courbe d'enveloppe (firmware: Exp, Lin, Log, Usr1-4)
-export const ENV_CURVE_NAMES = ["Exp", "Lin", "Log", "Usr1", "Usr2", "Usr3", "Usr4"];
+// Firmware constants moved to preenFmConstants.ts — imported here for local use and re-exported for backward compatibility
+import {
+  type CurveType, ADSR_CURVE_TYPES, ENV_CURVE_NAMES,
+  type Filter1Type, FILTER1_TYPE_LIST,
+  type Filter2Type, FILTER2_TYPE_LIST,
+  type ArpClock, type ArpDirection, type ArpPattern, type ArpDivision, type ArpDuration, type ArpLatch,
+  ARP_CLOCKS, ARP_DIRECTIONS, ARP_PATTERNS, ARP_DIVISIONS, ARP_DURATIONS, ARP_LATCH,
+  NoteCurveType,
+  NOTE_CURVE_NRPN_MAPPING, NOTE_CURVE_TYPE_TO_NRPN, NOTE_CURVE_TYPES_LIST,
+} from '../midi/preenFmConstants';
+export {
+  type CurveType, ADSR_CURVE_TYPES, ENV_CURVE_NAMES,
+  type Filter1Type, FILTER1_TYPE_LIST,
+  type Filter2Type, FILTER2_TYPE_LIST,
+  type ArpClock, type ArpDirection, type ArpPattern, type ArpDivision, type ArpDuration, type ArpLatch,
+  ARP_CLOCKS, ARP_DIRECTIONS, ARP_PATTERNS, ARP_DIVISIONS, ARP_DURATIONS, ARP_LATCH,
+  NoteCurveType,
+  NOTE_CURVE_NRPN_MAPPING, NOTE_CURVE_TYPE_TO_NRPN, NOTE_CURVE_TYPES_LIST,
+};
 import { AdsrState, AdsrPoint } from './adsr';
 import { WaveformType } from './waveform.ts';
 import { ALGO_DIAGRAMS, type AlgoDiagram } from '../algo/algorithms.static';
@@ -40,37 +54,6 @@ export interface LFO {
   bias: number;          // Offset/Bias (-1.0 to +1.0)
   keysync: 'Off' | number; // Key sync: 'Off' ou 0.0-16.0 (délai de resync)
 }
-
-// Types de filtres basés sur le firmware PreenFM3
-// Canonical list of Filter1Type values, in firmware order
-export const FILTER1_TYPE_LIST = [
-  'OFF', 'MIXER', 'LP', 'HP', 'BASS', 'BP', 'CRUSHER',
-  'LP2', 'HP2', 'BP2', 'LP3', 'HP3', 'BP3',
-  'PEAK', 'NOTCH', 'BELL', 'LOWSHELF', 'HIGHSHELF',
-  'LPHP', 'BPds', 'LPWS', 'TILT', 'STEREO',
-  'SAT', 'SIGMOID', 'FOLD', 'WRAP', 'XOR',
-  'TEXTURE1', 'TEXTURE2', 'LPXOR', 'LPXOR2',
-  'LPSIN', 'HPSIN', 'QUADNOTCH',
-  'AP4', 'AP4B', 'AP4D',
-  'ORYX', 'ORYX2', 'ORYX3',
-  '18DB', 'LADDER', 'LADDER2', 'DIOD',
-  'KRMG', 'TEEBEE', 'SVFLH', 'CRUSH2'
-] as const;
-
-export type Filter1Type = typeof FILTER1_TYPE_LIST[number];
-
-// Canonical list of Filter1Type values, in firmware order
-// ...FILTER1_TYPE_LIST is now defined above as const and exported, with type derived below...
-
-// Canonical list of Filter2Type values, in firmware order
-export const FILTER2_TYPE_LIST = [
-  'OFF', 'FLANGE', 'DIMENSION', 'CHORUS', 'WIDE',
-  'DOUBLER', 'TRIPLER', 'BODE', 'DELAYCRUNCH',
-  'PINGPONG', 'DIFFUSER', 'GRAIN1', 'GRAIN2',
-  'STEREO_BP', 'PLUCK', 'PLUCK2', 'RESONATORS'
-] as const;
-
-export type Filter2Type = typeof FILTER2_TYPE_LIST[number];
 
 export interface Filter {
   type: Filter1Type | Filter2Type;
@@ -127,13 +110,6 @@ export interface GlobalEffects {
   };
 }
 
-export type ArpClock = 'Off' | 'Int' | 'Ext';
-export type ArpDirection = 'Up' | 'Down' | 'UpDown' | 'Played' | 'Random' | 'Chord' | 'Rotate U' | 'Rotate D' | 'Shift U' | 'Shift D';
-export type ArpPattern = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12' | '13' | '14' | '15' | '16' | '17' | '18' | '19' | '20' | '21' | '22' | 'Usr1' | 'Usr2' | 'Usr3' | 'Usr4';
-export type ArpDivision = '2/1' | '3/2' | '1/1' | '3/4' | '2/3' | '1/2' | '3/8' | '1/3' | '1/4' | '1/6' | '1/8' | '1/12' | '1/16' | '1/24' | '1/32' | '1/48' | '1/96';
-export type ArpDuration = '2/1' | '3/2' | '1/1' | '3/4' | '2/3' | '1/2' | '3/8' | '1/3' | '1/4' | '1/6' | '1/8' | '1/12' | '1/16' | '1/24' | '1/32' | '1/48' | '1/96';
-export type ArpLatch = 'Off' | 'On';
-
 export interface ArpeggiatorSettings {
   clockSource: ArpClock;   // NRPN LSB=28 (0=Off, 1=Internal, 2=External)
   clock: number;           // BPM: NRPN LSB=29 (10-240)
@@ -145,67 +121,6 @@ export interface ArpeggiatorSettings {
   latch: ArpLatch;         // NRPN LSB=35 (0-1)
 }
 
-// ===== NOTE CURVE SYSTEM CENTRALISÉ =====
-// D'après le code officiel PreenFM2Controller: indices NRPN 1-7
-
-export const NoteCurveType = {
-  Flat: 'Flat',           // 1
-  PlusLinear: '+Linear',  // 2  
-  PlusLinearx8: '+Linear*8', // 3
-  PlusExp: '+Exp',        // 4
-  MinusLinear: '-Linear', // 5
-  MinusLinearx8: '-Linear*8', // 6
-  MinusExp: '-Exp'        // 7
-} as const;
-
-export type NoteCurveType = typeof NoteCurveType[keyof typeof NoteCurveType];
-
-/**
- * Mapping officiel PreenFM2Controller : INDEX NRPN → TYPE
- * ✅ SOLUTION CONFIRMÉE: 
- * - RÉCEPTION (MSB=0): indices 0-6 
- * - ENVOI (MSB=1): indices 0-6 (même mapping, MSB différent)
- */
-export const NOTE_CURVE_NRPN_MAPPING: Record<number, NoteCurveType> = {
-  0: NoteCurveType.Flat,           // Index 0 = Flat
-  1: NoteCurveType.PlusLinear,     // Index 1 = +Linear  
-  2: NoteCurveType.PlusLinearx8,   // Index 2 = +Linear*8
-  3: NoteCurveType.PlusExp,        // Index 3 = +Exp
-  4: NoteCurveType.MinusLinear,    // Index 4 = -Linear
-  5: NoteCurveType.MinusLinearx8,  // Index 5 = -Linear*8
-  6: NoteCurveType.MinusExp        // Index 6 = -Exp
-};
-
-/**
- * Mapping inverse : TYPE → INDEX NRPN (pour l'envoi MIDI)
- * ✅ SOLUTION CONFIRMÉE: Indices 0-6 pour MSB=1 (envoi), MSB=0 (réception)
- */
-export const NOTE_CURVE_TYPE_TO_NRPN: Record<NoteCurveType, number> = {
-  [NoteCurveType.Flat]: 0,           // ENVOI & RÉCEPTION: index 0
-  [NoteCurveType.PlusLinear]: 1,     // ENVOI & RÉCEPTION: index 1
-  [NoteCurveType.PlusLinearx8]: 2,   // ENVOI & RÉCEPTION: index 2
-  [NoteCurveType.PlusExp]: 3,        // ENVOI & RÉCEPTION: index 3
-  [NoteCurveType.MinusLinear]: 4,    // ENVOI & RÉCEPTION: index 4
-  [NoteCurveType.MinusLinearx8]: 5,  // ENVOI & RÉCEPTION: index 5
-  [NoteCurveType.MinusExp]: 6        // ENVOI & RÉCEPTION: index 6
-};
-
-/**
- * Liste des types pour les interfaces (sélecteurs, etc.)
- */
-export const NOTE_CURVE_TYPES_LIST: NoteCurveType[] = [
-  NoteCurveType.Flat,
-  NoteCurveType.PlusLinear,
-  NoteCurveType.PlusLinearx8,
-  NoteCurveType.PlusExp,
-  NoteCurveType.MinusLinear,
-  NoteCurveType.MinusLinearx8,
-  NoteCurveType.MinusExp
-];
-
-/**
- * Fonctions utilitaires pour les Note Curves
- */
 export const NoteCurveUtils = {
   /**
    * Convertir un index NRPN en type de courbe

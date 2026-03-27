@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useTranslation } from 'react-i18next';
 import KnobBase from '../knobs/KnobBase';
 import { useArpeggiator, updateArpeggiator } from '../../stores/patchStore';
+import { ARP_CLOCKS, ARP_DIRECTIONS, ARP_PATTERNS, ARP_DIVISIONS, ARP_DURATIONS, ARP_LATCH } from '../../types/patch';
 import type { ArpClock, ArpDirection, ArpPattern, ArpDivision, ArpDuration, ArpLatch } from '../../types/patch';
 import { useThemeStore } from '../../theme/themeStore';
 import { 
@@ -86,29 +87,12 @@ export const ArpeggiatorEditor: React.FC = () => {
   const arp = useArpeggiator();
   const { theme } = useThemeStore();
 
-  const clockSources: ArpClock[] = ['Off', 'Int', 'Ext'];
-
-  const directions: ArpDirection[] = [
-    'Up', 'Down', 'UpDown', 'Played', 'Random', 'Chord', 'Rotate U', 'Rotate D', 'Shift U', 'Shift D'
-  ];
-
-  const patterns: ArpPattern[] = [
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
-    '11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
-    '21', '22', 'Usr1', 'Usr2', 'Usr3', 'Usr4'
-  ];
-
-  const divisions: ArpDivision[] = [
-    '2/1', '3/2', '1/1', '3/4', '2/3', '1/2', '3/8', '1/3', '1/4', 
-    '1/6', '1/8', '1/12', '1/16', '1/24', '1/32', '1/48', '1/96'
-  ];
-
-  const durations: ArpDuration[] = [
-    '2/1', '3/2', '1/1', '3/4', '2/3', '1/2', '3/8', '1/3', '1/4', 
-    '1/6', '1/8', '1/12', '1/16', '1/24', '1/32', '1/48', '1/96'
-  ];
-
-  const latchModes: ArpLatch[] = ['Off', 'On'];
+  const clockSources = ARP_CLOCKS;
+  const directions = ARP_DIRECTIONS;
+  const patterns = ARP_PATTERNS;
+  const divisions = ARP_DIVISIONS;
+  const durations = ARP_DURATIONS;
+  const latchModes = ARP_LATCH;
 
   return (
     <ArpContainer>

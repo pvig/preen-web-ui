@@ -49,6 +49,12 @@ import {
   FILTER2_TYPE_LIST,
   DEFAULT_ALGORITHMS,
   NOTE_CURVE_TYPE_TO_NRPN,
+  ARP_CLOCKS,
+  ARP_DIRECTIONS,
+  ARP_PATTERNS,
+  ARP_DIVISIONS,
+  ARP_DURATIONS,
+  ARP_LATCH,
 } from '../types/patch';
 import { ALGO_DIAGRAMS } from '../algo/algorithms.static';
 import { getWaveformId } from '../types/waveform';
@@ -59,15 +65,7 @@ import {
   encodeLfoShape,
 } from '../types/lfo';
 import { PreenFM3Parser } from './preenFM3Parser';
-import type {
-  ArpClock,
-  ArpDirection,
-  ArpPattern,
-  ArpDivision,
-  ArpDuration,
-  ArpLatch,
-} from '../types/patch';
-
+import { MATRIX_SOURCE_NAMES, MATRIX_DEST_NAMES } from './preenFmConstants';
 // ── Binary layout constants ───────────────────────────────────────────────────
 
 const PRESET_SIZE = 1024; // bytes per preset (FlashSynthParams)
@@ -104,36 +102,7 @@ const OFF_VERSION_TAG = 1019;     // 4 bytes uint32 (PRESET_VERSION1 = 0)
 
 // ── Reverse-lookup tables ─────────────────────────────────────────────────────
 
-const ARP_CLOCKS: ArpClock[] = ['Off', 'Int', 'Ext'];
-const ARP_DIRECTIONS: ArpDirection[] = [
-  'Up', 'Down', 'UpDown', 'Played', 'Random', 'Chord', 'Rotate U', 'Rotate D', 'Shift U', 'Shift D',
-];
-const ARP_PATTERNS: ArpPattern[] = [
-  '1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','Usr1','Usr2','Usr3','Usr4',
-];
-const ARP_DIVISIONS: ArpDivision[] = [
-  '2/1','3/2','1/1','3/4','2/3','1/2','3/8','1/3','1/4','1/6','1/8','1/12','1/16','1/24','1/32','1/48','1/96',
-];
-const ARP_DURATIONS: ArpDuration[] = [
-  '2/1','3/2','1/1','3/4','2/3','1/2','3/8','1/3','1/4','1/6','1/8','1/12','1/16','1/24','1/32','1/48','1/96',
-];
-const ARP_LATCH: ArpLatch[] = ['Off', 'On'];
 
-const MATRIX_SOURCE_NAMES = [
-  'None', 'LFO 1', 'LFO 2', 'LFO 3', 'LFOEnv1', 'LFOEnv2', 'LFOSeq1', 'LFOSeq2',
-  'Modwheel', 'Pitchbend', 'Aftertouch', 'Velocity', 'Note1', 'CC1', 'CC2', 'CC3', 'CC4',
-  'Note2', 'Breath', 'MPE Slide', 'Random', 'Poly AT', 'User CC1', 'User CC2', 'User CC3',
-  'User CC4', 'PB MPE', 'AT MPE',
-];
-
-const MATRIX_DEST_NAMES = [
-  'None', 'Gate', 'IM1', 'IM2', 'IM3', 'IM4', 'IM*', 'Mix1', 'Pan1', 'Mix2', 'Pan2',
-  'Mix3', 'Pan3', 'Mix4', 'Pan4', 'Mix*', 'Pan*', 'o1 Fq', 'o2 Fq', 'o3 Fq', 'o4 Fq',
-  'o5 Fq', 'o6 Fq', 'o* Fq', 'Env1 A', 'Env2 A', 'Env3 A', 'Env4 A', 'Env5 A', 'Env6 A',
-  'Env* A', 'Env* R', 'Mtx1 x', 'Mtx2 x', 'Mtx3 x', 'Mtx4 x', 'Lfo1 F', 'Lfo2 F',
-  'Lfo3 F', 'Env2 S', 'Seq1 G', 'Seq2 G', 'Flt1 P1', 'o* FqH', 'Env* D', 'EnvM A',
-  'EnvM D', 'EnvM R', 'Mtx FB', 'Flt1 P2', 'Flt1 G', 'Flt2 P1', 'Flt2 P2', 'Flt2 G',
-];
 
 // ── Helper functions ──────────────────────────────────────────────────────────
 

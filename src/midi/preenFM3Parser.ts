@@ -7,7 +7,7 @@ import type { Patch } from '../types/patch';
 import { FILTER1_TYPE_LIST, FILTER2_TYPE_LIST, NoteCurveUtils } from '../types/patch';
 // import type { Filter1Type, Filter2Type } from '../types/patch';
 import type { NRPNMessage } from './preenFM3MidiMap';
-import { DEFAULT_ALGORITHMS, DEFAULT_LFO_ENVELOPE } from '../types/patch';
+import { DEFAULT_ALGORITHMS, DEFAULT_LFO_ENVELOPE, ARP_CLOCKS, ARP_DIRECTIONS, ARP_PATTERNS, ARP_DIVISIONS, ARP_DURATIONS, ARP_LATCH } from '../types/patch';
 import type { 
   ArpClock,
   ArpDirection, 
@@ -28,6 +28,7 @@ import {
 } from '../types/lfo';
 import type { LFO } from '../types/patch';
 import { ENV_CURVE_NAMES } from '../types/patch';
+import { MATRIX_SOURCE_NAMES, MATRIX_DEST_NAMES } from './preenFmConstants';
 import type { CurveType } from '../types/patch';
 
 /**
@@ -44,59 +45,7 @@ import type { CurveType } from '../types/patch';
  * - LSB=34: Duration
  * - LSB=35: Latch
  */
-const ARP_CLOCKS: ArpClock[] = ['Off', 'Int', 'Ext'];
 
-const ARP_DIRECTIONS: ArpDirection[] = [
-  'Up', 'Down', 'UpDown', 'Played', 'Random', 'Chord', 'Rotate U', 'Rotate D', 'Shift U', 'Shift D'
-];
-
-const ARP_PATTERNS: ArpPattern[] = [
-  '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',        // 0-9
-  '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', // 10-19 
-  '21', '22', 'Usr1', 'Usr2', 'Usr3', 'Usr4'                // 20-25
-];
-
-const ARP_DIVISIONS: ArpDivision[] = [
-  '2/1',   // 0
-  '3/2',   // 1
-  '1/1',   // 2
-  '3/4',   // 3
-  '2/3',   // 4
-  '1/2',   // 5
-  '3/8',   // 6
-  '1/3',   // 7
-  '1/4',   // 8
-  '1/6',   // 9
-  '1/8',   // 10
-  '1/12',  // 11
-  '1/16',  // 12
-  '1/24',  // 13
-  '1/32',  // 14
-  '1/48',  // 15
-  '1/96'   // 16
-];
-
-const ARP_DURATIONS: ArpDuration[] = [
-  '2/1',   // 0
-  '3/2',   // 1
-  '1/1',   // 2
-  '3/4',   // 3
-  '2/3',   // 4
-  '1/2',   // 5
-  '3/8',   // 6
-  '1/3',   // 7
-  '1/4',   // 8
-  '1/6',   // 9
-  '1/8',   // 10
-  '1/12',  // 11
-  '1/16',  // 12
-  '1/24',  // 13
-  '1/32',  // 14
-  '1/48',  // 15
-  '1/96'   // 16
-];
-
-const ARP_LATCH: ArpLatch[] = ['Off', 'On'];
 
 function parseArpClock(value: number): ArpClock {
   return ARP_CLOCKS[Math.min(value, ARP_CLOCKS.length - 1)] || 'Off';
@@ -907,95 +856,8 @@ export class PreenFM3Parser {
       amount: number;
     }> = [];
 
-    // Mapping des sources (SourceEnum du firmware PreenFM3)
-    const sourceNames = [
-      'None',          // 0 - MATRIX_SOURCE_NONE
-      'LFO 1',         // 1 - MATRIX_SOURCE_LFO1
-      'LFO 2',         // 2 - MATRIX_SOURCE_LFO2
-      'LFO 3',         // 3 - MATRIX_SOURCE_LFO3
-      'LFOEnv1',       // 4 - MATRIX_SOURCE_LFOENV1
-      'LFOEnv2',       // 5 - MATRIX_SOURCE_LFOENV2
-      'LFOSeq1',       // 6 - MATRIX_SOURCE_LFOSEQ1
-      'LFOSeq2',       // 7 - MATRIX_SOURCE_LFOSEQ2
-      'Modwheel',      // 8 - MATRIX_SOURCE_MODWHEEL
-      'Pitchbend',     // 9 - MATRIX_SOURCE_PITCHBEND
-      'Aftertouch',    // 10 - MATRIX_SOURCE_AFTERTOUCH
-      'Velocity',      // 11 - MATRIX_SOURCE_VELOCITY
-      'Note1',         // 12 - MATRIX_SOURCE_NOTE1
-      'CC1',           // 13 - MATRIX_SOURCE_CC1
-      'CC2',           // 14 - MATRIX_SOURCE_CC2
-      'CC3',           // 15 - MATRIX_SOURCE_CC3
-      'CC4',           // 16 - MATRIX_SOURCE_CC4
-      'Note2',         // 17 - MATRIX_SOURCE_NOTE2
-      'Breath',        // 18 - MATRIX_SOURCE_BREATH
-      'MPE Slide',     // 19 - MATRIX_SOURCE_MPESLIDE
-      'Random',        // 20 - MATRIX_SOURCE_RANDOM
-      'Poly AT',       // 21 - MATRIX_SOURCE_POLYPHONIC_AFTERTOUCH
-      'User CC1',      // 22 - MATRIX_SOURCE_USER_CC1
-      'User CC2',      // 23 - MATRIX_SOURCE_USER_CC2
-      'User CC3',      // 24 - MATRIX_SOURCE_USER_CC3
-      'User CC4',      // 25 - MATRIX_SOURCE_USER_CC4
-      'PB MPE',        // 26 - MATRIX_SOURCE_PITCHBEND_MPE
-      'AT MPE',        // 27 - MATRIX_SOURCE_AFTERTOUCH_MPE
-    ];
-
-    // Mapping des destinations (DestinationEnum du firmware PreenFM3)
-    const destNames = [
-      'None',          // 0 - DESTINATION_NONE
-      'Gate',          // 1 - MAIN_GATE
-      'IM1',           // 2 - INDEX_MODULATION1
-      'IM2',           // 3 - INDEX_MODULATION2
-      'IM3',           // 4 - INDEX_MODULATION3
-      'IM4',           // 5 - INDEX_MODULATION4
-      'IM*',           // 6 - INDEX_ALL_MODULATION
-      'Mix1',          // 7 - MIX_OSC1
-      'Pan1',          // 8 - PAN_OSC1
-      'Mix2',          // 9 - MIX_OSC2
-      'Pan2',          // 10 - PAN_OSC2
-      'Mix3',          // 11 - MIX_OSC3
-      'Pan3',          // 12 - PAN_OSC3
-      'Mix4',          // 13 - MIX_OSC4
-      'Pan4',          // 14 - PAN_OSC4
-      'Mix*',          // 15 - ALL_MIX
-      'Pan*',          // 16 - ALL_PAN
-      'o1 Fq',         // 17 - OSC1_FREQ
-      'o2 Fq',         // 18 - OSC2_FREQ
-      'o3 Fq',         // 19 - OSC3_FREQ
-      'o4 Fq',         // 20 - OSC4_FREQ
-      'o5 Fq',         // 21 - OSC5_FREQ
-      'o6 Fq',         // 22 - OSC6_FREQ
-      'o* Fq',         // 23 - ALL_OSC_FREQ
-      'Env1 A',        // 24 - ENV1_ATTACK
-      'Env2 A',        // 25 - ENV2_ATTACK
-      'Env3 A',        // 26 - ENV3_ATTACK
-      'Env4 A',        // 27 - ENV4_ATTACK
-      'Env5 A',        // 28 - ENV5_ATTACK
-      'Env6 A',        // 29 - ENV6_ATTACK
-      'Env* A',        // 30 - ALL_ENV_ATTACK
-      'Env* R',        // 31 - ALL_ENV_RELEASE
-      'Mtx1 x',        // 32 - MTX1_MUL
-      'Mtx2 x',        // 33 - MTX2_MUL
-      'Mtx3 x',        // 34 - MTX3_MUL
-      'Mtx4 x',        // 35 - MTX4_MUL
-      'Lfo1 F',        // 36 - LFO1_FREQ
-      'Lfo2 F',        // 37 - LFO2_FREQ
-      'Lfo3 F',        // 38 - LFO3_FREQ
-      'Env2 S',        // 39 - LFOENV2_SILENCE
-      'Seq1 G',        // 40 - LFOSEQ1_GATE
-      'Seq2 G',        // 41 - LFOSEQ2_GATE
-      'Flt1 P1',       // 42 - FILTER1_PARAM1
-      'o* FqH',        // 43 - ALL_OSC_FREQ_HARM
-      'Env* D',        // 44 - ALL_ENV_DECAY
-      'EnvM A',        // 45 - ALL_ENV_ATTACK_MODULATOR
-      'EnvM D',        // 46 - ALL_ENV_DECAY_MODULATOR
-      'EnvM R',        // 47 - ALL_ENV_RELEASE_MODULATOR
-      'Mtx FB',        // 48 - MTX_DEST_FEEDBACK
-      'Flt1 P2',       // 49 - FILTER1_PARAM2
-      'Flt1 G',        // 50 - FILTER1_AMP
-      'Flt2 P1',       // 51 - FILTER2_PARAM1
-      'Flt2 P2',       // 52 - FILTER2_PARAM2
-      'Flt2 G',        // 53 - FILTER2_AMP
-    ];
+    const sourceNames = MATRIX_SOURCE_NAMES;
+    const destNames = MATRIX_DEST_NAMES;
 
     for (let row = 0; row < 12; row++) {
       let msb: number, lsbBase: number;
