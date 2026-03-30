@@ -121,20 +121,41 @@ export const useMidiStore = create<MidiStore>((set, get) => ({
   _setError: (error) => set({ enabled: false, isLoading: false, error }),
 
   // Public actions
+
   selectInput: (input) => {
     console.log('🎹 Sélection MIDI Input:', input?.name || 'None', input?.id || null);
     setMidiInput(input);
-    const { selectedOutput, channel } = get();
+    let { selectedOutput, channel, devices } = get();
+    // Si aucune sortie n'est sélectionnée, essayer d'en trouver une avec le même nom ou id
+    if (!selectedOutput && input && devices) {
+      const match = devices.outputs.find(
+        o => o.id === input.id || o.name === input.name
+      );
+      if (match) {
+        setMidiOutput(match);
+        selectedOutput = match;
+      }
+    }
     saveMidiPreferences(input?.id || null, selectedOutput?.id || null, channel);
-    set({ selectedInput: input });
+    set({ selectedInput: input, selectedOutput });
   },
 
   selectOutput: (output) => {
     console.log('🎹 Sélection MIDI Output:', output?.name || 'None', output?.id || null);
     setMidiOutput(output);
-    const { selectedInput, channel } = get();
+    let { selectedInput, channel, devices } = get();
+    // Si aucune entrée n'est sélectionnée, essayer d'en trouver une avec le même nom ou id
+    if (!selectedInput && output && devices) {
+      const match = devices.inputs.find(
+        i => i.id === output.id || i.name === output.name
+      );
+      if (match) {
+        setMidiInput(match);
+        selectedInput = match;
+      }
+    }
     saveMidiPreferences(selectedInput?.id || null, output?.id || null, channel);
-    set({ selectedOutput: output });
+    set({ selectedOutput: output, selectedInput });
   },
 
   changeChannel: (channel) => {

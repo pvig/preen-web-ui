@@ -1,5 +1,6 @@
 import { PatchSavePanel, BankOrganizerPanel } from '../components/PatchManager';
 import { MutationEditor } from './MutationEditor';
+import { PreenSpectrogram } from '../components/PreenSpectrogram';
 import styled from 'styled-components';
 
 const LibraryContainer = styled.div`
@@ -27,6 +28,7 @@ export function PatchLibrary() {
       <MutationPanel>
         <MutationEditor />
       </MutationPanel>
+      <PreenSpectrogram />
     </LibraryContainer>
   );
 }
