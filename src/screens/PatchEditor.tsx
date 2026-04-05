@@ -26,6 +26,22 @@ const Row = styled.div<RowProps>`
   }
 `;
 
+const BaseFMGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr auto;
+  width: 100%;
+  max-width: 900px;
+
+  background: ${props => props.theme.colors.panel};
+  border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+
 const OperatorGrid = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -34,7 +50,8 @@ const OperatorGrid = styled.div`
   max-width: 900px;
   background: ${props => props.theme.colors.panel};
   border-radius: 8px;
-
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  
   h3{
     margin:0;
   }
@@ -125,9 +142,11 @@ export function PatchEditor() {
   return (
     <div className="editor-container">
       <FMSynthProvider patch={currentPatch}>
-        <Row width="900px">
-          <FMAlgorithmSelector />
-          <ModulationIndexesEditor algorithm={currentPatch.algorithm} globalKnobs={globalKnobs} />
+        <Row>
+          <BaseFMGrid>
+            <FMAlgorithmSelector />
+            <ModulationIndexesEditor algorithm={currentPatch.algorithm} globalKnobs={globalKnobs} />
+          </BaseFMGrid>
         </Row>
         
 

@@ -157,6 +157,7 @@ const initialState: EditorState = {
   selectedParameter: null,
   isModified: false,
   clipboard: null,
+  pullRevision: 0,
 
   ui: {
     activeTab: 'OPERATORS',
@@ -237,6 +238,9 @@ interface PatchStore extends EditorState {
   updatePatchName: (name: string) => void;
   copyOperator: (id: number) => void;
   pasteOperator: (id: number) => void;
+
+  /** Signale qu'un patch vient d'être reçu depuis le hardware (pull). */
+  notifyPullReceived: () => void;
 
   // Utilitaires
   markModified: (modified?: boolean) => void;
@@ -745,6 +749,9 @@ export const usePatchStore = create<PatchStore>()(
           updateLastModified(state.currentPatch);
         }
       }),
+
+    notifyPullReceived: () =>
+      set((state) => { state.pullRevision += 1; }),
 
     // Utilitaires
     markModified: (modified: boolean = true) =>

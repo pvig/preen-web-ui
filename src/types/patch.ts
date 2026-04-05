@@ -237,6 +237,8 @@ export interface EditorState {
   selectedParameter: string | null;
   isModified: boolean;
   clipboard: Partial<Patch> | null;
+  /** Incrémenté à chaque réception d'un patch depuis le hardware (pull). */
+  pullRevision: number;
 
   // État de l'interface
   ui: {

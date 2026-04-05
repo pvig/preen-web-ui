@@ -1,5 +1,5 @@
 /**
- * MutationEditor — Screen for the Patch Mutation feature.
+ * InterpolationEditor — Screen for the Patch Interpolation feature.
  *
  * Layout:
  *   ┌──────────┐  ┌───────────────┐  ┌──────────┐
@@ -188,7 +188,7 @@ const SendingBadge = styled.span`
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export function MutationEditor() {
+export function InterpolationEditor() {
   const { t } = useTranslation();
   const {
     sourceA,

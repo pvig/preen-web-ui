@@ -78,6 +78,55 @@ function buildMagmaLUT(): Uint8ClampedArray {
 const MAGMA_LUT = buildMagmaLUT();
 
 // ============================================================
+// Logarithmic frequency scale
+// ============================================================
+
+/** Lower bound of the displayed frequency axis (Hz). Below this is mostly DC/rumble. */
+const LOG_F_MIN = 20;
+/** Assumed Nyquist frequency (Hz) — valid for both 44.1 kHz and 48 kHz sessions. */
+const LOG_F_NYQ = 22050;
+
+/**
+ * Pre-computed log-scale LUT: canvas pixel (0..FREQ_BINS-1) → FFT bin index.
+ *
+ * Converts the linear FFT output into a perceptually-uniform frequency axis
+ * where one octave always occupies the same horizontal distance, matching
+ * how the human auditory system perceives pitch.
+ */
+/**
+ * Fractional bin positions for log-scale mapping (Float32Array).
+ * Storing sub-integer positions allows the render loop to linearly
+ * interpolate between adjacent FFT bins, eliminating the block artifacts
+ * that appear when many pixels round to the same integer bin (bass region).
+ */
+const LOG_BINS_LUT: Float32Array = (() => {
+  const lut      = new Float32Array(FREQ_BINS);
+  const logRange = Math.log(LOG_F_NYQ / LOG_F_MIN);
+  const maxBin   = FREQ_BINS - 1;
+  for (let x = 0; x < FREQ_BINS; x++) {
+    const t    = x / maxBin;
+    const freq = LOG_F_MIN * Math.exp(t * logRange);
+    const bin  = freq / LOG_F_NYQ * maxBin;          // fractional
+    lut[x] = Math.min(Math.max(bin, 0), maxBin);
+  }
+  return lut;
+})();
+
+/**
+ * Tick marks for the logarithmic frequency axis.
+ * pct: horizontal position [0–100] computed from the same log formula as LOG_BINS_LUT.
+ */
+const FREQ_AXIS_TICKS: { label: string; pct: number }[] = (() => {
+  const freqs  = [100, 500, 1_000, 2_000, 5_000, 10_000, 20_000];
+  const labels = ['100', '500', '1k',  '2k',  '5k',   '10k',  '20k'];
+  const logRange = Math.log(LOG_F_NYQ / LOG_F_MIN);
+  return freqs.map((f, i) => ({
+    label: labels[i],
+    pct:   Math.log(f / LOG_F_MIN) / logRange * 100,
+  }));
+})();
+
+// ============================================================
 // Public handle (imperative API exposed via forwardRef)
 // ============================================================
 
@@ -94,6 +143,8 @@ export interface PreenSpectrogramHandle {
   getNormalizedBuffer: () => Float32Array;
   /** Exposes the buffer dimensions for external consumers. */
   bufferShape: { frames: number; bins: number };
+  /** True when the spectrogram is actively capturing audio (AnalyserNode running). */
+  isListening: boolean;
 }
 
 // ============================================================
@@ -168,18 +219,18 @@ const FreqAxis = styled.div`
   left: 0;
   width: 100%;
   height: 18px;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 4px;
-  box-sizing: border-box;
   pointer-events: none;
 `;
 
-const FreqLabel = styled.span`
+const FreqLabel = styled.span<{ $left: number }>`
+  position: absolute;
+  left: ${({ $left }) => $left}%;
+  transform: translateX(-50%);
   font-size: 0.65rem;
   color: rgba(255, 255, 255, 0.55);
   font-family: monospace;
   line-height: 18px;
+  white-space: nowrap;
 `;
 
 const Controls = styled.div`
@@ -398,11 +449,7 @@ const HelpPanel = styled.div`
   }
 `;
 
-// ============================================================
-// Frequency axis labels (static, assuming ~44100 Hz sample rate)
-// ============================================================
-
-const FREQ_LABELS = ['0', '1k', '2k', '4k', '8k', '16k', '~22k'];
+// (Frequency axis data is defined above in LOG_BINS_LUT / FREQ_AXIS_TICKS)
 
 // ============================================================
 // Component
@@ -462,7 +509,6 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
 
     // ── State ──────────────────────────────────────────────────
     const [isListening, setIsListening] = useState(false);
-    const [isMonitoring, setIsMonitoring] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [sampleRate, setSampleRate] = useState<number | null>(null);
     /** All audioinput devices reported by the browser. */
@@ -473,13 +519,8 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
     const [channelCount, setChannelCount] = useState<number>(1);
     /** Currently monitored channel index (0-based). */
     const [selectedChannel, setSelectedChannel] = useState<number>(0);
-    /** Monitor toggle: if true, route input to speakers. */
-    const [monitor, setMonitor] = useState(false);
     /** Reference to the monitor node (GainNode for mute/unmute). */
     const monitorGainRef = useRef<GainNode | null>(null);
-    const monitorStreamRef = useRef<MediaStream | null>(null);
-    const monitorSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
-    const monitorAudioCtxRef = useRef<AudioContext | null>(null);
     /**
      * Set to true when the browser granted fewer channels than the 4 we
      * requested — signals that inputs 3-4 need a virtual OS device.
@@ -561,7 +602,8 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
         return result;
       },
       bufferShape: { frames: BUFFER_FRAMES, bins: FREQ_BINS },
-    }));
+      isListening,
+    }), [isListening]);
 
     // ── Animation loop ─────────────────────────────────────────
 
@@ -601,10 +643,17 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
       //   loop is needed — the GPU handles the blit.
       ctx.drawImage(canvas, 0, -1);
 
-      // Step 4 — Build the new bottom row using the Magma LUT.
+      // Step 4 — Build the new bottom row using the Magma LUT (log-scale axis).
+      // LOG_BINS_LUT[x] is a fractional bin index; we linearly interpolate
+      // between the two surrounding FFT bins to avoid the staircase banding
+      // that appears when several pixels share the same integer bin (bass region).
       const pixels = rowImageData.data;
       for (let x = 0; x < FREQ_BINS; x++) {
-        const amp = freqData[x];
+        const fBin = LOG_BINS_LUT[x];
+        const lo   = fBin | 0;                    // Math.floor via bitwise OR
+        const hi   = lo < FREQ_BINS - 1 ? lo + 1 : lo;
+        const frac = fBin - lo;                   // interpolation weight [0, 1)
+        const amp  = (freqData[lo] * (1 - frac) + freqData[hi] * frac) | 0;
         const px = x * 4; // RGBA stride
         pixels[px + 0] = MAGMA_LUT[amp * 3 + 0]; // R
         pixels[px + 1] = MAGMA_LUT[amp * 3 + 1]; // G
@@ -625,61 +674,7 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
      * Requests microphone / line-in access via getUserMedia,
      * wires up the Web Audio pipeline, and kicks off the render loop.
      */
-    // Start monitoring (audio to speakers, no FFT)
-    const startMonitoring = useCallback(async () => {
-      try {
-        setError(null);
-        // Request audio stream
-        const audioConstraints: MediaTrackConstraints = {
-          channelCount: { ideal: 4 },
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-        };
-        if (selectedDeviceId) {
-          audioConstraints.deviceId = { exact: selectedDeviceId };
-        }
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: audioConstraints,
-          video: false,
-        });
-        monitorStreamRef.current = stream;
-        // Create AudioContext and GainNode
-        const audioCtx = new AudioContext();
-        monitorAudioCtxRef.current = audioCtx;
-        const gain = audioCtx.createGain();
-        gain.gain.value = 1;
-        monitorGainRef.current = gain;
-        // Source
-        const source = audioCtx.createMediaStreamSource(stream);
-        monitorSourceRef.current = source;
-        source.connect(gain);
-        gain.connect(audioCtx.destination);
-        setIsMonitoring(true);
-      } catch (err) {
-        setError('Impossible de monitorer : ' + (err instanceof Error ? err.message : String(err)));
-        setIsMonitoring(false);
-      }
-    }, [selectedDeviceId]);
-
-    // Stop monitoring
-    const stopMonitoring = useCallback(() => {
-      if (monitorGainRef.current) {
-        try { monitorGainRef.current.disconnect(); } catch {}
-        monitorGainRef.current = null;
-      }
-      if (monitorSourceRef.current) {
-        try { monitorSourceRef.current.disconnect(); } catch {}
-        monitorSourceRef.current = null;
-      }
-      monitorStreamRef.current?.getTracks().forEach(track => track.stop());
-      monitorStreamRef.current = null;
-      monitorAudioCtxRef.current?.close();
-      monitorAudioCtxRef.current = null;
-      setIsMonitoring(false);
-    }, []);
-
-    // Start FFT listening (spectrogram)
+    // Start FFT listening (spectrogram + monitor)
     const startListening = useCallback(async () => {
       try {
         setError(null);
@@ -738,7 +733,7 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
 
         // Create a GainNode for monitoring (allows mute/unmute)
         const monitorGain = audioCtx.createGain();
-        monitorGain.gain.value = monitor ? 1 : 0;
+        monitorGain.gain.value = 1;
         monitorGainRef.current = monitorGain;
 
         if (actualChannels > 1) {
@@ -818,16 +813,6 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
         splitter.connect(monitorGain, ch);
       }
     }, []);
-    // ── Monitor toggle effect ────────────────────────────────
-    useEffect(() => {
-      if (monitor) {
-        if (!isMonitoring) startMonitoring();
-      } else {
-        if (isMonitoring) stopMonitoring();
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [monitor]);
-
     // Clean up if the component unmounts while listening
     useEffect(() => () => { stopListening(); }, [stopListening]);
 
@@ -968,23 +953,13 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
 
           {/* Frequency axis (approximate — valid at 44.1 kHz sample rate) */}
           <FreqAxis>
-            {FREQ_LABELS.map(label => (
-              <FreqLabel key={label}>{label}</FreqLabel>
+            {FREQ_AXIS_TICKS.map(({ label, pct }) => (
+              <FreqLabel key={label} $left={pct}>{label}</FreqLabel>
             ))}
           </FreqAxis>
         </CanvasWrapper>
 
         <Controls>
-          {/* Monitor toggle accessible tout le temps */}
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <input
-              type="checkbox"
-              checked={monitor}
-              onChange={e => setMonitor(e.target.checked)}
-              style={{ accentColor: '#10b981' }}
-            />
-            Monitor
-          </label>
           {isListening ? (
             <ControlButton $variant="stop" onClick={stopListening}>
               ■ Stop Listening
@@ -994,9 +969,9 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
               ▶ Start Listening
             </ControlButton>
           )}
-          <StatusDot $active={isListening || isMonitoring} />
+          <StatusDot $active={isListening} />
           <StatusText>
-            {isListening ? 'Live — capturing audio' : isMonitoring ? 'Monitoring only' : 'Stopped'}
+            {isListening ? 'Live — capturing audio' : 'Stopped'}
           </StatusText>
         </Controls>
 
