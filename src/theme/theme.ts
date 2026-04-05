@@ -62,6 +62,14 @@ export interface Theme {
     adsrDecay: string;
     adsrSustain: string;
     adsrRelease: string;
+
+    // Spectrogram LUT — 6 color stops (silence → peak)
+    spectro1: string;   // silence / near-black
+    spectro2: string;   // very low — deep space
+    spectro3: string;   // low — nebula blue
+    spectro4: string;   // mid — primary
+    spectro5: string;   // high — accent / violet
+    spectro6: string;   // peak — bright white-hot
   };
 }
 
@@ -115,6 +123,14 @@ export const darkTheme: Theme = {
     adsrDecay: '#48BB78',
     adsrSustain: '#4299E1',
     adsrRelease: '#F6AD55',
+
+    // Spectrogram LUT — 6 color stops (silence → peak)
+    spectro1: '#000004',   // silence — near-black
+    spectro2: '#0d1b4b',   // deep space blue
+    spectro3: '#284d96',   // nebula blue
+    spectro4: '#8c94c0',   // mid — muted primary
+    spectro5: '#9F7AEA',   // violet — accent
+    spectro6: '#f0d0ff',   // peak — bright lavender-white
   },
 };
 
@@ -168,5 +184,13 @@ export const lightTheme: Theme = {
     adsrDecay: '#38a169',
     adsrSustain: '#3182ce',
     adsrRelease: '#dd6b20',
+
+    // Spectrogram LUT — 6 color stops (silence → peak)
+    spectro1: '#000004',   // silence — near-black
+    spectro2: '#0a132e',   // deep space blue
+    spectro3: '#0f1f3d',   // nebula blue
+    spectro4: '#3182ce',   // mid — primary
+    spectro5: '#805ad5',   // violet — accent
+    spectro6: '#e9d5ff',   // peak — bright lavender-white
   },
 };

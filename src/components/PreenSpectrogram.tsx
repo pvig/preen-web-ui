@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
+import { useThemeStore } from '../theme/themeStore';
 
 // ============================================================
 // Constants
@@ -29,54 +30,46 @@ const BUFFER_FRAMES = 128;
 const CANVAS_HEIGHT = 256;
 
 // ============================================================
-// Magma Colormap
+// Theme Colormap
 // ============================================================
 
-/**
- * Key color stops sampled from Matplotlib's 'magma' perceptually-uniform
- * colormap.  Format: [normalizedPosition, R, G, B].
- * Low amplitudes → dark purple/black; high amplitudes → bright yellow-white.
- */
-const MAGMA_STOPS: [number, number, number, number][] = [
-  [0.000,   0,   0,   4],
-  [0.143,  28,  16,  68],
-  [0.286,  79,  18, 123],
-  [0.429, 129,  37, 129],
-  [0.571, 181,  54, 122],
-  [0.714, 229,  80, 100],
-  [0.857, 251, 136,  97],
-  [1.000, 252, 253, 191],
-];
+function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace('#', '');
+  return [
+    parseInt(h.slice(0, 2), 16),
+    parseInt(h.slice(2, 4), 16),
+    parseInt(h.slice(4, 6), 16),
+  ];
+}
 
-/**
- * Builds a 256-entry RGB lookup table from the Magma colormap stops.
- * Pre-computing this at module load avoids per-pixel interpolation at
- * render time, keeping the animation loop as fast as possible.
- */
-function buildMagmaLUT(): Uint8ClampedArray {
+/** Builds a 256-entry RGB LUT from 6 evenly-spaced theme color stops. */
+function buildThemeLUT(c1: string, c2: string, c3: string, c4: string, c5: string, c6: string): Uint8ClampedArray {
+  const stops: [number, number, number, number][] = [
+    [0.00, ...hexToRgb(c1)],
+    [0.20, ...hexToRgb(c2)],
+    [0.40, ...hexToRgb(c3)],
+    [0.60, ...hexToRgb(c4)],
+    [0.80, ...hexToRgb(c5)],
+    [1.00, ...hexToRgb(c6)],
+  ];
   const lut = new Uint8ClampedArray(256 * 3);
   for (let i = 0; i < 256; i++) {
     const t = i / 255;
-    let lo = MAGMA_STOPS[0];
-    let hi = MAGMA_STOPS[MAGMA_STOPS.length - 1];
-    for (let s = 0; s < MAGMA_STOPS.length - 1; s++) {
-      if (t >= MAGMA_STOPS[s][0] && t <= MAGMA_STOPS[s + 1][0]) {
-        lo = MAGMA_STOPS[s];
-        hi = MAGMA_STOPS[s + 1];
-        break;
+    let lo = stops[0];
+    let hi = stops[stops.length - 1];
+    for (let s = 0; s < stops.length - 1; s++) {
+      if (t >= stops[s][0] && t <= stops[s + 1][0]) {
+        lo = stops[s]; hi = stops[s + 1]; break;
       }
     }
     const range = hi[0] - lo[0];
     const f = range > 0 ? (t - lo[0]) / range : 0;
-    lut[i * 3 + 0] = Math.round(lo[1] + f * (hi[1] - lo[1])); // R
-    lut[i * 3 + 1] = Math.round(lo[2] + f * (hi[2] - lo[2])); // G
-    lut[i * 3 + 2] = Math.round(lo[3] + f * (hi[3] - lo[3])); // B
+    lut[i * 3 + 0] = Math.round(lo[1] + f * (hi[1] - lo[1]));
+    lut[i * 3 + 1] = Math.round(lo[2] + f * (hi[2] - lo[2]));
+    lut[i * 3 + 2] = Math.round(lo[3] + f * (hi[3] - lo[3]));
   }
   return lut;
 }
-
-/** Pre-computed Magma LUT — allocated once at module load. */
-const MAGMA_LUT = buildMagmaLUT();
 
 // ============================================================
 // Logarithmic frequency scale
@@ -480,8 +473,10 @@ const HelpPanel = styled.div`
 const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
   function PreenSpectrogram(_props, ref) {
     const { t } = useTranslation();
+    const { theme } = useThemeStore();
     // ── Refs ───────────────────────────────────────────────────
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const lutRef = useRef<Uint8ClampedArray>(buildThemeLUT(theme.colors.spectro1, theme.colors.spectro2, theme.colors.spectro3, theme.colors.spectro4, theme.colors.spectro5, theme.colors.spectro6));
     const audioCtxRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
     const splitterRef = useRef<ChannelSplitterNode | null>(null);
@@ -552,6 +547,11 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
         () => new Uint8Array(FREQ_BINS)
       );
     }, []);
+
+    // ── Rebuild LUT when theme colors change ───────────────────
+    useEffect(() => {
+      lutRef.current = buildThemeLUT(theme.colors.spectro1, theme.colors.spectro2, theme.colors.spectro3, theme.colors.spectro4, theme.colors.spectro5, theme.colors.spectro6);
+    }, [theme.colors.spectro1, theme.colors.spectro2, theme.colors.spectro3, theme.colors.spectro4, theme.colors.spectro5, theme.colors.spectro6]);
 
     // ── Device enumeration ─────────────────────────────────────
     /**
@@ -657,9 +657,9 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
         const frac = fBin - lo;                   // interpolation weight [0, 1)
         const amp  = (freqData[lo] * (1 - frac) + freqData[hi] * frac) | 0;
         const px = x * 4; // RGBA stride
-        pixels[px + 0] = MAGMA_LUT[amp * 3 + 0]; // R
-        pixels[px + 1] = MAGMA_LUT[amp * 3 + 1]; // G
-        pixels[px + 2] = MAGMA_LUT[amp * 3 + 2]; // B
+        pixels[px + 0] = lutRef.current[amp * 3 + 0]; // R
+        pixels[px + 1] = lutRef.current[amp * 3 + 1]; // G
+        pixels[px + 2] = lutRef.current[amp * 3 + 2]; // B
         pixels[px + 3] = 255;                      // A — fully opaque
       }
 
