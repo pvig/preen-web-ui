@@ -124,6 +124,7 @@ export const ArpeggiatorEditor: React.FC = () => {
         <ControlGroup>
           <KnobBase
             size={60}
+            knobRadius={16}
             min={10}
             max={240}
             step={1}
@@ -163,6 +164,7 @@ export const ArpeggiatorEditor: React.FC = () => {
         <ControlGroup>
           <KnobBase
             size={60}
+            knobRadius={16}
             min={1}
             max={3}
             step={1}

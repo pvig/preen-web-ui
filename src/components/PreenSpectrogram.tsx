@@ -179,7 +179,7 @@ const Title = styled.h3`
 `;
 
 const BadgeRow = styled.div`
-  display: flex;
+  display: none;
   gap: 6px;
   flex-wrap: wrap;
 `;

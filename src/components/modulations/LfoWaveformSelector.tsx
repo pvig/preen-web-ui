@@ -78,7 +78,7 @@ const generateWaveformPath = (type: LfoType, frequency: number = 1, width: numbe
   let fadeLength = 0;
   if (keysync && keysync > 0) {
     // keysync 1..16, fade from 10% to 100% of the width
-    fadeLength = width * (0.1 + 0.9 * (keysync / 16));
+    fadeLength = width * (0.01 + 0.99 * (keysync / 8));
   }
   for (let i = 0; i < numPoints; i++) {
     const t = i / numPoints;

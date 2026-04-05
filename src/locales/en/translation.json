@@ -100,10 +100,10 @@
     "division": "Division",
     "duration": "Duration",
     "latch": "Latch",
-    "attackTime": "Attack Time",
-    "decayTime": "Decay Time",
-    "sustainLevel": "Sustain Level",
-    "releaseTime": "Release Time",
+    "attackTime": "Attack",
+    "decayTime": "Decay",
+    "sustainLevel": "Sustain",
+    "releaseTime": "Release",
     "silence": "Silence",
     "attack": "Attack",
     "release": "Release"
@@ -194,7 +194,7 @@
   },
   "breeder": {
     "title": "🧬 Genetic Breeder",
-    "subtitle": "Evolve new patches by crossing two parents. Each DNA block (ALGO, OSC, ENV, MATRIX, FILTER) is inherited wholesale from one parent.",
+    "subtitle": "Evolve new patches by crossing two parents.",
     "parentA": "Parent A",
     "parentB": "Parent B",
     "nopatch": "No patch loaded",

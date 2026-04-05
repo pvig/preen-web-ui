@@ -351,6 +351,7 @@ export const SeqEditor: React.FC = () => {
             color={theme.colors.knobSeq}
             backgroundColor={theme.colors.knobBackground}
             strokeColor={theme.colors.knobStroke}
+            knobRadius={16}
             renderLabel={(v) => `${(v * 100).toFixed(0)}%`}
             label={t('modulation.gate')}
           />
@@ -372,6 +373,7 @@ export const SeqEditor: React.FC = () => {
           <ControlGroup>
             <KnobBase
               size={50}
+              knobRadius={16}
               min={10}
               max={240}
               step={1}

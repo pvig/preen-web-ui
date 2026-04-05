@@ -123,6 +123,7 @@ export const FilterEditor: React.FC<FilterEditorProps> = ({ filterIndex }) => {
         <ControlGroup>
           <KnobBase
             size={60}
+            knobRadius={16}
             min={0}
             max={1}
             step={0.01}
@@ -140,6 +141,7 @@ export const FilterEditor: React.FC<FilterEditorProps> = ({ filterIndex }) => {
         <ControlGroup>
           <KnobBase
             size={60}
+            knobRadius={16}
             min={0}
             max={1}
             step={0.01}
@@ -157,6 +159,7 @@ export const FilterEditor: React.FC<FilterEditorProps> = ({ filterIndex }) => {
         <ControlGroup>
           <KnobBase
             size={60}
+            knobRadius={16}
             min={gainMin}
             max={gainMax}
             step={0.01}

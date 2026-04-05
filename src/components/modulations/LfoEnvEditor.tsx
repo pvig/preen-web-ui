@@ -61,9 +61,10 @@ const EnvTab = styled.button<{ $active: boolean }>`
 
 const EnvControls = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 20px;
   align-items: start;
+  padding-top: 20px;
 `;
 
 const ControlGroup = styled.div`
@@ -249,6 +250,7 @@ export const LfoEnvEditor: React.FC = () => {
             <ControlGroup>
               <KnobBase
                 size={60}
+                knobRadius={16}
                 min={0}
                 max={16}
                 step={0.01}
@@ -271,12 +273,13 @@ export const LfoEnvEditor: React.FC = () => {
                 strokeColor={theme.colors.knobStroke}
                 renderLabel={(v) => v.toFixed(2)}
                 label={t('modulation.attackTime')}
-                labelPosition="left"
+                labelPosition="top"
               />
             </ControlGroup>
             <ControlGroup>
               <KnobBase
                 size={60}
+                knobRadius={16}
                 min={0}
                 max={16}
                 step={0.01}
@@ -299,12 +302,13 @@ export const LfoEnvEditor: React.FC = () => {
                 strokeColor={theme.colors.knobStroke}
                 renderLabel={(v) => v.toFixed(2)}
                 label={t('modulation.decayTime')}
-                labelPosition="left"
+                labelPosition="top"
               />
             </ControlGroup>
             <ControlGroup>
               <KnobBase
                 size={60}
+                knobRadius={16}
                 min={0}
                 max={100}
                 step={1}
@@ -331,12 +335,13 @@ export const LfoEnvEditor: React.FC = () => {
                 strokeColor={theme.colors.knobStroke}
                 renderLabel={(v) => Math.round(v)}
                 label={t('modulation.sustainLevel')}
-                labelPosition="left"
+                labelPosition="top"
               />
             </ControlGroup>
             <ControlGroup>
               <KnobBase
                 size={60}
+                knobRadius={16}
                 min={0}
                 max={16}
                 step={0.01}
@@ -359,7 +364,7 @@ export const LfoEnvEditor: React.FC = () => {
                 strokeColor={theme.colors.knobStroke}
                 renderLabel={(v) => v.toFixed(2)}
                 label={t('modulation.releaseTime')}
-                labelPosition="left"
+                labelPosition="top"
               />
             </ControlGroup>
           </>
@@ -369,6 +374,7 @@ export const LfoEnvEditor: React.FC = () => {
             <ControlGroup>
               <KnobBase
                 size={60}
+                knobRadius={16}
                 min={0}
                 max={16}
                 step={0.01}
@@ -389,13 +395,14 @@ export const LfoEnvEditor: React.FC = () => {
                 strokeColor={theme.colors.knobStroke}
                 renderLabel={(v) => v.toFixed(2)}
                 label={t('modulation.silence')}
-                labelPosition="left"
+                labelPosition="top"
               />
             </ControlGroup>
 
             <ControlGroup>
               <KnobBase
                 size={60}
+                knobRadius={16}
                 min={0}
                 max={16}
                 step={0.01}
@@ -418,13 +425,14 @@ export const LfoEnvEditor: React.FC = () => {
                 strokeColor={theme.colors.knobStroke}
                 renderLabel={(v) => v.toFixed(2)}
                 label={t('modulation.attack')}
-                labelPosition="left"
+                labelPosition="top"
               />
             </ControlGroup>
 
             <ControlGroup>
               <KnobBase
                 size={60}
+                knobRadius={16}
                 min={0}
                 max={16}
                 step={0.01}
@@ -447,7 +455,7 @@ export const LfoEnvEditor: React.FC = () => {
                 strokeColor={theme.colors.knobStroke}
                 renderLabel={(v) => v.toFixed(2)}
                 label={t('modulation.release')}
-                labelPosition="left"
+                labelPosition="top"
               />
             </ControlGroup>
           </>

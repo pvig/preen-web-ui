@@ -100,10 +100,10 @@
     "division": "Division",
     "duration": "Durée",
     "latch": "Verrouillage",
-    "attackTime": "Temps d'attaque",
-    "decayTime": "Temps de chute",
-    "sustainLevel": "Niveau de maintien",
-    "releaseTime": "Temps de relâchement",
+    "attackTime": "Attaque",
+    "decayTime": "Chute",
+    "sustainLevel": "Maintien",
+    "releaseTime": "Relâchement",
     "silence": "Silence",
     "attack": "Attaque",
     "release": "Relâchement"
@@ -194,7 +194,7 @@
   },
   "breeder": {
     "title": "🧬 Genetic Breeder",
-    "subtitle": "Faites évoluer de nouveaux patches en croisant deux parents. Chaque bloc ADN (ALGO, OSC, ENV, MATRIX, FILTER) est hérité en bloc d'un seul parent.",
+    "subtitle": "Faites évoluer de nouveaux patches en croisant deux parents.",
     "parentA": "Parent A",
     "parentB": "Parent B",
     "nopatch": "Aucun patch chargé",

@@ -114,6 +114,7 @@ export const NoteCurveEditor: React.FC<NoteCurveEditorProps> = ({ curveIndex }) 
         <ControlGroup>
           <KnobBase
             size={60}
+            knobRadius={16}
             min={0}
             max={127}
             step={1}
@@ -124,7 +125,7 @@ export const NoteCurveEditor: React.FC<NoteCurveEditorProps> = ({ curveIndex }) 
             strokeColor={theme.colors.knobStroke}
             renderLabel={(v) => Math.round(v).toString()}
             label={t('modulation.break')}
-            labelPosition="left"
+            labelPosition="top"
           />
         </ControlGroup>
 

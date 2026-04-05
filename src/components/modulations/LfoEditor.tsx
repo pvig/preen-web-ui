@@ -73,7 +73,9 @@ const LfoTab = styled.button<{ $active: boolean }>`
 `;
 
 const LfoControls = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  gap: 20px;
   flex-wrap: wrap;
   gap: 20px;
   align-items: start;
