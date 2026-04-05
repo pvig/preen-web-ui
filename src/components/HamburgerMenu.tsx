@@ -3,6 +3,8 @@ import styled from 'styled-components';
 import { useTranslation } from 'react-i18next';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { LanguageToggle } from './LanguageToggle';
+import { useUIStore } from '../stores/uiStore';
+import { SplashScreen } from './SplashScreen';
 
 const MenuContainer = styled.div`
   position: relative;
@@ -89,7 +91,7 @@ const AboutModal = styled.div<{ $isOpen: boolean }>`
   display: ${props => props.$isOpen ? 'flex' : 'none'};
   align-items: center;
   justify-content: center;
-  z-index: 2000;
+  z-index: 10000;
 `;
 
 const AboutContent = styled.div`
@@ -140,11 +142,36 @@ const CloseButton = styled.button`
   }
 `;
 
+const ToggleSwitch = styled.button<{ $on: boolean }>`
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  background: ${p => p.$on ? p.theme.colors.primary : p.theme.colors.button};
+  transition: background 0.2s;
+  flex-shrink: 0;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: ${p => p.$on ? '21px' : '3px'};
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    transition: left 0.2s;
+  }
+`;
+
 export const HamburgerMenu: React.FC = () => {
   const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { starfieldEnabled, toggleStarfield } = useUIStore();
 
   // Fermer le menu si on clique à l'extérieur
   useEffect(() => {
@@ -164,6 +191,10 @@ export const HamburgerMenu: React.FC = () => {
   };
 
   const handleCloseAbout = () => {
+    setIsAboutOpen(false);
+  };
+
+  const handleCloseBoth = () => {
     setIsAboutOpen(false);
   };
 
@@ -187,6 +218,11 @@ export const HamburgerMenu: React.FC = () => {
             <MenuLabel>{t('menu.language')}</MenuLabel>
             <LanguageToggle />
           </MenuItem>
+
+          <MenuItem>
+            <MenuLabel>{t('menu.starfield', 'Fond étoilé')}</MenuLabel>
+            <ToggleSwitch $on={starfieldEnabled} onClick={toggleStarfield} aria-label="Toggle starfield" />
+          </MenuItem>
           
           <MenuItem>
             <MenuLabel>{t('menu.about')}</MenuLabel>
@@ -196,6 +232,8 @@ export const HamburgerMenu: React.FC = () => {
           </MenuItem>
         </DropdownMenu>
       </MenuContainer>
+
+      {isAboutOpen && <SplashScreen onClose={handleCloseBoth} noAutoClose />}
 
       <AboutModal $isOpen={isAboutOpen} onClick={handleCloseAbout}>
         <AboutContent onClick={e => e.stopPropagation()}>

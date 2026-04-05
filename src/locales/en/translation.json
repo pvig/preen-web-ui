@@ -159,6 +159,7 @@
   "menu": {
     "title": "Main menu",
     "theme": "Theme",
+    "starfield": "Starfield",
     "language": "Language",
     "about": "About",
     "info": "Info"

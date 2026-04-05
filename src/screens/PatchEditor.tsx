@@ -19,7 +19,7 @@ const Row = styled.div<RowProps>`
   margin: 0 auto;
   height: auto;
   width: ${(props) => (props.width ? props.width : '100%')};
-  background: ${props => props.theme.colors.background};
+
   @media (max-width: 768px) {
     flex-direction: column;
     width: 100%;

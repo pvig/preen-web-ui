@@ -10,16 +10,23 @@ import { PatchLibrary } from './screens/PatchLibrary';
 import { MidiMenu } from './components/MidiMenu';
 import { MidiCCTester } from './components/MidiCCTester';
 import { HamburgerMenu } from './components/HamburgerMenu';
+import { SplashScreen } from './components/SplashScreen';
+import { StarfieldCanvas } from './components/StarfieldCanvas';
 import { useThemeStore } from './theme/themeStore';
 import { GlobalStyles } from './theme/GlobalStyles';
 import { useMidiActions } from './midi/useMidiActions';
 import { useCurrentPatch, usePatchStore } from './stores/patchStore';
 import { useMutationStore } from './stores/mutationStore';
+import { useUIStore } from './stores/uiStore';
 
 type AppScreen = 'patch' | 'matrix' | 'arpfilter' | 'effects' | 'library';
 
-const AppContainer = styled.div`
-  background-color: ${props => props.theme.colors.background};
+const AppContainer = styled.div<{ $starfield: boolean }>`
+  background-color: ${props =>
+    props.theme.name === 'dark' && props.$starfield
+      ? 'transparent'
+      : props.theme.colors.background
+  };
   color: ${props => props.theme.colors.text};
   min-height: 100vh;
   transition: background-color 0.3s, color 0.3s;
@@ -272,6 +279,7 @@ const PatchNameEditorComponent: React.FC = () => {
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('patch');
   const [showCCTester, setShowCCTester] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
   const { t } = useTranslation();
   const { theme } = useThemeStore();
   const { sendPatch, receivePatch, isReceiving, isSending, midi } = useMidiActions();
@@ -289,10 +297,14 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
+  const { starfieldEnabled } = useUIStore();
+  const TAB_ORDER: AppScreen[] = ['patch', 'matrix', 'arpfilter', 'library'];
+
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyles />
-      <AppContainer>
+      {theme.name === 'dark' && starfieldEnabled && <StarfieldCanvas tabIndex={TAB_ORDER.indexOf(currentScreen)} bgColor={theme.colors.background} />}
+      <AppContainer $starfield={theme.name === 'dark' && starfieldEnabled}>
         
         <NavWrapper>
         <Nav>
@@ -354,6 +366,7 @@ export default function App() {
         </Main>
         
         {showCCTester && <MidiCCTester onClose={() => setShowCCTester(false)} />}
+        {showSplash && <SplashScreen onClose={() => setShowSplash(false)} />}
       </AppContainer>
     </ThemeProvider>
   );
