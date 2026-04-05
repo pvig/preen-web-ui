@@ -30,7 +30,7 @@ A modern web editor for the PreenFM3 synthesizer with bidirectional MIDI communi
 - **Real-time editing** — every parameter change is sent immediately to the synth
 - **Bidirectional sync** — UI ↔ Hardware
 - **NRPN pacing queue** — prevents buffer overflow on data-heavy sends
-- **Corrected CC mapping** — Mix/Pan CC numbers empirically verified against firmware (22–29, interleaved)
+
 
 ### 📦 Patch Management
 - **Save/Load `.patch` files** — 1024-byte binary (`FlashSynthParams` format, verified against firmware source)
@@ -41,13 +41,8 @@ A modern web editor for the PreenFM3 synthesizer with bidirectional MIDI communi
 - **Two parent slots** — load a patch from file or pull from hardware
 - **Genetic crossover** — 6 DNA blocks (ALGO, OSC, ENV, MATRIX, FILTER1, FILTER2), each inherited from one parent
 - **Smart matrix merging** — tracks modulation role dominance (TIMBRE / PITCH / AMP_PAN) across parents
-- **Gaussian mutation** — Box-Muller noise per parameter, controlled by a mutation rate slider, clamped to firmware limits
+- **Gaussian mutation** — Box-Muller noise per parameter, controlled by a mutation rate slider
 - **Generates 4 children** — each child shows block provenance; per-child actions: Listen (MIDI preview), promote to Parent A/B, Load into editor, Save as `.patch`
-
-### 🔀 Patch Mutation / Interpolation
-- **Continuous mix** between two source patches (factor 0–1)
-- **Harmonic quantization** — frequency crossfades snap through the harmonic grid [0.5, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 12, 16] when both values are on-grid
-- **Discrete parameter threshold** — algorithm, waveform, filter type use 0.5 threshold pick
 
 ### 📊 Visualizations & UI
 - **D3 algorithm graph** — real-time FM routing visualization
@@ -113,7 +108,6 @@ npm run preview   # Preview the build locally
 | **Patch Editor** | Select FM algorithm, visualize operator routing, adjust modulation indexes, configure all 6 operators |
 | **Modulations** | Configure LFOs (shape, frequency, bias, phase), LFO Envelopes, Step Sequencers, Modulation Matrix |
 | **Arp / Filter** | Arpeggiator, Filters 1 & 2, Note Curves |
-| **Effects** | *(coming soon)* |
 | **Library** | Save/load patches and banks, 4-slot memory rack, Breeder editor |
 
 ### 4. Saving
@@ -149,7 +143,7 @@ src/
 ├── components/
 │   ├── fmEngine/        # Algorithm selector, operator panels, carrier controls, IM matrix
 │   ├── modulations/     # LFOs, LFO envelopes, step sequencers, matrix, filters, arp, note curves
-│   ├── mutation/        # Patch slot for interpolation source A/B
+│   ├── mutation/        # Patch slot for genetic component source A/B
 │   └── knobs/           # Reusable rotary knob component
 ├── stores/              # Zustand stores: patchStore, workspaceStore, mutationStore, synthStore
 ├── midi/                # MIDI service, NRPN parser, patch serializer, CC/NRPN map, hooks
@@ -200,16 +194,13 @@ src/
 - ✅ `.bnk` bank organizer (drag-and-drop, rename, import/export)
 - ✅ 4-slot patch memory rack
 - ✅ Genetic Patch Breeder (6-block DNA, Gaussian mutation, 4 children)
-- ✅ Patch mutation/interpolation with harmonic quantization
 - ✅ Real-time audio spectrogram (microphone, Magma LUT)
 - ✅ EN/FR internationalization (12 namespaces, auto language detection)
 - ✅ Dark/Light theme toggle
 - ✅ Corrected MIDI CC Mix/Pan mapping (empirically verified)
 
 ### In Progress / Coming Soon
-- ⏳ Effects editor (filters, reverb, chorus...)
 - ⏳ Undo / Redo
-- ⏳ ML-assisted patch variation (CVAE latent space, style conditioning from spectrogram)
 
 ## 🤝 Contributing
 
