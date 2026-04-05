@@ -152,6 +152,7 @@ export const useMidiActions = () => {
         // Synchroniser la version firmware dans le synthStore
         useSynthStore.getState().setPfm3Version(parserRef.current.getpfm3Version());
         loadPatch(patch);
+        usePatchStore.getState().notifyPullReceived();
         console.log('✅ Patch chargé dans l\'UI');
 
         // Mettre à jour les statistiques finales

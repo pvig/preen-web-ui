@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { lerp, interpolatePatch } from '../../stores/mutationStore';
+import { lerp, lerpHarmonic, HARMONIC_GRID, interpolatePatch } from '../../stores/mutationStore';
 import type { Patch } from '../../types/patch';
 import {
   DEFAULT_ADSR,
@@ -111,6 +111,85 @@ describe('lerp', () => {
 
   it('handles negative values', () => {
     expect(lerp(-10, 10, 0.5)).toBe(0);
+  });
+});
+
+// ── lerpHarmonic ─────────────────────────────────────────────────────────────
+
+describe('lerpHarmonic', () => {
+  it('at t=0 always returns the start value (harmonic)', () => {
+    expect(lerpHarmonic(1.0, 4.0, 0)).toBe(HARMONIC_GRID[1]); // 1.0
+  });
+
+  it('at t=1 always returns the end value (harmonic)', () => {
+    expect(lerpHarmonic(1.0, 4.0, 1)).toBe(HARMONIC_GRID[5]); // 4.0 is at index 5
+  });
+
+  it('steps through grid: 1.0 → 2.0 has two steps (1.0, 1.5, 2.0)', () => {
+    // Grid indices: 1.0=1, 1.5=2, 2.0=3  → 2 steps
+    expect(lerpHarmonic(1.0, 2.0, 0.00)).toBe(1.0);
+    expect(lerpHarmonic(1.0, 2.0, 0.49)).toBe(1.0); // still on first step
+    expect(lerpHarmonic(1.0, 2.0, 0.50)).toBe(1.5); // crosses threshold
+    expect(lerpHarmonic(1.0, 2.0, 0.99)).toBe(1.5);
+    expect(lerpHarmonic(1.0, 2.0, 1.00)).toBe(2.0);
+  });
+
+  it('steps in reverse: 4.0 → 1.0 descends through grid', () => {
+    expect(lerpHarmonic(4.0, 1.0, 0.00)).toBe(4.0);
+    expect(lerpHarmonic(4.0, 1.0, 0.50)).toBe(2.0); // midpoint of 3 steps
+    expect(lerpHarmonic(4.0, 1.0, 1.00)).toBe(1.0);
+  });
+
+  it('returns the same value when both are the same grid point', () => {
+    expect(lerpHarmonic(3.0, 3.0, 0.5)).toBe(3.0);
+  });
+
+  it('falls back to lerp when start value is inharmonic', () => {
+    // 1.41 is not on the grid → linear interpolation
+    expect(lerpHarmonic(1.41, 2.0, 0.5)).toBeCloseTo(lerp(1.41, 2.0, 0.5), 4);
+  });
+
+  it('falls back to lerp when end value is inharmonic', () => {
+    expect(lerpHarmonic(1.0, 1.77, 0.5)).toBeCloseTo(lerp(1.0, 1.77, 0.5), 4);
+  });
+
+  it('snaps values within tolerance to nearest grid point', () => {
+    // 2.02 is within 0.05 of 2.0 → treated as harmonic
+    expect(lerpHarmonic(1.0, 2.02, 1.0)).toBe(2.0);
+  });
+});
+
+// ── interpolatePatch (harmonic operator ratios) ────────────────────────────────
+
+describe('interpolatePatch — harmonic operator frequency', () => {
+  it('steps through harmonic grid when both ops are in KEYBOARD mode with grid ratios', () => {
+    const a = makeTestPatch();
+    a.operators[0] = { ...a.operators[0], frequencyType: 'KEYBOARD', frequency: 1.0 };
+    const b = makeTestPatch();
+    b.operators[0] = { ...b.operators[0], frequencyType: 'KEYBOARD', frequency: 2.0 };
+
+    expect(interpolatePatch(a, b, 0.25).operators[0].frequency).toBe(1.0);
+    expect(interpolatePatch(a, b, 0.50).operators[0].frequency).toBe(1.5);
+    expect(interpolatePatch(a, b, 1.00).operators[0].frequency).toBe(2.0);
+  });
+
+  it('falls back to lerp for inharmonic KEYBOARD ratios (fine-tuned values)', () => {
+    const a = makeTestPatch();
+    a.operators[0] = { ...a.operators[0], frequencyType: 'KEYBOARD', frequency: 1.41 };
+    const b = makeTestPatch();
+    b.operators[0] = { ...b.operators[0], frequencyType: 'KEYBOARD', frequency: 2.0 };
+
+    const result = interpolatePatch(a, b, 0.5);
+    expect(result.operators[0].frequency).toBeCloseTo(lerp(1.41, 2.0, 0.5), 3);
+  });
+
+  it('uses linear lerp for FIXED-frequency operators regardless of values', () => {
+    const a = makeTestPatch();
+    a.operators[0] = { ...a.operators[0], frequencyType: 'FIXED', frequency: 440 };
+    const b = makeTestPatch();
+    b.operators[0] = { ...b.operators[0], frequencyType: 'FIXED', frequency: 880 };
+
+    expect(interpolatePatch(a, b, 0.5).operators[0].frequency).toBeCloseTo(660, 1);
   });
 });
 

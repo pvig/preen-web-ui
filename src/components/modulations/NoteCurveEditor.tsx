@@ -57,8 +57,8 @@ const Select = styled.select`
   color: ${props => props.theme.colors.text};
   padding: 8px 28px 8px 12px;
   font-size: 0.875rem;
-  width: 140px;
-  max-width: 140px;
+  width: 120px;
+  max-width: 120px;
   height: 36px;
   box-sizing: border-box;
   

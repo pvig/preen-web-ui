@@ -32,6 +32,48 @@ export function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
+// ── Harmonic quantisation ─────────────────────────────────────────────────────
+
+/**
+ * Standard FM harmonic ratios.  Operator frequencies that lie on this grid
+ * (or within ±HARMONIC_SNAP_TOLERANCE of a grid value) are considered
+ * "harmonic" and receive stepped interpolation instead of linear lerp.
+ */
+export const HARMONIC_GRID: readonly number[] = [
+  0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 12.0, 16.0,
+];
+
+const HARMONIC_SNAP_TOLERANCE = 0.05;
+
+/** Returns the index of the nearest HARMONIC_GRID value, or -1 if none is within tolerance. */
+function snapIndex(v: number): number {
+  let best = -1;
+  let bestDist = Infinity;
+  for (let i = 0; i < HARMONIC_GRID.length; i++) {
+    const d = Math.abs(v - HARMONIC_GRID[i]);
+    if (d < bestDist) { bestDist = d; best = i; }
+  }
+  return bestDist <= HARMONIC_SNAP_TOLERANCE ? best : -1;
+}
+
+/**
+ * Harmonic-quantised interpolation for FM operator ratios.
+ *
+ * - Both values on the grid  → step through grid indices at equal t intervals.
+ *   e.g. 1.0 → 2.0 at t=0.5 yields 1.5, never an inharmonic 1.537.
+ * - At least one value off-grid → fall back to `lerp` (preserves fine-tuning).
+ */
+export function lerpHarmonic(a: number, b: number, t: number): number {
+  const ia = snapIndex(a);
+  const ib = snapIndex(b);
+  if (ia === -1 || ib === -1) return lerp(a, b, t);
+  if (ia === ib) return HARMONIC_GRID[ia];
+  const steps = Math.abs(ib - ia);
+  const dir   = ib > ia ? 1 : -1;
+  const step  = Math.min(Math.floor(t * steps), steps);
+  return HARMONIC_GRID[ia + dir * step];
+}
+
 /** Pick value from A or B depending on mix (threshold 0.5). */
 function pick<T>(a: T, b: T, t: number): T {
   return t <= 0.5 ? a : b;
@@ -58,7 +100,11 @@ function interpolateOperator(a: Operator, b: Operator, t: number): Operator {
   return {
     ...pick(a, b, t), // discrete fields (id, enabled, waveform, type, frequencyType)
     id: a.id,
-    frequency: round(lerp(a.frequency, b.frequency, t)),
+    // Use harmonic-quantised interpolation for ratio-mode operators so the
+    // dataset never contains inharmonious detuned intermediate values.
+    frequency: (a.frequencyType === 'KEYBOARD' && b.frequencyType === 'KEYBOARD')
+      ? round(lerpHarmonic(a.frequency, b.frequency, t))
+      : round(lerp(a.frequency, b.frequency, t)),
     detune: round(lerp(a.detune, b.detune, t)),
     keyboardTracking: round(lerp(a.keyboardTracking, b.keyboardTracking, t)),
     amplitude: round(lerp(a.amplitude, b.amplitude, t)),

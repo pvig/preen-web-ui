@@ -347,7 +347,10 @@ export default function App() {
           {currentScreen === 'matrix' && <ModulationsEditor />}
           {currentScreen === 'arpfilter' && <ArpFilterEditor />}
           {currentScreen === 'effects' && <EffectsEditor />}
-          {currentScreen === 'library' && <PatchLibrary />}
+          {/* Always mounted — preserves state across tab switches */}
+          <div style={currentScreen !== 'library' ? { display: 'none' } : undefined}>
+            <PatchLibrary />
+          </div>
         </Main>
         
         {showCCTester && <MidiCCTester onClose={() => setShowCCTester(false)} />}

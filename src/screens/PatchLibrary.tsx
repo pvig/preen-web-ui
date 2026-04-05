@@ -1,5 +1,9 @@
+import { useRef } from 'react';
 import { PatchSavePanel, BankOrganizerPanel } from '../components/PatchManager';
-import { MutationEditor } from './MutationEditor';
+import { BreederEditor } from '../components/BreederEditor';
+import { PatchSlotRack } from '../components/PatchSlotRack';
+import { PreenSpectrogram } from '../components/PreenSpectrogram';
+import type { PreenSpectrogramHandle } from '../components/PreenSpectrogram';
 import styled from 'styled-components';
 
 const LibraryContainer = styled.div`
@@ -8,25 +12,17 @@ const LibraryContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 20px 0;
-`;
-
-const MutationPanel = styled.section`
-  background: ${({ theme }) => theme.colors.panel};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 10px;
-  padding: 8px 0;
-  margin-top: 8px;
 `;
 
 export function PatchLibrary() {
+  const spectrogramRef = useRef<PreenSpectrogramHandle>(null);
   return (
     <LibraryContainer>
       <PatchSavePanel />
       <BankOrganizerPanel />
-      <MutationPanel>
-        <MutationEditor />
-      </MutationPanel>
+      <PatchSlotRack />
+      <PreenSpectrogram ref={spectrogramRef} />
+      <BreederEditor />
     </LibraryContainer>
   );
 }

@@ -175,7 +175,8 @@
     "patch": "Patch",
     "modulations": "Modulations",
     "arpFilter": "Arp/Filtre",
-    "library": "Librairie"
+    "library": "Librairie",
+    "variator": "Variateur"
   },
   "mutation": {
     "title": "Mutation de patch",
@@ -190,6 +191,53 @@
     "noMidiInput": "Aucune entrée MIDI sélectionnée",
     "pullFailed": "Aucune donnée reçue du PreenFM3.",
     "pullTimeout": "Timeout : pas de réponse du PreenFM3."
+  },
+  "breeder": {
+    "title": "🧬 Genetic Breeder",
+    "subtitle": "Faites évoluer de nouveaux patches en croisant deux parents. Chaque bloc ADN (ALGO, OSC, ENV, MATRIX, FILTER) est hérité en bloc d'un seul parent.",
+    "parentA": "Parent A",
+    "parentB": "Parent B",
+    "nopatch": "Aucun patch chargé",
+    "loadFromEditor": "Charger depuis l'éditeur",
+    "slotTitle": "Charger \"{{name}}\" depuis le slot {{index}}",
+    "slotEmpty": "Slot {{index}} vide",
+    "mutation": "Mutation",
+    "generating": "Croisement…",
+    "generate": "🧬 Générer 4 enfants",
+    "listenTitle": "Envoyer au PreenFM3 via MIDI",
+    "listening": "…",
+    "listen": "▶ Écouter",
+    "setAsA": "= A",
+    "setAsB": "= B",
+    "setAsATitle": "Définir comme Parent A",
+    "setAsBTitle": "Définir comme Parent B",
+    "load": "Charger",
+    "loadTitle": "Charger dans l'éditeur",
+    "saveTitle": "Sauvegarder en fichier .patch",
+    "saveToSlotTitle": "Sauvegarder dans le slot {{index}}"
+  },
+  "slotRack": {
+    "label": "Slots",
+    "capture": "+ Capturer",
+    "unnamed": "(sans nom)",
+    "load": "↓ Charger",
+    "sendToA": "→ A",
+    "sendToB": "→ B",
+    "clear": "×",
+    "loadTitle": "Charger dans l'éditeur",
+    "sendToATitle": "Envoyer au Breeder comme Parent A",
+    "sendToBTitle": "Envoyer au Breeder comme Parent B",
+    "clearTitle": "Vider le slot",
+    "helpTooltip": "Mode d'emploi des slots",
+    "help": {
+      "title": "Slots de patches",
+      "emptySlot": "Cliquer sur un slot vide capture le patch courant.",
+      "filledSlot": "Cliquer sur un slot rempli affiche ses actions.",
+      "load": "↓ Charger — charge le patch dans l'éditeur.",
+      "sendAB": "→ A / → B — envoie le patch au Breeder comme Parent A ou B.",
+      "clear": "× — vide le slot.",
+      "close": "Fermer"
+    }
   },
   "patchManager": {
     "currentPatch": "Patch courant",
@@ -216,6 +264,42 @@
       "braveDesc": "ouvrir brave://flags/#file-system-access-api, passer sur Enabled puis relancer.",
       "firefoxDesc": "non supporté ; le téléchargement se fera dans le dossier par défaut.",
       "close": "Fermer"
+    }
+  },
+  "spectrogram": {
+    "title": "Spectrogramme Audio",
+    "badgeCh": "{{count}} ch \u2014 \u00e9coute ch {{ch}}",
+    "deviceLabel": "Interface audio",
+    "deviceDefault": "Par d\u00e9faut (cliquer D\u00e9marrer pour lister)",
+    "deviceInput": "Entr\u00e9e {{n}}",
+    "channelLabel": "Canal",
+    "channelAvailable": "(1\u2013{{max}} disponibles)",
+    "channelOption": "Canal {{n}}",
+    "refresh": "\u21ba Actualiser",
+    "refreshTitle": "Actualiser la liste des p\u00e9riph\u00e9riques",
+    "warnTitle_one": "\u26a0 Navigateur limit\u00e9 \u00e0 {{count}} canal (demand\u00e9\u00a0: 4)",
+    "warnTitle_other": "\u26a0 Navigateur limit\u00e9 \u00e0 {{count}} canaux (demand\u00e9\u00a0: 4)",
+    "warnDismissTitle": "Ne plus afficher",
+    "warnBody": "WebRTC limite la capture audio \u00e0 2 canaux par p\u00e9riph\u00e9rique. Les entr\u00e9es 3\u20134 de votre interface ne sont pas accessibles directement \u2014 elles doivent \u00eatre expos\u00e9es comme un p\u00e9riph\u00e9rique virtuel s\u00e9par\u00e9 au niveau de l'OS.",
+    "helpShow": "\u25bc Acc\u00e9der aux entr\u00e9es 3-4 sur Linux (PipeWire)",
+    "helpHide": "\u25b2 Masquer les instructions",
+    "canvasAriaLabel": "Spectrogramme fr\u00e9quentiel en temps r\u00e9el",
+    "stop": "\u25a0 Arr\u00eater l'\u00e9coute",
+    "start": "\u25b6 D\u00e9marrer l'\u00e9coute",
+    "statusLive": "En cours \u2014 capture audio active",
+    "statusStopped": "Arr\u00eat\u00e9",
+    "errorAccess": "Acc\u00e8s audio refus\u00e9 ou indisponible\u00a0: {{msg}}",
+    "helpPanel": {
+      "whyTitle": "Pourquoi\u00a0:",
+      "whyBody": "Chrome et Firefox limitent getUserMedia \u00e0 2 canaux (une paire st\u00e9r\u00e9o) par p\u00e9riph\u00e9rique, quelle que soit la configuration mat\u00e9rielle. La solution est de cr\u00e9er une source st\u00e9r\u00e9o virtuelle qui mappe les entr\u00e9es 3\u20134 de votre interface.",
+      "step1Title": "Trouver le nom du n\u0153ud audio\u00a0:",
+      "step1Note": "Notez le node.name (ex. alsa_input.usb-Focusrite\u2026).",
+      "step2Title": "V\u00e9rifier les canaux disponibles\u00a0:",
+      "step3Title": "Cr\u00e9er une source loopback pour les entr\u00e9es 3-4",
+      "step3Suffix": "(\u00e0 ex\u00e9cuter une fois par session, ou \u00e0 ajouter au d\u00e9marrage)\u00a0:",
+      "step3Note": "Remplacez AUX2 AUX3 par les noms de canaux r\u00e9els indiqu\u00e9s par pw-cli (peut \u00eatre AUX0 AUX1 selon la num\u00e9rotation du driver).",
+      "step4": "Cliquez \u21ba Actualiser \u2014 \u00ab\u00a0Saffire Inputs 3-4\u00a0\u00bb appara\u00eet dans la liste ci-dessus.",
+      "permanent": "Pour une configuration permanente, enregistrez la config loopback dans"
     }
   }
 }

@@ -592,6 +592,24 @@ export function setMidiChannel(channel: number) {
 }
 
 /**
+ * Send a Program Change message (0xC0) — used for bank/preset navigation.
+ *
+ * Sequence to select a preset on the PreenFM3:
+ *   1. sendCC(MIDI_CC.BANK_SELECT,     bankMSB, ch)  — CC 0  (usually 0)
+ *   2. sendCC(MIDI_CC.BANK_SELECT_LSB, bankLSB, ch)  — CC 32 (bank 0-9)
+ *   3. sendProgramChange(slot, ch)                    — 0xC0 (slot 0-127)
+ */
+export function sendProgramChange(program: number, channel: number = currentChannel) {
+  if (!midiOutput) {
+    console.warn('No MIDI output selected for program change');
+    return;
+  }
+  const statusByte = 0xC0 + ((channel - 1) & 0x0F);
+  midiOutput.send([statusByte, program & 0x7F]);
+  console.log(`📤 Program Change: program=${program} ch=${channel}`);
+}
+
+/**
  * Send a Control Change message
  */
 export function sendCC(controller: number, value: number, channel: number = currentChannel) {

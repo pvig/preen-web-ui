@@ -15,6 +15,7 @@ export interface Theme {
     text: string;
     textSecondary: string;
     textMuted: string;
+    textNotice: string;    // boutons d'aide / info discrets
     
     // Bordures
     border: string;
@@ -75,6 +76,7 @@ export const darkTheme: Theme = {
     text: '#e2e8f0',
     textSecondary: '#cbd5e0',
     textMuted: '#a0aec0',
+    textNotice: '#f29e17',  // même bleu que primary — discret mais identifiable
     
     border: '#4a5568',
     borderHover: '#63b3ed',
@@ -127,6 +129,7 @@ export const lightTheme: Theme = {
     text: '#1a202c',
     textSecondary: '#2d3748',
     textMuted: '#718096',
+    textNotice: '#c27c0b',  // même bleu que primary en mode clair
     
     border: '#e2e8f0',
     borderHover: '#3182ce',
