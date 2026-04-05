@@ -6,6 +6,7 @@ import {
   useImperativeHandle,
   forwardRef,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 
 // ============================================================
@@ -478,6 +479,7 @@ const HelpPanel = styled.div`
  */
 const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
   function PreenSpectrogram(_props, ref) {
+    const { t } = useTranslation();
     // ── Refs ───────────────────────────────────────────────────
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
@@ -764,7 +766,7 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
         animFrameRef.current = requestAnimationFrame(drawFrame);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        setError(`Audio access denied or unavailable: ${msg}`);
+        setError(t('spectrogram.errorAccess', { msg }));
       }
     }, [drawFrame]);
 
@@ -826,19 +828,19 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
     return (
       <SpectrogramSection>
         <Header>
-          <Title>PreenFM3 Spectrogram</Title>
+          <Title>{t('spectrogram.title')}</Title>
           <BadgeRow>
             <Badge>fftSize: {FFT_SIZE}</Badge>
             <Badge>Buffer: {BUFFER_FRAMES}×{FREQ_BINS}</Badge>
             {sampleRate && <Badge>Fs: {formatSampleRate(sampleRate)}</Badge>}
-            {channelCount > 1 && <Badge>{channelCount} ch — listening ch {selectedChannel + 1}</Badge>}
+            {channelCount > 1 && <Badge>{t('spectrogram.badgeCh', { count: channelCount, ch: selectedChannel + 1 })}</Badge>}
           </BadgeRow>
         </Header>
 
         {/* ── Device & channel selectors ─────────────────────── */}
         <SelectRow>
           <SelectGroup>
-            <SelectLabel htmlFor="spectrogram-device">Audio input device</SelectLabel>
+            <SelectLabel htmlFor="spectrogram-device">{t('spectrogram.deviceLabel')}</SelectLabel>
             <StyledSelect
               id="spectrogram-device"
               value={selectedDeviceId}
@@ -846,11 +848,11 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
               disabled={isListening}
             >
               {devices.length === 0 && (
-                <option value="">Default (click Start to enumerate)</option>
+                <option value="">{t('spectrogram.deviceDefault')}</option>
               )}
               {devices.map(d => (
                 <option key={d.deviceId} value={d.deviceId}>
-                  {d.label || `Input ${devices.indexOf(d) + 1}`}
+                  {d.label || t('spectrogram.deviceInput', { n: devices.indexOf(d) + 1 })}
                 </option>
               ))}
             </StyledSelect>
@@ -858,7 +860,7 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
 
           <SelectGroup>
             <SelectLabel htmlFor="spectrogram-channel">
-              Channel {channelCount > 1 ? `(1–${channelCount} available)` : ''}
+              {t('spectrogram.channelLabel')}{channelCount > 1 ? ` ${t('spectrogram.channelAvailable', { max: channelCount })}` : ''}
             </SelectLabel>
             <StyledSelect
               id="spectrogram-channel"
@@ -868,14 +870,14 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
             >
               {Array.from({ length: Math.max(channelCount, 1) }, (_, i) => (
                 <option key={i} value={i}>
-                  Channel {i + 1}
+                  {t('spectrogram.channelOption', { n: i + 1 })}
                 </option>
               ))}
             </StyledSelect>
           </SelectGroup>
 
-          <RefreshButton onClick={refreshDevices} disabled={isListening} title="Refresh device list">
-            ↺ Refresh
+          <RefreshButton onClick={refreshDevices} disabled={isListening} title={t('spectrogram.refreshTitle')}>
+            {t('spectrogram.refresh')}
           </RefreshButton>
         </SelectRow>
 
@@ -883,39 +885,34 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
         {isListening && channelsCapped && !warningDismissed && (
           <WarningBox>
             <WarningTitle>
-              ⚠ Browser limited to {channelCount} channel{channelCount > 1 ? 's' : ''} (requested 4)
-              <DismissButton onClick={dismissWarning} title="Ne plus afficher">
+              {t('spectrogram.warnTitle', { count: channelCount })}
+              <DismissButton onClick={dismissWarning} title={t('spectrogram.warnDismissTitle')}>
                 ✕
               </DismissButton>
             </WarningTitle>
-            <span>
-              WebRTC caps audio capture at 2 channels per device. Inputs 3-4 of
-              your interface cannot be reached directly — they must be exposed as
-              a separate virtual device at the OS level.
-            </span>
+            <span>{t('spectrogram.warnBody')}</span>
             <HelpToggle onClick={() => setShowHelp(v => !v)}>
-              {showHelp ? '▲ Hide setup instructions' : '▼ How to access inputs 3-4 on Linux (PipeWire)'}
+              {showHelp ? t('spectrogram.helpHide') : t('spectrogram.helpShow')}
             </HelpToggle>
             {showHelp && (
               <HelpPanel>
                 <p>
-                  <strong>Why it happens:</strong> Chrome and Firefox both cap
-                  <code>getUserMedia</code> to 2 channels (one stereo pair) per
-                  device, regardless of the hardware. The fix is to create a
-                  virtual stereo source that maps inputs 3-4 of your interface.
+                  <strong>{t('spectrogram.helpPanel.whyTitle')}</strong>{' '}
+                  {t('spectrogram.helpPanel.whyBody')}
                 </p>
                 <ol>
                   <li>
-                    <strong>Find your device node name:</strong>
+                    <strong>{t('spectrogram.helpPanel.step1Title')}</strong>
                     <code>pw-cli list-objects | grep -i saffire</code>
-                    Note the <em>node.name</em> (e.g. <em>alsa_input.usb-Focusrite…</em>).
+                    {t('spectrogram.helpPanel.step1Note')}
                   </li>
                   <li>
-                    <strong>Check available channels:</strong>
+                    <strong>{t('spectrogram.helpPanel.step2Title')}</strong>
                     <code>pw-cli dump short Node | grep saffire</code>
                   </li>
                   <li>
-                    <strong>Create a loopback source for inputs 3-4</strong> (run once per session, or add to autostart):
+                    <strong>{t('spectrogram.helpPanel.step3Title')}</strong>{' '}
+                    {t('spectrogram.helpPanel.step3Suffix')}
                     <code>{`pw-loopback \
   --capture-props='node.name=saffire_in34 \
                    target.object=<your-saffire-node-name> \
@@ -923,17 +920,14 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
   --playback-props='media.class=Audio/Source \
                     audio.position=[FL FR] \
                     node.description="Saffire Inputs 3-4"'`}</code>
-                    Replace <em>AUX2 AUX3</em> with the actual channel names
-                    reported by <code>pw-cli</code> (may be <em>AUX0 AUX1</em>
-                    depending on driver numbering).
+                    {t('spectrogram.helpPanel.step3Note')}
                   </li>
                   <li>
-                    Click <strong>↺ Refresh</strong> — "Saffire Inputs 3-4" will
-                    appear in the device list above.
+                    {t('spectrogram.helpPanel.step4')}
                   </li>
                 </ol>
                 <p>
-                  For a permanent setup, save the loopback config in
+                  {t('spectrogram.helpPanel.permanent')}
                   <code>~/.config/pipewire/pipewire.conf.d/saffire-34.conf</code>
                 </p>
               </HelpPanel>
@@ -948,7 +942,7 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
             ref={canvasRef}
             width={FREQ_BINS}
             height={CANVAS_HEIGHT}
-            aria-label="Real-time frequency spectrogram"
+            aria-label={t('spectrogram.canvasAriaLabel')}
           />
 
           {/* Frequency axis (approximate — valid at 44.1 kHz sample rate) */}
@@ -962,16 +956,16 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
         <Controls>
           {isListening ? (
             <ControlButton $variant="stop" onClick={stopListening}>
-              ■ Stop Listening
+              {t('spectrogram.stop')}
             </ControlButton>
           ) : (
             <ControlButton $variant="start" onClick={startListening}>
-              ▶ Start Listening
+              {t('spectrogram.start')}
             </ControlButton>
           )}
           <StatusDot $active={isListening} />
           <StatusText>
-            {isListening ? 'Live — capturing audio' : 'Stopped'}
+            {isListening ? t('spectrogram.statusLive') : t('spectrogram.statusStopped')}
           </StatusText>
         </Controls>
 

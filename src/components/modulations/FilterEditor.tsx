@@ -10,7 +10,7 @@ import { useThemeStore } from '../../theme/themeStore';
 const FilterContainer = styled.div`
   background: ${props => props.theme.colors.panel};
   border-radius: 8px;
-  padding: 16px;
+  padding: 12px;
   border: 1px solid ${props => props.theme.colors.border};
   width: 100%;
   max-width: 520px;
@@ -58,8 +58,8 @@ const Select = styled.select`
   color: ${props => props.theme.colors.text};
   padding: 8px 28px 8px 12px;
   font-size: 0.875rem;
-  width: 120px;
-  max-width: 120px;
+  width: 100px;
+  max-width: 100px;
   height: 36px;
   box-sizing: border-box;
   

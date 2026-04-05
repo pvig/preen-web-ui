@@ -54,14 +54,14 @@ export function ArpFilterEditor() {
   return (
     <ArpFilterContainer>
       <LeftColumn>
+        <NoteCurveEditor curveIndex={0} />
         <FilterEditor filterIndex={0} />
         {pfm3Version !== null && pfm3Version > 100 && (
           <FilterEditor filterIndex={1} />
         )}
-        <NoteCurveEditor curveIndex={0} />
-        <NoteCurveEditor curveIndex={1} />
       </LeftColumn>
       <RightColumn>
+        <NoteCurveEditor curveIndex={1} />
         <ArpeggiatorEditor />
       </RightColumn>
     </ArpFilterContainer>

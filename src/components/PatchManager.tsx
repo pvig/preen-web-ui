@@ -49,19 +49,15 @@ const Btn = styled.button`
 
 const HelpBtn = styled.button`
   background: none;
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 50%;
-  width: 22px;
-  height: 22px;
-  font-size: 13px;
-  line-height: 1;
-  color: ${({ theme }) => theme.colors.textMuted};
+  border: none;
   cursor: pointer;
-
-  &:hover {
-    color: ${({ theme }) => theme.colors.primary};
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.colors.textNotice};
+  padding: 0 4px;
+  line-height: 1;
+  align-self: center;
+  opacity: 0.8;
+  &:hover { opacity: 1; color: ${({ theme }) => theme.colors.textNotice}; }
 `;
 
 const HelpOverlay = styled.div`
@@ -208,7 +204,7 @@ export function BankOrganizerPanel() {
     <Panel>
       <PanelTitle>
         {t('patchManager.organizeBank')}
-        <HelpBtn onClick={() => setShowHelp(true)} title={t('patchManager.helpTooltip')}>?</HelpBtn>
+        <HelpBtn onClick={() => setShowHelp(true)} title={t('patchManager.helpTooltip')}>ℹ</HelpBtn>
       </PanelTitle>
 
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>

@@ -108,37 +108,64 @@ const HelpBtn = styled.button`
   border: none;
   cursor: pointer;
   font-size: 0.75rem;
-  color: ${({ theme }) => theme.colors.textMuted};
+  color: ${({ theme }) => theme.colors.textNotice};
   padding: 0 4px;
   line-height: 1;
   align-self: center;
-  opacity: 0.6;
-  &:hover { opacity: 1; color: ${({ theme }) => theme.colors.text}; }
+  opacity: 0.8;
+  &:hover { opacity: 1; color: ${({ theme }) => theme.colors.textNotice}; }
+`;
+
+const HelpOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
 `;
 
 const HelpPanel = styled.div`
-  margin-top: 6px;
-  padding: 10px 14px;
-  background: ${({ theme }) => theme.colors.panel};
+  background: ${({ theme }) => theme.colors.background};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 8px;
-  font-size: 0.75rem;
-  color: ${({ theme }) => theme.colors.textMuted};
+  max-width: 420px;
+  width: 90%;
+  padding: 20px 24px;
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 13px;
   line-height: 1.6;
 
-  strong {
-    display: block;
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: ${({ theme }) => theme.colors.text};
-    margin-bottom: 6px;
+  h3 {
+    margin: 0 0 12px;
+    font-size: 15px;
   }
 
   ul {
-    margin: 0;
-    padding-left: 1.2em;
+    margin: 8px 0;
+    padding-left: 20px;
+  }
+
+  li {
+    margin-bottom: 4px;
+    color: ${({ theme }) => theme.colors.textMuted};
+  }
+`;
+
+const HelpCloseBtn = styled.button`
+  display: block;
+  margin: 16px auto 0;
+  padding: 5px 20px;
+  border-radius: 4px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  background: ${({ theme }) => theme.colors.button};
+  color: ${({ theme }) => theme.colors.text};
+  cursor: pointer;
+  font-size: 13px;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.buttonHover};
   }
 `;
 
@@ -255,16 +282,19 @@ export function PatchSlotRack() {
       </SlotGroup>
     </Rack>
     {showHelp && (
-      <HelpPanel>
-        <strong>{t('slotRack.help.title')}</strong>
-        <ul>
-          <li>{t('slotRack.help.emptySlot')}</li>
-          <li>{t('slotRack.help.filledSlot')}</li>
-          <li>{t('slotRack.help.load')}</li>
-          <li>{t('slotRack.help.sendAB')}</li>
-          <li>{t('slotRack.help.clear')}</li>
-        </ul>
-      </HelpPanel>
+      <HelpOverlay onClick={(e) => e.target === e.currentTarget && setShowHelp(false)}>
+        <HelpPanel>
+          <h3>{t('slotRack.help.title')}</h3>
+          <ul>
+            <li>{t('slotRack.help.emptySlot')}</li>
+            <li>{t('slotRack.help.filledSlot')}</li>
+            <li>{t('slotRack.help.load')}</li>
+            <li>{t('slotRack.help.sendAB')}</li>
+            <li>{t('slotRack.help.clear')}</li>
+          </ul>
+          <HelpCloseBtn onClick={() => setShowHelp(false)}>{t('slotRack.help.close')}</HelpCloseBtn>
+        </HelpPanel>
+      </HelpOverlay>
     )}
     </div>
   );

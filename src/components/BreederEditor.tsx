@@ -22,7 +22,7 @@ import { useWorkspaceStore } from '../stores/workspaceStore';
 import { useMidiStore } from '../midi/usePreenFM3Midi';
 import { patchToNRPNMessages, downloadPatchFile } from '../midi/patchSerializer';
 import { sendNRPN, clearNRPNQueue, drainNRPNQueue } from '../midi/midiService';
-import { generateChildren, type BreedResult, type DNABlock } from '../utils/geneticAlgorithm';
+import { generateChildren, type BreedResult, type DNABlock, type MatrixRoleDominants } from '../utils/geneticAlgorithm';
 import type { Patch } from '../types/patch';
 
 // ─── Styled components ────────────────────────────────────────────────────────
@@ -323,7 +323,13 @@ const CardBtn = styled.button<{ $variant?: 'listen' | 'parentA' | 'parentB' | 'l
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const BLOCK_LABELS: DNABlock[] = ['ALGO', 'OSC', 'ENV', 'MATRIX', 'FILTER1', 'FILTER2'];
+const BLOCK_LABELS: DNABlock[] = ['ALGO', 'OSC', 'ENV', 'FILTER1', 'FILTER2'];
+
+const MATRIX_ROLE_LABELS: { role: keyof MatrixRoleDominants; label: string }[] = [
+  { role: 'TIMBRE',  label: 'TMBRE' },
+  { role: 'PITCH',   label: 'PITCH' },
+  { role: 'AMP_PAN', label: 'AMP'   },
+];
 
 function algoLabel(patch: Patch): string {
   return `ALGO #${patch.algorithm?.id ?? '?'}`;
@@ -558,6 +564,11 @@ export function BreederEditor() {
                 {BLOCK_LABELS.map(block => (
                   <BlockBadge key={block} $src={result.blocks[block]}>
                     {block}:{result.blocks[block]}
+                  </BlockBadge>
+                ))}
+                {MATRIX_ROLE_LABELS.map(({ role, label }) => (
+                  <BlockBadge key={role} $src={result.matrixRoles[role]}>
+                    {label}:{result.matrixRoles[role]}
                   </BlockBadge>
                 ))}
               </BlockBadges>

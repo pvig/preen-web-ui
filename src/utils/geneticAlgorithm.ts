@@ -15,7 +15,7 @@
  * to every continuous numerical parameter, clamped to its firmware limits.
  */
 
-import type { Patch } from '../types/patch';
+import type { Patch, ModulationMatrixRow } from '../types/patch';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,10 +23,15 @@ export type DNABlock = 'ALGO' | 'OSC' | 'ENV' | 'MATRIX' | 'FILTER1' | 'FILTER2'
 export type BlockSource = 'A' | 'B';
 export type BlockSelection = Record<DNABlock, BlockSource>;
 
+/** Per-role dominance summary for the smart matrix merger. */
+export type MatrixRoleDominants = Record<'TIMBRE' | 'PITCH' | 'AMP_PAN', BlockSource>;
+
 export interface BreedResult {
   patch: Patch;
   /** Which parent contributed each block */
   blocks: BlockSelection;
+  /** Per-role matrix dominance (TIMBRE / PITCH / AMP_PAN → 'A' | 'B') */
+  matrixRoles: MatrixRoleDominants;
 }
 
 // ─── Math helpers ─────────────────────────────────────────────────────────────
@@ -55,6 +60,127 @@ function maybeMutate(value: number, range: number, rate: number, sigma = 0.10): 
   return value + randNormal() * sigma * range;
 }
 
+// ─── Modulation Matrix — Role classification ──────────────────────────────────
+
+/**
+ * Modulation role based on the primary destination string.
+ *   PITCH   — Operator frequency targets (o1-6 Fq, o* Fq, o* FqH, Gate)
+ *   AMP_PAN — Output level and panning (Mix*, Pan*)
+ *   TIMBRE  — Everything else: IM, Filter, Envelope, Matrix multipliers, LFOs…
+ */
+type ModRole = 'TIMBRE' | 'PITCH' | 'AMP_PAN';
+
+const PITCH_DEST_RE   = /^(o[1-6*] Fq|Gate)/;
+const AMP_PAN_DEST_RE = /^(Mix|Pan)/;
+
+function getModRole(dest: string): ModRole {
+  if (AMP_PAN_DEST_RE.test(dest)) return 'AMP_PAN';
+  if (PITCH_DEST_RE.test(dest))   return 'PITCH';
+  return 'TIMBRE';
+}
+
+type RoleGroups = Record<ModRole, ModulationMatrixRow[]>;
+
+/** Split active rows (source ≠ 'None', amount ≠ 0) into the three role buckets. */
+function groupMatrixByRole(rows: ModulationMatrixRow[]): RoleGroups {
+  const groups: RoleGroups = { TIMBRE: [], PITCH: [], AMP_PAN: [] };
+  for (const row of rows) {
+    if (row.amount !== 0 && row.source !== 'None') {
+      groups[getModRole(row.destination1)].push(row);
+    }
+  }
+  return groups;
+}
+
+/** PreenFM3 modulation matrix capacity. */
+const MATRIX_SIZE = 12;
+const EMPTY_ROW: ModulationMatrixRow = {
+  source: 'None', destination1: 'None', destination2: 'None', amount: 0,
+};
+
+/**
+ * LFO-type sources eligible for source-swapping during TIMBRE mutations.
+ * Only LFO oscillators/envelopes/sequencers are substitutable without
+ * breaking the structural intent of the modulation.
+ */
+const LFO_SOURCES = [
+  'LFO 1', 'LFO 2', 'LFO 3',
+  'LFOEnv1', 'LFOEnv2',
+  'LFOSeq1', 'LFOSeq2',
+];
+
+// ─── Smart Matrix Crossover ───────────────────────────────────────────────────
+
+/**
+ * Role-aware modulation matrix merger.
+ *
+ * Strategy:
+ *   1. Each role (TIMBRE / PITCH / AMP_PAN) independently draws a "dominant" parent.
+ *   2. Active rows from the dominant parent are taken as-is.
+ *      When both parents share the same source+destination pair, the amounts
+ *      are blended (arithmetic mean) to preserve musical continuity.
+ *   3. If the combined result exceeds 12 rows, AMP/PAN rows are pruned first
+ *      (they affect loudness/width, which is easier to restore than pitch/timbre).
+ *   4. The result is padded to exactly 12 rows with 'None' entries.
+ *
+ * Returns both the merged rows and a summary of which parent dominated each role.
+ */
+function smartMatrixCrossover(
+  parentA: Patch,
+  parentB: Patch,
+): { rows: ModulationMatrixRow[]; dominants: Record<ModRole, 'A' | 'B'> } {
+  const groupsA = groupMatrixByRole(parentA.modulationMatrix ?? []);
+  const groupsB = groupMatrixByRole(parentB.modulationMatrix ?? []);
+
+  const dominants: Record<ModRole, 'A' | 'B'> = {
+    TIMBRE:  Math.random() < 0.5 ? 'A' : 'B',
+    PITCH:   Math.random() < 0.5 ? 'A' : 'B',
+    AMP_PAN: Math.random() < 0.5 ? 'A' : 'B',
+  };
+
+  const childRows: ModulationMatrixRow[] = [];
+
+  for (const role of ['TIMBRE', 'PITCH', 'AMP_PAN'] as ModRole[]) {
+    const dom = dominants[role];
+    const dominantRows  = dom === 'A' ? groupsA[role] : groupsB[role];
+    const recessiveRows = dom === 'A' ? groupsB[role] : groupsA[role];
+
+    for (const row of dominantRows) {
+      const newRow: ModulationMatrixRow = { ...row };
+
+      // If both parents share the same src+dest, blend the amounts
+      const match = recessiveRows.find(
+        r => r.source === row.source && r.destination1 === row.destination1,
+      );
+      if (match && match.amount !== 0) {
+        newRow.amount = (row.amount + match.amount) / 2;
+      }
+
+      childRows.push(newRow);
+    }
+  }
+
+  // Overflow: prune AMP_PAN rows first (back-to-front to preserve order)
+  if (childRows.length > MATRIX_SIZE) {
+    let toRemove = childRows.length - MATRIX_SIZE;
+    for (let i = childRows.length - 1; i >= 0 && toRemove > 0; i--) {
+      if (getModRole(childRows[i].destination1) === 'AMP_PAN') {
+        childRows.splice(i, 1);
+        toRemove--;
+      }
+    }
+    // Hard cap as a last resort
+    childRows.splice(MATRIX_SIZE);
+  }
+
+  // Pad to MATRIX_SIZE with empty rows
+  while (childRows.length < MATRIX_SIZE) {
+    childRows.push({ ...EMPTY_ROW });
+  }
+
+  return { rows: childRows, dominants };
+}
+
 // ─── Crossover ────────────────────────────────────────────────────────────────
 
 /**
@@ -72,7 +198,7 @@ export function crossover(parentA: Patch, parentB: Patch): BreedResult {
     ALGO:    Math.random() < 0.5 ? 'A' : 'B',
     OSC:     Math.random() < 0.5 ? 'A' : 'B',
     ENV:     Math.random() < 0.5 ? 'A' : 'B',
-    MATRIX:  Math.random() < 0.5 ? 'A' : 'B',
+    MATRIX:  'A', // placeholder; overwritten after smart merger below
     FILTER1: Math.random() < 0.5 ? 'A' : 'B',
     FILTER2: Math.random() < 0.5 ? 'A' : 'B',
   };
@@ -122,11 +248,16 @@ export function crossover(parentA: Patch, parentB: Patch): BreedResult {
     }
   }
 
-  // ── MATRIX block ───────────────────────────────────────────────────────────
-  // Transplants the entire modulation matrix (all rows).
-  if (blocks.MATRIX === 'B') {
-    child.modulationMatrix = JSON.parse(JSON.stringify(parentB.modulationMatrix));
-  }
+  // ── MATRIX block (smart role-aware merger) ─────────────────────────────────
+  // Replaces the naive whole-matrix swap with a per-role dominance strategy.
+  // blocks.MATRIX reflects the majority parent; matrixRoles carries the detail.
+  const matrixRoles = (() => {
+    const { rows, dominants } = smartMatrixCrossover(parentA, parentB);
+    child.modulationMatrix = rows;
+    const aCount = Object.values(dominants).filter(d => d === 'A').length;
+    blocks.MATRIX = aCount >= 2 ? 'A' : 'B';
+    return dominants;
+  })();
 
   // ── FILTER1 block ──────────────────────────────────────────────────────────
   // Transplants Filter 1 (index 0) independently from Filter 2.
@@ -140,7 +271,7 @@ export function crossover(parentA: Patch, parentB: Patch): BreedResult {
     child.filters[1] = JSON.parse(JSON.stringify(parentB.filters[1]));
   }
 
-  return { patch: child, blocks };
+  return { patch: child, blocks, matrixRoles };
 }
 
 // ─── Mutation ─────────────────────────────────────────────────────────────────
@@ -185,9 +316,31 @@ export function mutate(patch: Patch, mutationRate: number): Patch {
     }
   }
 
-  // MATRIX continuous param (amount -10..+10, range 20)
+  // MATRIX contextual mutation
+  //   PITCH   → very fine amount offset (σ = 2 % of full range = 0.4) to stay musical.
+  //   TIMBRE  → either swap source among LFO-type sources OR normal amount offset.
+  //   AMP_PAN → standard amount offset (σ = 10 % of range).
   for (const row of child.modulationMatrix) {
-    row.amount = clamp(maybeMutate(row.amount, 20.0, mutationRate), -10, 10);
+    if (row.source === 'None' || row.amount === 0) continue;
+    if (Math.random() >= mutationRate) continue;
+
+    const role = getModRole(row.destination1);
+
+    if (role === 'PITCH') {
+      // Fine: σ = 2 % of 20-unit range → 0.4
+      row.amount = clamp(row.amount + randNormal() * 0.40, -10, 10);
+    } else if (role === 'TIMBRE') {
+      // 50 % chance to swap LFO source instead of changing amount
+      if (Math.random() < 0.5 && LFO_SOURCES.includes(row.source)) {
+        const others = LFO_SOURCES.filter(s => s !== row.source);
+        row.source = others[Math.floor(Math.random() * others.length)];
+      } else {
+        row.amount = clamp(row.amount + randNormal() * 0.10 * 20, -10, 10);
+      }
+    } else {
+      // AMP_PAN: standard amount mutation
+      row.amount = clamp(row.amount + randNormal() * 0.10 * 20, -10, 10);
+    }
   }
 
   // FILTER continuous params
@@ -212,8 +365,8 @@ export function breed(
   parentB: Patch,
   mutationRate: number,
 ): BreedResult {
-  const { patch, blocks } = crossover(parentA, parentB);
-  return { patch: mutate(patch, mutationRate), blocks };
+  const { patch, blocks, matrixRoles } = crossover(parentA, parentB);
+  return { patch: mutate(patch, mutationRate), blocks, matrixRoles };
 }
 
 /**
