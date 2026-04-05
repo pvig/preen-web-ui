@@ -1,197 +1,234 @@
 # PreenFM3 Web Editor
 
-Éditeur web moderne pour le synthétiseur PreenFM3, avec communication MIDI bidirectionnelle et interface graphique interactive.
+A modern web editor for the PreenFM3 synthesizer with bidirectional MIDI communication, interactive graphical interface, patch management, and genetic patch breeding.
 
-![React](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Vite](https://img.shields.io/badge/Vite-5-purple) ![Web MIDI](https://img.shields.io/badge/Web%20MIDI-API-green)
+![React](https://img.shields.io/badge/React-19-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Vite](https://img.shields.io/badge/Vite-6-purple) ![Web MIDI](https://img.shields.io/badge/Web%20MIDI-API-green)
 
-## ✨ Fonctionnalités
+## ✨ Features
 
-### 🎹 Édition de patches
-- **32 algorithmes FM** avec visualisation graphique du routage
-- **6 opérateurs** configurables (forme d'onde, fréquence, détune, enveloppe ADSR)
-- **Indices de modulation** (IM1-IM6) avec contrôle de vélocité
-- **Carriers** avec contrôles de volume et panoramique
+### 🎹 FM Patch Editing
+- **32 FM algorithms** with interactive SVG routing graph (D3-powered)
+- **6 operators** — waveform, frequency ratio, detune, ADSR envelope, operator curves (7 shapes per segment), keyboard tracking
+- **Modulation indexes** (IM1–IM6) with velocity control
+- **Carrier controls** — individual volume and pan knobs per carrier
 
-### 🔊 Sources de modulation
-- **3 LFOs** (oscillateurs basse fréquence)
-  - Shapes : Sin, Saw, Triangle, Square, Random, Brownian, Wandering, Flow
-  - Fréquence : 0-99.9 Hz ou synchronisation MIDI Clock
-  - Bias, Phase, Key Sync
-- **2 LFO Envelopes** (enveloppes libres)
-  - Env1 : ADSR classique
-  - Env2 : Silence-Attack-Release avec modes de loop
-  - Visualisation interactive avec drag & drop
-- **Matrice de modulation** : 12 routages configurables
-- **Step Sequencers** : 2 séquenceurs, 16 steps chacun *(à venir)*
+### 🔊 Modulation Sources
+- **3 LFOs** — 8 shapes (Sin, Saw, Ramp, Square, Random, Noise, Wandering, Flow), frequency 0–99.9 Hz or 9 MIDI Clock divisions (MC/16 to MC×8), bias, phase, key sync
+- **2 LFO Envelopes** — Env1: classic ADSR; Env2: Silence-Attack-Release with loop modes (Off / Silence / Attack loop); interactive visualizer
+- **Modulation Matrix** — 12 configurable routings (source, destination 1, destination 2, amount)
+- **2 Step Sequencers** — 16 steps each, BPM, gate, Internal/External sync, MIDI clock division
 
-### 🔌 Communication MIDI
-- **Connexion USB** directe avec le PreenFM3 (Web MIDI API)
-- **Patch Pull** : récupération complète du patch depuis le hardware
-- **Édition temps réel** : changements envoyés instantanément au synthé
-- **Sync bidirectionnelle** : UI ↔ Hardware
+### 🎛️ Filters, Arpeggiator & Note Curves
+- **Filter 1** — type, param1, param2, gain
+- **Filter 2** — conditionally displayed for firmware version > 100
+- **Arpeggiator** — clock (Off / Internal / External), BPM, direction, octave, pattern, division, duration, latch
+- **2 Note Curves** — before/break/after scaling with curve type selector and SVG visualizer
 
-### 📊 Visualisations
-- **Graphe d'algorithme SVG** : visualisation du routage FM
-- **Enveloppes interactives** : drag & drop pour éditer les points
-- **Knobs réalistes** : contrôles rotatifs avec feedback visuel
+### 🔌 MIDI Communication
+- **Direct USB connection** to the PreenFM3 (Web MIDI API)
+- **Patch Pull** — full patch retrieval from hardware via NRPN stream
+- **Real-time editing** — every parameter change is sent immediately to the synth
+- **Bidirectional sync** — UI ↔ Hardware
+- **NRPN pacing queue** — prevents buffer overflow on data-heavy sends
+- **Corrected CC mapping** — Mix/Pan CC numbers empirically verified against firmware (22–29, interleaved)
 
-## 🚀 Démarrage rapide
+### 📦 Patch Management
+- **Save/Load `.patch` files** — 1024-byte binary (`FlashSynthParams` format, verified against firmware source)
+- **Bank organizer `.bnk`** — 128-preset banks (128 × 1024 bytes), drag-and-drop reordering, double-click rename, import/export individual patches
+- **4-slot patch memory rack** — quick temporary storage slots; capture current patch, recall or send to Breeder parents
 
-### Prérequis
-- Node.js 18+ et npm
-- Navigateur compatible Web MIDI (Chrome, Edge, Brave, Opera)
-- PreenFM3 connecté via USB
+### 🧬 Genetic Patch Breeder
+- **Two parent slots** — load a patch from file or pull from hardware
+- **Genetic crossover** — 6 DNA blocks (ALGO, OSC, ENV, MATRIX, FILTER1, FILTER2), each inherited from one parent
+- **Smart matrix merging** — tracks modulation role dominance (TIMBRE / PITCH / AMP_PAN) across parents
+- **Gaussian mutation** — Box-Muller noise per parameter, controlled by a mutation rate slider, clamped to firmware limits
+- **Generates 4 children** — each child shows block provenance; per-child actions: Listen (MIDI preview), promote to Parent A/B, Load into editor, Save as `.patch`
+
+### 🔀 Patch Mutation / Interpolation
+- **Continuous mix** between two source patches (factor 0–1)
+- **Harmonic quantization** — frequency crossfades snap through the harmonic grid [0.5, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 12, 16] when both values are on-grid
+- **Discrete parameter threshold** — algorithm, waveform, filter type use 0.5 threshold pick
+
+### 📊 Visualizations & UI
+- **D3 algorithm graph** — real-time FM routing visualization
+- **Interactive envelopes** — drag & drop to edit ADSR points
+- **Realistic knobs** — rotary controls with visual feedback (custom `KnobBase` component)
+- **Real-time spectrogram** — microphone input, FFT 2048, Magma colormap LUT (128 frames rolling buffer; also provides normalized buffer for future ML style-conditioning)
+- **Dark / Light theme** toggle
+- **EN / FR internationalization** — `i18next` with 12 translation namespaces; auto-detects browser language
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+ and npm
+- A Web MIDI compatible browser (Chrome, Edge, Brave, Opera)
+- PreenFM3 connected via USB
 
 ### Installation
 
 ```bash
-# Cloner le repository
 git clone https://github.com/pvig/preen-web-ui.git
 cd preen-web-ui
-
-# Installer les dépendances
 npm install
-
-# Lancer en mode développement
 npm run dev
 ```
 
-L'application sera accessible sur `http://localhost:5173`
+The app will be available at `http://localhost:5173`.
 
-### Build pour production
+### Production Build
 
 ```bash
 npm run build
-npm run preview  # Prévisualiser le build
+npm run preview   # Preview the build locally
 ```
 
-## 📖 Utilisation
+## 📖 Usage
 
-### 1. Connexion MIDI
+### 1. MIDI Connection
 
-1. Branchez votre PreenFM3 en USB
-2. Ouvrez l'application web
-3. Cliquez sur le menu **MIDI** en haut à droite
-4. Sélectionnez votre PreenFM3 dans les listes (Input et Output)
-5. Autorisez l'accès MIDI si demandé par le navigateur
+1. Plug your PreenFM3 in via USB
+2. Open the web app
+3. Click the **MIDI** menu (top right)
+4. Select your PreenFM3 in both the Input and Output lists
+5. Grant MIDI access when prompted by the browser
 
-### 2. Charger un patch
+### 2. Loading a Patch
 
-**Option A : Pull depuis le hardware**
-1. Dans le menu MIDI, cliquez sur **Pull Patch**
-2. Le patch actuel du PreenFM3 est chargé dans l'éditeur
+**Option A — Pull from hardware**
+1. In the MIDI menu, click **Pull Patch**
+2. The current PreenFM3 patch is loaded into the editor
 
-**Option B : Créer un nouveau patch**
-1. Sélectionnez un algorithme dans la liste
-2. Configurez les opérateurs et les modulations
-3. Les changements sont envoyés en temps réel au PreenFM3
+**Option B — Load from file**
+1. Go to the **Library** tab
+2. Use **Load Patch** to open a `.patch` file
 
-### 3. Éditer le patch
+**Option C — From a bank**
+1. Load a `.bnk` file in the Bank Organizer
+2. Drag, rename or export any of the 128 presets
 
-**Page Patch Editor**
-- Sélectionnez l'algorithme FM
-- Visualisez le routage des opérateurs
-- Ajustez les indices de modulation
+### 3. Editing a Patch
 
-**Page Operators**
-- Configurez chaque opérateur (forme d'onde, fréquence, détune)
-- Éditez les enveloppes ADSR de chaque opérateur
-- Contrôlez le volume et le pan des carriers
+| Tab | What you can do |
+|-----|-----------------|
+| **Patch Editor** | Select FM algorithm, visualize operator routing, adjust modulation indexes, configure all 6 operators |
+| **Modulations** | Configure LFOs (shape, frequency, bias, phase), LFO Envelopes, Step Sequencers, Modulation Matrix |
+| **Arp / Filter** | Arpeggiator, Filters 1 & 2, Note Curves |
+| **Effects** | *(coming soon)* |
+| **Library** | Save/load patches and banks, 4-slot memory rack, Breeder editor |
 
-**Page Modulations**
-- Configurez les 3 LFOs (shape, fréquence, bias)
-- Éditez visuellement les 2 LFO Envelopes
-- Configurez la matrice de modulation (12 routages)
+### 4. Saving
 
-### 4. Sauvegarder
+Changes are sent live to the PreenFM3. To save on the hardware itself:
+1. Edit your patch in the editor
+2. On the PreenFM3: Menu → Save → select a slot
 
-Les patches sont automatiquement sauvegardés dans le store local. Pour sauvegarder sur le PreenFM3 :
-1. Éditez votre patch dans l'interface
-2. Sur le PreenFM3 : Menu → Save → sélectionnez un slot
+To save to disk, use **Save Patch** in the Library tab (exports a `.patch` file).
 
-## 🛠️ Architecture technique
+## 🛠️ Technical Architecture
 
 ### Stack
-- **React 18** : Interface utilisateur
-- **TypeScript** : Typage statique
-- **Vite** : Build tool et dev server
-- **Zustand** : State management
-- **styled-components** : Styling
 
-### Structure du projet
+| Technology | Version | Role |
+|------------|---------|------|
+| React | 19 | UI framework |
+| TypeScript | 5.8 | Static typing |
+| Vite | 6 | Build tool & dev server |
+| Zustand + Immer | 5 | State management |
+| styled-components | 6 | CSS-in-JS theming |
+| MUI | 7 | UI component library |
+| D3 | 7 | SVG algorithm visualization |
+| webmidi | 3 | Web MIDI API wrapper |
+| i18next | 25 | Internationalization |
+| Vitest | 2 | Unit testing |
+
+### Project Structure
 
 ```
 src/
-├── components/          # Composants React
-│   ├── fmEngine/       # Éditeur d'algorithmes et opérateurs
-│   ├── modulations/    # LFOs, enveloppes, matrice, séquenceurs
-│   └── knobs/          # Contrôles rotatifs (knobs)
-├── stores/             # Store Zustand (patchStore)
-├── types/              # Types TypeScript
-├── midi/               # Communication MIDI
-│   ├── midiService.ts  # Service MIDI bas niveau
-│   ├── preenFM3Parser.ts  # Parser NRPN
-│   └── README.md       # Documentation MIDI
-├── algo/               # Définitions des algorithmes FM
-└── screens/            # Pages principales
+├── screens/             # Top-level pages (PatchEditor, Modulations, ArpFilter, Effects, Library)
+├── components/
+│   ├── fmEngine/        # Algorithm selector, operator panels, carrier controls, IM matrix
+│   ├── modulations/     # LFOs, LFO envelopes, step sequencers, matrix, filters, arp, note curves
+│   ├── mutation/        # Patch slot for interpolation source A/B
+│   └── knobs/           # Reusable rotary knob component
+├── stores/              # Zustand stores: patchStore, workspaceStore, mutationStore, synthStore
+├── midi/                # MIDI service, NRPN parser, patch serializer, CC/NRPN map, hooks
+├── utils/               # geneticAlgorithm.ts (Breeder engine)
+├── algo/                # 32 FM algorithm definitions
+├── types/               # TypeScript types
+└── locales/             # en/ and fr/ translation JSON files
 ```
 
-### Documentation technique
+### Technical Documentation
 
-- **[MIDI Integration](src/midi/README.md)** : Usage fonctionnel MIDI
-- **[MIDI Technical](src/midi/TECHREADME.md)** : Protocole MIDI détaillé (CC, NRPN, mapping)
+- [src/midi/README.md](src/midi/README.md) — MIDI functional usage
+- [src/midi/TECHREADME.md](src/midi/TECHREADME.md) — Detailed MIDI protocol (CC, NRPN, mapping)
+- [PATCH_MANAGEMENT.md](PATCH_MANAGEMENT.md) — Binary format, NRPN, firmware compatibility
+- [copilot/ARCHITECTURE.md](copilot/ARCHITECTURE.md) — Full architecture reference
 
-## 🌐 Compatibilité navigateur
+### Binary Patch Format
 
-| Navigateur | Support | Notes |
-|------------|---------|-------|
-| Chrome / Chromium | ✅ | Recommandé |
-| Edge | ✅ | Recommandé |
-| Brave | ✅ | Recommandé |
+- `.patch` = exactly **1024 bytes** (`FlashSynthParams` struct, float32 little-endian), verified against PreenFM3 firmware source
+- `.bnk` = **128 × 1024 = 131 072 bytes** (flat concatenation of 128 patches)
+- Filter 2 is encoded at binary offset 920; the serializer handles the NRPN address collision with oscillator parameters
+
+## 🌐 Browser Compatibility
+
+| Browser | Support | Notes |
+|---------|---------|-------|
+| Chrome / Chromium | ✅ | Recommended |
+| Edge | ✅ | Recommended |
+| Brave | ✅ | Recommended |
 | Opera | ✅ | |
-| Firefox | ⚠️ | Nécessite activation du flag `dom.webmidi.enabled` |
-| Safari | ❌ | Web MIDI non supporté |
+| Firefox | ⚠️ | Requires enabling `dom.webmidi.enabled` flag |
+| Safari | ❌ | Web MIDI not supported |
 
 ## 🎯 Roadmap
 
-### Implémenté
-- ✅ Éditeur d'algorithmes et opérateurs
-- ✅ LFOs avec MIDI Clock sync
-- ✅ LFO Envelopes interactives
-- ✅ Matrice de modulation
-- ✅ Patch Pull complet (NRPN parser)
-- ✅ Patch Push complet (envoi NRPN de tous les paramètres)
-- ✅ Édition temps réel (volume carriers, algorithme, IM)
-- ✅ Sauvegarde/chargement de patches (`.patch`, 1024 bytes FlashSynthParams)
-- ✅ Organisation de banks (`.bnk`, 128 × 1024 bytes) — drag-and-drop, renommage, import/export de patches
-- ✅ Compatibilité firmware PreenFM3 (format binaire vérifié contre le code source firmware)
+### Implemented
+- ✅ Full FM patch editor — 32 algorithms, 6 operators, IM matrix, carrier controls
+- ✅ 3 LFOs with MIDI Clock sync (9 clock modes), bias, phase, key sync
+- ✅ 2 LFO Envelopes (ADSR + loop modes) with interactive visualizer
+- ✅ 2 Step Sequencers (16 steps, BPM, gate, MIDI clock division)
+- ✅ Filters 1 & 2 (Filter 2 conditional on firmware version)
+- ✅ Arpeggiator (full control set)
+- ✅ 2 Note Curves with SVG visualizer
+- ✅ Modulation Matrix (12 rows, source × 2 destinations × amount)
+- ✅ Full NRPN Pull (complete bidirectional sync with hardware)
+- ✅ Full NRPN Push (all parameters sent live on change)
+- ✅ `.patch` file save/load (1024-byte `FlashSynthParams`)
+- ✅ `.bnk` bank organizer (drag-and-drop, rename, import/export)
+- ✅ 4-slot patch memory rack
+- ✅ Genetic Patch Breeder (6-block DNA, Gaussian mutation, 4 children)
+- ✅ Patch mutation/interpolation with harmonic quantization
+- ✅ Real-time audio spectrogram (microphone, Magma LUT)
+- ✅ EN/FR internationalization (12 namespaces, auto language detection)
+- ✅ Dark/Light theme toggle
+- ✅ Corrected MIDI CC Mix/Pan mapping (empirically verified)
 
-### En cours / À venir
-- ⏳ Step Sequencers (UI + MIDI)
-- ⏳ Undo/Redo
-- ⏳ Éditeur d'effets (filtres, reverb, etc.)
+### In Progress / Coming Soon
+- ⏳ Effects editor (filters, reverb, chorus...)
+- ⏳ Undo / Redo
+- ⏳ ML-assisted patch variation (CVAE latent space, style conditioning from spectrogram)
 
-> 📖 Voir [PATCH_MANAGEMENT.md](PATCH_MANAGEMENT.md) pour la documentation technique détaillée
-> du système de gestion des patches (format binaire, architecture, NRPN, firmware).
+## 🤝 Contributing
 
-## 🤝 Contribution
-
-Les contributions sont les bienvenues ! N'hésitez pas à :
-- Ouvrir des issues pour rapporter des bugs ou suggérer des fonctionnalités
-- Soumettre des pull requests
-- Améliorer la documentation
+Contributions are welcome! Feel free to:
+- Open issues to report bugs or suggest features
+- Submit pull requests
+- Improve documentation
 
 ## 📄 License
 
-Ce projet est sous licence MIT. Voir le fichier LICENSE pour plus de détails.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-## 🙏 Remerciements
+## 🙏 Acknowledgements
 
-- [Xavier Hosxe](https://github.com/Ixox) pour le PreenFM3 et son firmware open source
-- La communauté PreenFM pour le support et les feedbacks
-- [Web MIDI API](https://www.w3.org/TR/webmidi/) pour rendre la communication MIDI possible dans le navigateur
+- [Xavier Hosxe](https://github.com/Ixox) for the PreenFM3 and its open-source firmware
+- The PreenFM community for support and feedback
+- [Web MIDI API](https://www.w3.org/TR/webmidi/) for making browser-based MIDI communication possible
 
-## 🔗 Liens utiles
+## 🔗 Useful Links
 
 - [PreenFM3 Firmware](https://github.com/Ixox/preenfm3)
 - [PreenFM3 Website](https://ixox.fr/preenfm2/)
@@ -200,5 +237,5 @@ Ce projet est sous licence MIT. Voir le fichier LICENSE pour plus de détails.
 
 ---
 
-**Développé avec ❤️ pour la communauté PreenFM**
+**Developed with ❤️ for the PreenFM community**
 
