@@ -28,7 +28,7 @@ import type { Patch } from '../types/patch';
 // ─── Styled components ────────────────────────────────────────────────────────
 
 const Section = styled.section`
-  background: ${({ theme }) => theme.colors.panel};
+  background: ${({ theme }) => theme.colors.panelHover};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 10px;
   padding: 16px;

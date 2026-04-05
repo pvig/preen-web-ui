@@ -14,15 +14,25 @@ const LibraryContainer = styled.div`
   gap: 20px;
 `;
 
+const PatchEvolverContainer = styled.div`
+  background: ${props => props.theme.colors.panel};
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid ${props => props.theme.colors.border};
+  gap: 20px;
+`;
+
 export function PatchLibrary() {
   const spectrogramRef = useRef<PreenSpectrogramHandle>(null);
   return (
     <LibraryContainer>
       <PatchSavePanel />
       <BankOrganizerPanel />
-      <PatchSlotRack />
       <PreenSpectrogram ref={spectrogramRef} />
-      <BreederEditor />
+      <PatchEvolverContainer>
+        <PatchSlotRack />
+        <BreederEditor />
+      </PatchEvolverContainer>
     </LibraryContainer>
   );
 }

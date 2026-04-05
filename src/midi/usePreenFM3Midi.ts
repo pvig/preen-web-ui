@@ -20,6 +20,7 @@ import {
   onSysEx,
   getMidiStatus,
   logMidiStatus,
+  onDevicesChanged,
 } from './midiService';
 
 import type { NRPNMessage } from './preenFM3MidiMap';
@@ -94,6 +95,7 @@ interface MidiStoreActions {
   _setLoading: (isLoading: boolean) => void;
   _setInitialized: (devices: MidiDevices, selectedInput: Input | null, selectedOutput: Output | null, channel: number) => void;
   _setError: (error: string) => void;
+  _updateDevices: (devices: MidiDevices, selectedInput: Input | null, selectedOutput: Output | null) => void;
   selectInput: (input: Input | null) => void;
   selectOutput: (output: Output | null) => void;
   changeChannel: (channel: number) => void;
@@ -119,6 +121,12 @@ export const useMidiStore = create<MidiStore>((set, get) => ({
   _setInitialized: (devices, selectedInput, selectedOutput, channel) =>
     set({ enabled: true, devices, selectedInput, selectedOutput, channel, isLoading: false }),
   _setError: (error) => set({ enabled: false, isLoading: false, error }),
+  _updateDevices: (devices, selectedInput, selectedOutput) =>
+    set((state) => ({
+      devices,
+      selectedInput: selectedInput ?? state.selectedInput,
+      selectedOutput: selectedOutput ?? state.selectedOutput,
+    })),
 
   // Public actions
 
@@ -241,6 +249,44 @@ export function usePreenFM3Midi() {
             selectedChannel
           );
         }
+
+        // Listen for device hotplug events and auto-reconnect saved devices
+        onDevicesChanged((newDevices) => {
+          const prefs = loadMidiPreferences();
+          const store = useMidiStore.getState();
+
+          // Try to find the previously selected (or saved) input/output by id
+          const currentInputId = store.selectedInput?.id || prefs.inputId;
+          const currentOutputId = store.selectedOutput?.id || prefs.outputId;
+
+          const newInput = currentInputId
+            ? newDevices.inputs.find(i => i.id === currentInputId) ?? null
+            : store.selectedInput;
+          const newOutput = currentOutputId
+            ? newDevices.outputs.find(o => o.id === currentOutputId) ?? null
+            : store.selectedOutput;
+
+          if (newInput && newInput !== store.selectedInput) {
+            console.log('🔌 Auto-reconnexion MIDI Input:', newInput.name);
+            setMidiInput(newInput);
+          } else if (!newInput && store.selectedInput) {
+            // Device was disconnected
+            setMidiInput(null);
+          }
+
+          if (newOutput && newOutput !== store.selectedOutput) {
+            console.log('🔌 Auto-reconnexion MIDI Output:', newOutput.name);
+            setMidiOutput(newOutput);
+          } else if (!newOutput && store.selectedOutput) {
+            setMidiOutput(null);
+          }
+
+          useMidiStore.getState()._updateDevices(
+            newDevices,
+            newInput,
+            newOutput,
+          );
+        });
         
       } catch (err) {
         useMidiStore.getState()._setError(

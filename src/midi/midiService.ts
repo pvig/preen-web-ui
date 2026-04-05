@@ -538,6 +538,23 @@ let midiInput: Input | null = null;
 let midiOutput: Output | null = null;
 let currentChannel = 1; // MIDI channel 1-16
 
+type DevicesChangedCallback = (devices: { inputs: Input[]; outputs: Output[] }) => void;
+const devicesChangedListeners = new Set<DevicesChangedCallback>();
+
+/**
+ * Register a callback to be notified when MIDI devices are added or removed.
+ * Returns an unsubscribe function.
+ */
+export function onDevicesChanged(callback: DevicesChangedCallback): () => void {
+  devicesChangedListeners.add(callback);
+  return () => devicesChangedListeners.delete(callback);
+}
+
+function notifyDevicesChanged() {
+  const devices = { inputs: WebMidi.inputs, outputs: WebMidi.outputs };
+  devicesChangedListeners.forEach(cb => cb(devices));
+}
+
 /**
  * Initialize Web MIDI and get available devices
  */
@@ -547,6 +564,15 @@ export async function initializeMidi(): Promise<{ inputs: Input[]; outputs: Outp
     console.log('Web MIDI enabled');
     console.log('Inputs:', WebMidi.inputs.map(i => i.name));
     console.log('Outputs:', WebMidi.outputs.map(o => o.name));
+
+    WebMidi.addListener('connected', () => {
+      console.log('🔌 MIDI device connected:', WebMidi.inputs.map(i => i.name), WebMidi.outputs.map(o => o.name));
+      notifyDevicesChanged();
+    });
+    WebMidi.addListener('disconnected', () => {
+      console.log('🔌 MIDI device disconnected');
+      notifyDevicesChanged();
+    });
     
     return {
       inputs: WebMidi.inputs,

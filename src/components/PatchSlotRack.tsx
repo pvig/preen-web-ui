@@ -23,7 +23,7 @@ const Rack = styled.div`
   align-items: stretch;
   gap: 8px;
   padding: 10px 14px;
-  background: ${({ theme }) => theme.colors.panel};
+  background: ${({ theme }) => theme.colors.panelHover};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 10px;
 `;
