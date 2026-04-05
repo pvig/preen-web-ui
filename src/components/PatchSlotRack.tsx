@@ -11,6 +11,7 @@
  */
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { useCurrentPatch } from '../stores/patchStore';
 import { useWorkspaceStore, SLOT_COUNT } from '../stores/workspaceStore';
@@ -102,6 +103,45 @@ const SlotActions = styled.div`
   border-top: 1px solid ${({ theme }) => theme.colors.border};
 `;
 
+const HelpBtn = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.colors.textMuted};
+  padding: 0 4px;
+  line-height: 1;
+  align-self: center;
+  opacity: 0.6;
+  &:hover { opacity: 1; color: ${({ theme }) => theme.colors.text}; }
+`;
+
+const HelpPanel = styled.div`
+  margin-top: 6px;
+  padding: 10px 14px;
+  background: ${({ theme }) => theme.colors.panel};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.colors.textMuted};
+  line-height: 1.6;
+
+  strong {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: ${({ theme }) => theme.colors.text};
+    margin-bottom: 6px;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.2em;
+  }
+`;
+
 const ActionBtn = styled.button<{ $color?: string }>`
   flex: 1;
   padding: 3px 0;
@@ -120,12 +160,14 @@ const ActionBtn = styled.button<{ $color?: string }>`
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function PatchSlotRack() {
+  const { t } = useTranslation();
   const currentPatch = useCurrentPatch();
   const { slots, saveToSlot, clearSlot, loadFromSlot, setBreedParentA, setBreedParentB } =
     useWorkspaceStore();
 
   /** Track which slot is showing its action bar (click on filled slot toggles it). */
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
 
   const handleSlotClick = (i: number) => {
     if (slots[i]) {
@@ -151,8 +193,17 @@ export function PatchSlotRack() {
   };
 
   return (
+    <div>
     <Rack>
-      <RackLabel>Slots</RackLabel>
+      <RackLabel>
+        {t('slotRack.label')}
+        <HelpBtn
+          title={t('slotRack.helpTooltip')}
+          onClick={() => setShowHelp(v => !v)}
+        >
+          ℹ
+        </HelpBtn>
+      </RackLabel>
       <SlotGroup>
         {Array.from({ length: SLOT_COUNT }, (_, i) => {
           const patch = slots[i];
@@ -162,7 +213,7 @@ export function PatchSlotRack() {
               <SlotMain $filled={!!patch} onClick={() => handleSlotClick(i)}>
                 <SlotIndex>{i + 1}</SlotIndex>
                 <SlotName $filled={!!patch}>
-                  {patch ? patch.name || '(sans nom)' : '+ Capturer'}
+                  {patch ? patch.name || t('slotRack.unnamed') : t('slotRack.capture')}
                 </SlotName>
               </SlotMain>
 
@@ -170,31 +221,31 @@ export function PatchSlotRack() {
                 <SlotActions>
                   <ActionBtn
                     $color="#10b981"
-                    title="Charger dans l'éditeur"
+                    title={t('slotRack.loadTitle')}
                     onClick={() => { loadFromSlot(i); setExpandedIdx(null); }}
                   >
-                    ↓ Load
+                    {t('slotRack.load')}
                   </ActionBtn>
                   <ActionBtn
                     $color="#818cf8"
-                    title="Envoyer au Breeder comme Parent A"
+                    title={t('slotRack.sendToATitle')}
                     onClick={() => setBreedParentA(JSON.parse(JSON.stringify(patch)))}
                   >
-                    → A
+                    {t('slotRack.sendToA')}
                   </ActionBtn>
                   <ActionBtn
                     $color="#34d399"
-                    title="Envoyer au Breeder comme Parent B"
+                    title={t('slotRack.sendToBTitle')}
                     onClick={() => setBreedParentB(JSON.parse(JSON.stringify(patch)))}
                   >
-                    → B
+                    {t('slotRack.sendToB')}
                   </ActionBtn>
                   <ActionBtn
                     $color="#f87171"
-                    title="Vider le slot"
+                    title={t('slotRack.clearTitle')}
                     onClick={(e) => handleClear(i, e)}
                   >
-                    ×
+                    {t('slotRack.clear')}
                   </ActionBtn>
                 </SlotActions>
               )}
@@ -203,5 +254,18 @@ export function PatchSlotRack() {
         })}
       </SlotGroup>
     </Rack>
+    {showHelp && (
+      <HelpPanel>
+        <strong>{t('slotRack.help.title')}</strong>
+        <ul>
+          <li>{t('slotRack.help.emptySlot')}</li>
+          <li>{t('slotRack.help.filledSlot')}</li>
+          <li>{t('slotRack.help.load')}</li>
+          <li>{t('slotRack.help.sendAB')}</li>
+          <li>{t('slotRack.help.clear')}</li>
+        </ul>
+      </HelpPanel>
+    )}
+    </div>
   );
 }

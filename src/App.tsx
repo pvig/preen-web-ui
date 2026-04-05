@@ -6,7 +6,6 @@ import { ModulationsEditor } from './screens/modulationsEditor';
 import { ArpFilterEditor } from './screens/ArpFilterEditor';
 import { EffectsEditor } from './screens/EffectsEditor';
 import { PatchLibrary } from './screens/PatchLibrary';
-import { LatentSpaceMap } from './components/LatentSpaceMap';
 
 import { MidiMenu } from './components/MidiMenu';
 import { MidiCCTester } from './components/MidiCCTester';
@@ -17,7 +16,7 @@ import { useMidiActions } from './midi/useMidiActions';
 import { useCurrentPatch, usePatchStore } from './stores/patchStore';
 import { useMutationStore } from './stores/mutationStore';
 
-type AppScreen = 'patch' | 'matrix' | 'arpfilter' | 'effects' | 'library' | 'map';
+type AppScreen = 'patch' | 'matrix' | 'arpfilter' | 'effects' | 'library';
 
 const AppContainer = styled.div`
   background-color: ${props => props.theme.colors.background};
@@ -310,9 +309,6 @@ export default function App() {
             <button onClick={() => setCurrentScreen('library')} className={currentScreen === 'library' ? 'active' : ''}>
               {t('nav.library')}
             </button>
-            <button onClick={() => setCurrentScreen('map')} className={currentScreen === 'map' ? 'active' : ''}>
-              🗺 Map
-            </button>
           </div>
           
           
@@ -351,12 +347,9 @@ export default function App() {
           {currentScreen === 'matrix' && <ModulationsEditor />}
           {currentScreen === 'arpfilter' && <ArpFilterEditor />}
           {currentScreen === 'effects' && <EffectsEditor />}
-          {/* Always mounted — preserves AudioContext and CVAE model state across tab switches */}
+          {/* Always mounted — preserves state across tab switches */}
           <div style={currentScreen !== 'library' ? { display: 'none' } : undefined}>
             <PatchLibrary />
-          </div>
-          <div style={currentScreen !== 'map' ? { display: 'none' } : undefined}>
-            <LatentSpaceMap />
           </div>
         </Main>
         

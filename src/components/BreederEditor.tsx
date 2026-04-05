@@ -15,6 +15,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { useCurrentPatch, usePatchStore } from '../stores/patchStore';
 import { useWorkspaceStore } from '../stores/workspaceStore';
@@ -336,6 +337,7 @@ function patchMeta(patch: Patch): string {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function BreederEditor() {
+  const { t } = useTranslation();
   const currentPatch  = useCurrentPatch();
   const { loadPatch } = usePatchStore();
   const midiChannel   = useMidiStore(s => s.channel);
@@ -421,29 +423,26 @@ export function BreederEditor() {
     <Section>
       {/* Header */}
       <Header>
-        <Title>🧬 Genetic Breeder</Title>
-        <Subtitle>
-          Evolve new patches by crossing two parents. Each DNA block (ALGO, OSC,
-          ENV, MATRIX, FILTER) is inherited wholesale from one parent.
-        </Subtitle>
+        <Title>{t('breeder.title')}</Title>
+        <Subtitle>{t('breeder.subtitle')}</Subtitle>
       </Header>
 
       {/* Parents */}
       <ParentsRow>
         {/* Parent A */}
         <ParentSlot $filled={!!parentA}>
-          <SlotLabel>Parent A</SlotLabel>
+          <SlotLabel>{t('breeder.parentA')}</SlotLabel>
           {parentA ? (
             <>
               <SlotName title={parentA.name}>{parentA.name}</SlotName>
               <SlotMeta>{patchMeta(parentA)}</SlotMeta>
             </>
           ) : (
-            <SlotEmpty>No patch loaded</SlotEmpty>
+            <SlotEmpty>{t('breeder.nopatch')}</SlotEmpty>
           )}
           <SlotActions>
             <Btn $variant="ghost" style={{ flex: 1 }} onClick={() => loadIntoSlot('A')}>
-              Load from Editor
+              {t('breeder.loadFromEditor')}
             </Btn>
             {parentA && (
               <Btn $variant="ghost" onClick={() => { setParentA(null); setChildren([]); }}>
@@ -458,7 +457,7 @@ export function BreederEditor() {
                 $variant="ghost"
                 style={{ flex: 1, opacity: s ? 1 : 0.35 }}
                 disabled={!s}
-                title={s ? `Charger "${s.name}" depuis le slot ${i + 1}` : `Slot ${i + 1} vide`}
+                title={s ? t('breeder.slotTitle', { name: s.name, index: i + 1 }) : t('breeder.slotEmpty', { index: i + 1 })}
                 onClick={() => {
                   if (!s) return;
                   setParentA(JSON.parse(JSON.stringify(s)));
@@ -476,18 +475,18 @@ export function BreederEditor() {
 
         {/* Parent B */}
         <ParentSlot $filled={!!parentB}>
-          <SlotLabel>Parent B</SlotLabel>
+          <SlotLabel>{t('breeder.parentB')}</SlotLabel>
           {parentB ? (
             <>
               <SlotName title={parentB.name}>{parentB.name}</SlotName>
               <SlotMeta>{patchMeta(parentB)}</SlotMeta>
             </>
           ) : (
-            <SlotEmpty>No patch loaded</SlotEmpty>
+            <SlotEmpty>{t('breeder.nopatch')}</SlotEmpty>
           )}
           <SlotActions>
             <Btn $variant="ghost" style={{ flex: 1 }} onClick={() => loadIntoSlot('B')}>
-              Load from Editor
+              {t('breeder.loadFromEditor')}
             </Btn>
             {parentB && (
               <Btn $variant="ghost" onClick={() => { setParentB(null); setChildren([]); }}>
@@ -502,7 +501,7 @@ export function BreederEditor() {
                 $variant="ghost"
                 style={{ flex: 1, opacity: s ? 1 : 0.35 }}
                 disabled={!s}
-                title={s ? `Charger "${s.name}" depuis le slot ${i + 1}` : `Slot ${i + 1} vide`}
+                title={s ? t('breeder.slotTitle', { name: s.name, index: i + 1 }) : t('breeder.slotEmpty', { index: i + 1 })}
                 onClick={() => {
                   if (!s) return;
                   setParentB(JSON.parse(JSON.stringify(s)));
@@ -520,7 +519,7 @@ export function BreederEditor() {
       {/* Controls */}
       <ControlsRow>
         <MutationRow>
-          <ControlLabel>Mutation</ControlLabel>
+          <ControlLabel>{t('breeder.mutation')}</ControlLabel>
           <MutationSlider
             type="range"
             min={0}
@@ -537,7 +536,7 @@ export function BreederEditor() {
           disabled={!canGenerate || generating}
           onClick={handleGenerate}
         >
-          {generating ? 'Breeding…' : '🧬 Generate 4 Children'}
+          {generating ? t('breeder.generating') : t('breeder.generate')}
         </GenerateBtn>
       </ControlsRow>
 
@@ -568,9 +567,9 @@ export function BreederEditor() {
                   $variant="listen"
                   disabled={!canListen || sendingIdx !== null}
                   onClick={() => sendPatch(result.patch, idx)}
-                  title="Send to PreenFM3 via MIDI"
+                  title={t('breeder.listenTitle')}
                 >
-                  {sendingIdx === idx ? '…' : '▶ Listen'}
+                  {sendingIdx === idx ? t('breeder.listening') : t('breeder.listen')}
                 </CardBtn>
               </CardActions>
 
@@ -578,27 +577,27 @@ export function BreederEditor() {
                 <CardBtn
                   $variant="parentA"
                   onClick={() => promoteChild(result, 'A')}
-                  title="Set as Parent A"
+                  title={t('breeder.setAsATitle')}
                 >
-                  = A
+                  {t('breeder.setAsA')}
                 </CardBtn>
                 <CardBtn
                   $variant="parentB"
                   onClick={() => promoteChild(result, 'B')}
-                  title="Set as Parent B"
+                  title={t('breeder.setAsBTitle')}
                 >
-                  = B
+                  {t('breeder.setAsB')}
                 </CardBtn>
                 <CardBtn
                   $variant="load"
                   onClick={() => loadChild(result, idx)}
-                  title="Load into editor"
+                  title={t('breeder.loadTitle')}
                 >
-                  Load
+                  {t('breeder.load')}
                 </CardBtn>
                 <CardBtn
                   onClick={() => saveChild(result)}
-                  title="Save as .patch file"
+                  title={t('breeder.saveTitle')}
                 >
                   ⬇
                 </CardBtn>
@@ -608,7 +607,7 @@ export function BreederEditor() {
                   <CardBtn
                     key={si}
                     onClick={() => saveToSlot(si, JSON.parse(JSON.stringify(result.patch)))}
-                    title={`Sauvegarder dans le slot ${si + 1}`}
+                    title={t('breeder.saveToSlotTitle', { index: si + 1 })}
                   >
                     → S{si + 1}
                   </CardBtn>
