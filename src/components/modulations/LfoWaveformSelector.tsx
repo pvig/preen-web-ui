@@ -14,7 +14,7 @@ import { useThemeStore } from '../../theme/themeStore';
 
 const SelectorContainer = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
 `;
 
@@ -40,7 +40,7 @@ const Select = styled.select`
   border-radius: 4px;
   color: ${props => props.theme.colors.text};
   padding: 8px 12px;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   min-width: 140px;
   cursor: pointer;
   

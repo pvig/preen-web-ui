@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
 
 interface KeyboardTrackingSelectProps {
   value: number;
@@ -29,8 +30,8 @@ const StyledSelect = styled.select`
   border-radius: 4px;
   color: ${props => props.theme.colors.text};
   padding: 8px 28px 8px 12px;
-  font-size: 0.875rem;
-  width: 120px;
+  font-size: 0.75rem;
+  width: 100px;
   max-width: 120px;
   height: 36px;
   cursor: pointer;
@@ -47,9 +48,11 @@ const StyledSelect = styled.select`
 `;
 
 export const KeyboardTrackingSelect: React.FC<KeyboardTrackingSelectProps> = ({ value, onChange }) => {
+  const { t } = useTranslation();
+
   return (
     <ControlContainer>
-      <ControlLabel>Tracking clavier</ControlLabel>
+      <ControlLabel>{t('keyboardTrackingSelect.label')}</ControlLabel>
       <StyledSelect
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}

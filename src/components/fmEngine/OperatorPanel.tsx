@@ -8,6 +8,7 @@ import KnobBase from '../knobs/KnobBase';
 import { useThemeStore } from '../../theme/themeStore';
 import { useOperator, updateOperator } from '../../stores/patchStore';
 import { useFMSynthContext } from './FMSynthContext';
+import { useTranslation } from 'react-i18next';
 
 const PanelContainer = styled.div<{ $isHighlighted?: boolean }>`
   background-color: ${props => props.theme.colors.panelHover};
@@ -29,8 +30,8 @@ const PanelContainer = styled.div<{ $isHighlighted?: boolean }>`
 const ControlsRow = styled.div`
   display: flex;
   gap: 0;
-  padding-left: 10px;
-  justify-content: center;
+
+  justify-content: space-between;
   margin-bottom: 0;
 `;
 
@@ -44,6 +45,7 @@ export const OperatorPanel = ({ opNumber }: OperatorPanelProps) => {
   const { theme } = useThemeStore();
   const opId = opNumber;
   const isHighlighted = highlightedNode === opNumber;
+  const { t } = useTranslation();
 
   return (
     <PanelContainer
@@ -51,37 +53,39 @@ export const OperatorPanel = ({ opNumber }: OperatorPanelProps) => {
       onMouseEnter={() => setHighlightedNode(opNumber)}
       onMouseLeave={() => setHighlightedNode(null)}
     >
-      <h3>Operator {opNumber}</h3>
+      <h3>{t('operator.title', { number: opNumber })}</h3>
 
       <ControlsRow>
-        <KnobBase
-          label="Frequency" 
-          value={selectedOperator?.frequency ?? 0}
-          min={0} 
-          max={16} 
-          step={0.01}
-          onChange={val => updateOperator(opId, { frequency: val })}
-          renderLabel={(v: number) => v.toFixed(2)}
-          labelPosition="left"
-          color={theme.colors.knobFrequency}
-          strokeColor={theme.colors.knobStroke}
-          backgroundColor={theme.colors.knobBackground}
-          size={60}
-        />
-        <KnobBase
-          label="Fine tuning" 
-          value={selectedOperator?.detune ?? 0}
-          min={-16} 
-          max={16} 
-          step={0.01}
-          onChange={val => updateOperator(opId, { detune: val })}
-          renderLabel={(v: number) => v.toFixed(2)}
-          labelPosition="left"
-          color={theme.colors.knobFrequency}
-          strokeColor={theme.colors.knobStroke}
-          backgroundColor={theme.colors.knobBackground}
-          size={60}
-        />
+         <KnobBase
+            label={t('operator.frequency')}
+            value={selectedOperator?.frequency ?? 0}
+            min={0}
+            max={16}
+            step={0.01}
+            onChange={val => updateOperator(opId, { frequency: val })}
+            renderLabel={(v: number) => v.toFixed(2)}
+            labelPosition="left"
+            color={theme.colors.knobFrequency}
+            strokeColor={theme.colors.knobStroke}
+            backgroundColor={theme.colors.knobBackground}
+            size={60}
+            knobRadius={16}
+          />
+          <KnobBase
+            label={t('operator.fineTune')}
+            value={selectedOperator?.detune ?? 0}
+            min={-16}
+            max={16}
+            step={0.01}
+            onChange={val => updateOperator(opId, { detune: val })}
+            renderLabel={(v: number) => v.toFixed(2)}
+            labelPosition="left"
+            color={theme.colors.knobFrequency}
+            strokeColor={theme.colors.knobStroke}
+            backgroundColor={theme.colors.knobBackground}
+            size={60}
+            knobRadius={16}
+          />
       </ControlsRow>
 
       <AdsrControl operatorId={opId} />

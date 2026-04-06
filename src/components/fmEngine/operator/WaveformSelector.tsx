@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import { WaveformType, WAVEFORMS } from '../../../types/waveform';
 import { waveformToDisplayName } from '../../../utils/waveformUtils';
+import { useTranslation } from 'react-i18next';
 
 const ControlContainer = styled.div`
   display: flex;
@@ -20,8 +21,8 @@ const StyledSelect = styled.select`
   border-radius: 4px;
   color: ${props => props.theme.colors.text};
   padding: 8px 28px 8px 12px;
-  font-size: 0.875rem;
-  width: 120px;
+  font-size: 0.75rem;
+  width: 100px;
   max-width: 120px;
   height: 36px;
   cursor: pointer;
@@ -38,9 +39,11 @@ const StyledSelect = styled.select`
 `;
 
 export const WaveformSelector = ({ value, onChange }: { value?: WaveformType; onChange: (v: WaveformType) => void }) => {
+  const { t } = useTranslation();
+
   return (
     <ControlContainer>
-      <ControlLabel>Forme d'onde</ControlLabel>
+      <ControlLabel>{t('waveformSelector.label')}</ControlLabel>
       <StyledSelect
         value={value || 'SINE'}
         onChange={(e) => onChange(e.target.value as WaveformType)}

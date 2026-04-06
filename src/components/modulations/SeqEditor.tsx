@@ -18,14 +18,12 @@ const SeqContainer = styled.div`
 `;
 
 const HeaderRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 12px;
 `;
 
 const TitleTabGroup = styled.div`
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 12px;
 `;
@@ -127,8 +125,9 @@ const StepValue = styled.div`
 `;
 
 const SeqControls = styled.div`
-  display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 20px;
   align-items: center;
   flex-wrap: wrap;
 `;

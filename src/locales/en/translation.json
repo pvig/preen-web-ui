@@ -28,8 +28,8 @@
       "LFO_SQUARE": "Square",
       "LFO_RANDOM": "Random S&H",
       "LFO_BROWNIAN": "Brownian S&H",
-      "LFO_WANDERING": "Wandering (interpolated)",
-      "LFO_FLOW": "Flow (interpolated)"
+      "LFO_WANDERING": "Wandering",
+      "LFO_FLOW": "Flow"
     }
   },
   "operator": {
@@ -39,6 +39,12 @@
     "waveform": "Waveform",
     "keyboardTracking": "Keyboard Tracking",
     "adsr": "ADSR Envelope"
+  },
+  "waveformSelector": {
+    "label": "Waveform"
+  },
+   "keyboardTrackingSelect": {
+    "label": "Keyboard Tracking"
   },
   "algorithm": {
     "title": "Algorithm",

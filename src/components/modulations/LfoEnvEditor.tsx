@@ -19,6 +19,13 @@ const EnvContainer = styled.div`
   border: 1px solid ${props => props.theme.colors.border};
 `;
 
+const HeaderRow = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+`;
+
 const EnvTitle = styled.h3`
   color: ${props => props.theme.colors.text};
   font-size: 1rem;
@@ -223,19 +230,21 @@ export const LfoEnvEditor: React.FC = () => {
 
   return (
     <EnvContainer>
-      <EnvTitle>{t('modulation.lfoEnvEditor')}</EnvTitle>
-      
-      <EnvTabs>
-        {([0, 1] as const).map((envNum) => (
-          <EnvTab
-            key={envNum}
-            $active={activeEnv === envNum}
-            onClick={() => setActiveEnv(envNum)}
-          >
-            Env {envNum + 1}
-          </EnvTab>
-        ))}
-      </EnvTabs>
+      <HeaderRow>
+        <EnvTitle>{t('modulation.lfoEnvEditor')}</EnvTitle>
+        
+        <EnvTabs>
+          {([0, 1] as const).map((envNum) => (
+            <EnvTab
+              key={envNum}
+              $active={activeEnv === envNum}
+              onClick={() => setActiveEnv(envNum)}
+            >
+              Env {envNum + 1}
+            </EnvTab>
+          ))}
+        </EnvTabs>
+      </HeaderRow>
 
       <EnvelopeVisualizer 
         envelope={toEnvelopeData()} 

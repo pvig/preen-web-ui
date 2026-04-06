@@ -1,8 +1,8 @@
 import React, { useRef, useState } from "react";
 import { useThemeStore } from '../../theme/themeStore';
 
-type ValuePosition = 'bottom' | 'left' | 'none';
-type LabelPosition = 'top' | 'left' | 'none';
+type ValuePosition = 'top' | 'bottom' | 'left' | 'none';
+type LabelPosition = 'top' | 'left' | 'bottom' | 'none';
 
 interface KnobBaseProps {
   size?: number;
@@ -319,6 +319,44 @@ function KnobBase({
           />
         </svg>
 
+        {/* Valeur au-dessus */}
+        {valuePosition === 'top' && (
+          <div
+            className='label'
+            style={{
+              position: "absolute",
+              top: -8,
+              left: 0,
+              width: "100%",
+              textAlign: "center",
+              fontSize: 12,
+              color: color,
+            }}
+          >
+            {isEditing ? (
+              <input
+                ref={inputRef}
+                type="text"
+                inputMode="decimal"
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                onBlur={commitEdit}
+                onKeyDown={handleEditKeyDown}
+                autoFocus
+                style={editInputStyle}
+              />
+            ) : (
+              <span
+                onClick={startEditing}
+                style={{ cursor: 'text', userSelect: 'none' }}
+                title="Cliquer pour éditer"
+              >
+                {renderLabel(value)}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Label au-dessus */}
         {labelPosition === 'top' && label && (
           <div
@@ -326,6 +364,26 @@ function KnobBase({
             style={{
               position: "absolute",
               top: -12,
+              left: 0,
+              width: "100%",
+              textAlign: "center",
+              fontSize: 12,
+              fontWeight: "bold",
+              pointerEvents: "none",
+              color: theme.colors.knobLabel
+            }}
+          >
+            {label}
+          </div>
+        )}
+
+        {/* Label en dessous */}
+        {labelPosition === 'bottom' && label && (
+          <div
+            className='label'
+            style={{
+              position: "absolute",
+              bottom: -12,
               left: 0,
               width: "100%",
               textAlign: "center",

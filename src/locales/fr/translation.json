@@ -28,8 +28,8 @@
       "LFO_SQUARE": "Carré",
       "LFO_RANDOM": "Aléatoire S&H",
       "LFO_BROWNIAN": "Brownien S&H",
-      "LFO_WANDERING": "Vagabond (interpolé)",
-      "LFO_FLOW": "Flux (interpolé)"
+      "LFO_WANDERING": "Vagabond",
+      "LFO_FLOW": "Flux"
     }
   },
   "operator": {
@@ -39,6 +39,12 @@
     "waveform": "Forme d'onde",
     "keyboardTracking": "Suivi clavier",
     "adsr": "Enveloppe ADSR"
+  },
+  "waveformSelector": {
+    "label": "Forme d'onde"
+  },
+   "keyboardTrackingSelect": {
+    "label": "Suivi clavier"
   },
   "algorithm": {
     "title": "Algorithme",
