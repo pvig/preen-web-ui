@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
+import { useThemeStore } from '../theme/themeStore';
 
 const DURATION_MS = 15000;
 const EXIT_MS = 500;
 
 // ── ASCII logo (PREENFM3) ──────────────────────────────────────────────────
 const LOGO_LINES = [
-  '  ____  ____  ____  ____  _   _ _____ __  __ _____ ',
-  ' |  _ \\|  _ \\| ___|/ ___|| \\ | |  ___|  \\/  |___ /',
-  ' | |_) | |_) |  _| \\___ \\|  \\| |  _| | |\\/| | |_ \\',
-  ' |  __/|    /| |___|  ___) | |\\  |  _|| |  | |___) |',
-  ' |_|   |_|\\_\\|_____|_____/ |_| \\_|_|   |_|  |_|____/',
+'      ____  ____  _____________   __________  ___  ',
+'     / __ \/ __ \/ ____/ ____/ | / / ____/  |/  /  ',
+'    / /_/ / /_/ / __/ / __/ /  |/ / /_  / /|_/ /   ',
+'   / ____/ _, _/ /___/ /___/ /|  / __/ / /  / /    ',
+'  /_/   /_/ |_/_____/_____/_/ |_/_/   /_/  /_/     '
 ];
 
 const SUBTITLE = '·  W E B  U I  ·  F M  S Y N T H E S I Z E R  E D I T O R  ·';
@@ -22,6 +23,38 @@ const SCROLLER =
   ' PreenFM3 hardware by Xavier Hosxe · ' +
   '* * * * * * * * · * * * * * * * * · ';
 
+// ── Plasma helpers (logo) ────────────────────────────────────────────────
+/** Parse "#rrggbb" → [r, g, b] */
+function hexToRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.replace('#', ''), 16);
+  return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
+}
+/** HSL (h∈[0,360], s∈[0,1], l∈[0,1]) → [r, g, b] in [0,255] */
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+  return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
+}
+/** Linear interpolation between two RGB triples */
+function lerpRgb(a: [number, number, number], b: [number, number, number], t: number): [number, number, number] {
+  return [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t), Math.round(a[2] + (b[2] - a[2]) * t)];
+}
+/** Sample a multi-stop RGB gradient at t∈[0,1] */
+function sampleGradient(stops: [number, number, number][], t: number): [number, number, number] {
+  const sc = Math.min(t, 0.9999) * (stops.length - 1);
+  const lo = sc | 0;
+  return lerpRgb(stops[lo], stops[lo + 1], sc - lo);
+}
+const LOGO_W = 52;
+const LOGO_H = 5;
+/** Classic plasma value at grid (col, row, t), normalized to [0, 1] */
+function plasmaVal(col: number, row: number, t: number): number {
+  const x = col / LOGO_W, y = row / LOGO_H, cx = x - 0.5, cy = y - 0.5;
+  const v = Math.sin(x * 7 + t) + Math.sin(y * 4 + t * 0.7)
+          + Math.sin((x + y) * 5 + t * 1.3) + Math.sin(Math.sqrt(cx * cx + cy * cy) * 12 + t * 1.1);
+  return (v + 4) / 8;
+}
+
 // ── Keyframes ─────────────────────────────────────────────────────────────
 
 const slideInDown = keyframes`
@@ -32,11 +65,6 @@ const slideInDown = keyframes`
 const slideOutUp = keyframes`
   from { transform: translateX(-50%) translateY(0);     opacity: 1; }
   to   { transform: translateX(-50%) translateY(-108%); opacity: 0; }
-`;
-
-const hueRoll = keyframes`
-  from { filter: hue-rotate(0deg); }
-  to   { filter: hue-rotate(360deg); }
 `;
 
 const gradientSlide = keyframes`
@@ -64,6 +92,24 @@ const glitch = keyframes`
 const subtitlePulse = keyframes`
   0%, 100% { opacity: 0.9; text-shadow: 0 0 6px #0af, 0 0 18px #08f; }
   50%       { opacity: 1;   text-shadow: 0 0 10px #0cf, 0 0 28px #0af, 0 0 50px #08f; }
+`;
+
+const glitchColor = keyframes`
+  0%, 79%, 84%, 100% { filter: none; }
+  80% { filter: hue-rotate(175deg) brightness(1.8) saturate(1.5); }
+  81% { filter: hue-rotate(-65deg) brightness(0.7); }
+  82% { filter: none; }
+  92% { filter: hue-rotate(115deg) brightness(2) saturate(1.3); }
+  93% { filter: none; }
+`;
+
+const glitchBar = keyframes`
+  0%, 78%, 84%, 91%, 97%, 100% { opacity: 0; }
+  79% { opacity: 0.55; transform: translateY(5px);  background: rgba(0,255,255,0.4); }
+  80% { opacity: 0.3;  transform: translateY(16px); background: rgba(255,0,255,0.35); }
+  81% { opacity: 0; }
+  92% { opacity: 0.45; transform: translateY(10px); background: rgba(0,255,80,0.3); }
+  93% { opacity: 0; }
 `;
 
 // ── Styled components ──────────────────────────────────────────────────────
@@ -160,7 +206,7 @@ const LogoGlitch = styled.div`
   animation: ${glitch} 9s linear infinite;
 `;
 
-const LogoLine = styled.pre<{ $row: number }>`
+const LogoLine = styled.pre`
   margin: 0;
   padding: 0;
   line-height: 1.3;
@@ -168,12 +214,6 @@ const LogoLine = styled.pre<{ $row: number }>`
   white-space: pre;
   overflow: hidden;
   user-select: none;
-  color: hsl(130, 100%, 55%);
-  text-shadow: 0 0 6px currentColor, 0 0 18px currentColor;
-  /* Each line gets a different initial hue, cycling at the same speed → copper wave */
-  filter: hue-rotate(${p => p.$row * 22}deg);
-  animation: ${hueRoll} 3.5s linear infinite;
-  animation-delay: ${p => -(p.$row * 0.44)}s;
 `;
 
 const Subtitle = styled.div`
@@ -223,6 +263,20 @@ const ScrollerWrap = styled.div`
   overflow: hidden;
   display: flex;
   align-items: center;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 6px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    animation: ${glitchBar} 9s linear infinite;
+  }
 `;
 
 const ScrollerText = styled.span`
@@ -231,7 +285,7 @@ const ScrollerText = styled.span`
   color: #00ee44;
   font-size: 0.8rem;
   text-shadow: 0 0 6px #00ee44;
-  animation: ${scrollMarquee} 20s linear infinite;
+  animation: ${scrollMarquee} 20s linear infinite, ${glitchColor} 9s linear infinite;
 `;
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -245,12 +299,50 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onClose, noAutoClose
   const [leaving, setLeaving] = useState(false);
   const closingRef = useRef(false);
 
+  const { theme } = useThemeStore();
+
+  // Plasma palette: spectro3–spectro6 (bright stops) blended with rainbow HSL
+  const spectroStops = useMemo<[number, number, number][]>(
+    () => [theme.colors.spectro3, theme.colors.spectro4, theme.colors.spectro5, theme.colors.spectro6].map(hexToRgb),
+    [theme.colors.spectro3, theme.colors.spectro4, theme.colors.spectro5, theme.colors.spectro6],
+  );
+
+  const logoRef = useRef<HTMLDivElement>(null);
+  const plasmaRafRef = useRef<number>(0);
+
   const handleClose = useCallback(() => {
     if (closingRef.current) return;
     closingRef.current = true;
     setLeaving(true);
     setTimeout(onClose, EXIT_MS);
   }, [onClose]);
+
+  // Plasma animation — drives per-character color via RAF
+  useEffect(() => {
+    const container = logoRef.current;
+    if (!container) return;
+    const spans = Array.from(container.querySelectorAll<HTMLSpanElement>('span[data-col]'));
+    const loop = (ms: number) => {
+      const t = ms * 0.001;
+      for (const span of spans) {
+        const col = Number(span.dataset.col);
+        const row = Number(span.dataset.row);
+        const v = plasmaVal(col, row, t);
+        const hue = (v * 300 + t * 30) % 360;
+        const [rR, gR, bR] = hslToRgb(hue, 1, 0.62);
+        const [rS, gS, bS] = sampleGradient(spectroStops, v);
+        const r = (rR * 0.55 + rS * 0.45) | 0;
+        const g = (gR * 0.55 + gS * 0.45) | 0;
+        const b = (bR * 0.55 + bS * 0.45) | 0;
+        const c = `rgb(${r},${g},${b})`;
+        span.style.color = c;
+        span.style.textShadow = `0 0 5px ${c}`;
+      }
+      plasmaRafRef.current = requestAnimationFrame(loop);
+    };
+    plasmaRafRef.current = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(plasmaRafRef.current);
+  }, [spectroStops]);
 
   // Auto-close after DURATION_MS (disabled when noAutoClose is set)
   useEffect(() => {
@@ -276,9 +368,13 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onClose, noAutoClose
         <Body>
           <CloseBtn onClick={handleClose} title="Fermer [Échap]">✕</CloseBtn>
 
-          <LogoGlitch>
-            {LOGO_LINES.map((line, i) => (
-              <LogoLine key={i} $row={i}>{line}</LogoLine>
+          <LogoGlitch ref={logoRef}>
+            {LOGO_LINES.map((line, row) => (
+              <LogoLine key={row}>
+                {[...line].map((ch, col) => (
+                  <span key={col} data-col={col} data-row={row}>{ch}</span>
+                ))}
+              </LogoLine>
             ))}
           </LogoGlitch>
 

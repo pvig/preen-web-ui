@@ -170,6 +170,7 @@ export const HamburgerMenu: React.FC = () => {
   const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isSplashOpen, setIsSplashOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { starfieldEnabled, toggleStarfield } = useUIStore();
 
@@ -194,8 +195,9 @@ export const HamburgerMenu: React.FC = () => {
     setIsAboutOpen(false);
   };
 
-  const handleCloseBoth = () => {
-    setIsAboutOpen(false);
+  const handleSplashClick = () => {
+    setIsSplashOpen(true);
+    setIsMenuOpen(false);
   };
 
   return (
@@ -230,10 +232,17 @@ export const HamburgerMenu: React.FC = () => {
               {t('menu.info')}
             </AboutButton>
           </MenuItem>
+
+          <MenuItem>
+            <MenuLabel>{t('menu.splash')}</MenuLabel>
+            <AboutButton onClick={handleSplashClick}>
+              {t('menu.splashOpen')}
+            </AboutButton>
+          </MenuItem>
         </DropdownMenu>
       </MenuContainer>
 
-      {isAboutOpen && <SplashScreen onClose={handleCloseBoth} noAutoClose />}
+      {isSplashOpen && <SplashScreen onClose={() => setIsSplashOpen(false)} noAutoClose />}
 
       <AboutModal $isOpen={isAboutOpen} onClick={handleCloseAbout}>
         <AboutContent onClick={e => e.stopPropagation()}>

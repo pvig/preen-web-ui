@@ -76,7 +76,7 @@
   "patch": {
     "title": "Patch",
     "editor": "Patch Editor",
-    "library": "Patch Library",
+    "tools": "Tools",
     "name": "Patch Name",
     "save": "Save Patch",
     "download": "Download SysEx"
@@ -168,7 +168,9 @@
     "starfield": "Starfield",
     "language": "Language",
     "about": "About",
-    "info": "Info"
+    "info": "Info",
+    "splash": "Splash screen",
+    "splashOpen": "Show"
   },
   "about": {
     "title": "PreenFM3 Web Editor",
@@ -182,7 +184,7 @@
     "patch": "Patch",
     "modulations": "Modulations",
     "arpFilter": "Arp/Filter",
-    "library": "Library",
+    "tools": "Tools",
     "variator": "Variator"
   },
   "mutation": {

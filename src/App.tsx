@@ -5,7 +5,7 @@ import { PatchEditor } from './screens/PatchEditor';
 import { ModulationsEditor } from './screens/modulationsEditor';
 import { ArpFilterEditor } from './screens/ArpFilterEditor';
 import { EffectsEditor } from './screens/EffectsEditor';
-import { PatchLibrary } from './screens/PatchLibrary';
+import { PreenTools } from './screens/PreenTools';
 
 import { MidiMenu } from './components/MidiMenu';
 import { MidiCCTester } from './components/MidiCCTester';
@@ -19,7 +19,7 @@ import { useCurrentPatch, usePatchStore } from './stores/patchStore';
 import { useMutationStore } from './stores/mutationStore';
 import { useUIStore } from './stores/uiStore';
 
-type AppScreen = 'patch' | 'matrix' | 'arpfilter' | 'effects' | 'library';
+type AppScreen = 'patch' | 'matrix' | 'arpfilter' | 'effects' | 'tools';
 
 const AppContainer = styled.div<{ $starfield: boolean }>`
   background-color: ${props =>
@@ -298,7 +298,7 @@ export default function App() {
   }, []);
 
   const { starfieldEnabled } = useUIStore();
-  const TAB_ORDER: AppScreen[] = ['patch', 'matrix', 'arpfilter', 'library'];
+  const TAB_ORDER: AppScreen[] = ['patch', 'matrix', 'arpfilter', 'tools'];
 
   return (
     <ThemeProvider theme={theme}>
@@ -318,8 +318,8 @@ export default function App() {
             <button onClick={() => setCurrentScreen('arpfilter')} className={currentScreen === 'arpfilter' ? 'active' : ''}>
               {t('nav.arpFilter')}
             </button>
-            <button onClick={() => setCurrentScreen('library')} className={currentScreen === 'library' ? 'active' : ''}>
-              {t('nav.library')}
+            <button onClick={() => setCurrentScreen('tools')} className={currentScreen === 'tools' ? 'active' : ''}>
+              {t('nav.tools')}
             </button>
           </div>
           
@@ -360,8 +360,8 @@ export default function App() {
           {currentScreen === 'arpfilter' && <ArpFilterEditor />}
           {currentScreen === 'effects' && <EffectsEditor />}
           {/* Always mounted — preserves state across tab switches */}
-          <div style={currentScreen !== 'library' ? { display: 'none' } : undefined}>
-            <PatchLibrary />
+          <div style={currentScreen !== 'tools' ? { display: 'none' } : undefined}>
+            <PreenTools />
           </div>
         </Main>
         

@@ -76,7 +76,7 @@
   "patch": {
     "title": "Patch",
     "editor": "Éditeur de patch",
-    "library": "Bibliothèque de patches",
+    "tools": "Outils",
     "name": "Nom du patch",
     "save": "Enregistrer le patch",
     "download": "Télécharger SysEx"
@@ -168,7 +168,9 @@
     "starfield": "Fond étoilé",
     "language": "Langue",
     "about": "À propos",
-    "info": "Infos"
+    "info": "Infos",
+    "splash": "Écran de démarrage",
+    "splashOpen": "Afficher"
   },
   "about": {
     "title": "PreenFM3 Web Editor",
@@ -182,7 +184,7 @@
     "patch": "Patch",
     "modulations": "Modulations",
     "arpFilter": "Arp/Filtre",
-    "library": "Librairie",
+    "tools": "Outils",
     "variator": "Variateur"
   },
   "mutation": {

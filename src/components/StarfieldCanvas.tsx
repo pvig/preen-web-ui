@@ -19,6 +19,8 @@ interface Star {
   oy: number;
   oz: number;
   brightness: number;
+  lfoPhase: number;  // random initial phase [0, 2π]
+  lfoFreq:  number;  // oscillation frequency in rad/s — period ~11–25 s
 }
 
 // ── Mutable state (lives in ref) ──────────────────────────────────────────
@@ -59,6 +61,8 @@ function randomStar(): Star {
     oy: r * Math.sin(phi) * Math.sin(theta),
     oz: r * Math.cos(phi),
     brightness: 0.35 + Math.random() * 0.65,
+    lfoPhase: Math.random() * Math.PI * 2,
+    lfoFreq:  0.08 + Math.random() * 0.12,  // period ~52–78 s
   };
 }
 
@@ -129,8 +133,9 @@ export const StarfieldCanvas: React.FC<Props> = ({ tabIndex, bgColor = '#0a0a16'
 
     let raf = 0;
 
-    const draw = () => {
+    const draw = (ms: number) => {
       raf = requestAnimationFrame(draw);
+      const t = ms * 0.001; // time in seconds
       const { width: W, height: H } = canvas;
 
       // ── Speed decay toward base ──────────────────────────────────────
@@ -152,7 +157,7 @@ export const StarfieldCanvas: React.FC<Props> = ({ tabIndex, bgColor = '#0a0a16'
       const cosX = Math.cos(st.angleX);
       const sinX = Math.sin(st.angleX);
 
-      // ── Background ── (semi-transparent during burst → arc trails) ───
+      // ── Background ── (low alpha → persistent trails; lower during burst) ──
       const isBursting = Math.abs(st.speedY) > BASE_ROT_Y * 3;
       const bgAlpha = isBursting ? 0.22 : 1;
       const [br, bg, bb] = bgRgbRef.current;
@@ -178,8 +183,10 @@ export const StarfieldCanvas: React.FC<Props> = ({ tabIndex, bgColor = '#0a0a16'
 
         // Depth cue: z2 ranges ~[50, SPHERE_R*2]
         const depth = Math.min(1, z2 / (SPHERE_R * 1.6)); // 0=near, 1=far
+        // Per-star LFO on alpha: range [0, 1] so stars can fully vanish → true twinkle.
+        const lfo   = 0.5 + 0.5 * Math.sin(t * star.lfoFreq + star.lfoPhase);
         const size  = Math.max(0.3, (1 - depth) * 2.4);
-        const alpha = star.brightness * (0.25 + (1 - depth) * 0.75);
+        const alpha = star.brightness * lfo * (0.25 + (1 - depth) * 0.75);
 
         // Warm white nearby, blue-tinted far
         const r = Math.floor(170 + (1 - depth) * 85);
@@ -200,5 +207,5 @@ export const StarfieldCanvas: React.FC<Props> = ({ tabIndex, bgColor = '#0a0a16'
     };
   }, []); // mount once — state mutated via ref
 
-  return <CanvasEl ref={canvasRef} />;
+  return <CanvasEl ref={canvasRef} style={{ backgroundColor: bgColor }} />;
 };

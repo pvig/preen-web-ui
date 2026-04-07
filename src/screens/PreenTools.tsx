@@ -6,7 +6,7 @@ import { PreenSpectrogram } from '../components/PreenSpectrogram';
 import type { PreenSpectrogramHandle } from '../components/PreenSpectrogram';
 import styled from 'styled-components';
 
-const LibraryContainer = styled.div`
+const ToolsContainer = styled.div`
   max-width: 900px;
   margin: auto;
   display: flex;
@@ -22,10 +22,10 @@ const PatchEvolverContainer = styled.div`
   gap: 20px;
 `;
 
-export function PatchLibrary() {
+export function PreenTools() {
   const spectrogramRef = useRef<PreenSpectrogramHandle>(null);
   return (
-    <LibraryContainer>
+    <ToolsContainer>
       <PatchSavePanel />
       <BankOrganizerPanel />
       <PreenSpectrogram ref={spectrogramRef} />
@@ -33,6 +33,6 @@ export function PatchLibrary() {
         <PatchSlotRack />
         <BreederEditor />
       </PatchEvolverContainer>
-    </LibraryContainer>
+    </ToolsContainer>
   );
 }

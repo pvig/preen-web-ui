@@ -52,7 +52,7 @@ button {
   transition: border-color 0.03s ease, box-shadow 0.03s ease;
 }
 
-.editor-container, .matrix-container, .library-container {
+.editor-container, .matrix-container, .tools-container {
   padding: 0;
 }
 
