@@ -6,6 +6,10 @@ import {
   useImperativeHandle,
   forwardRef,
 } from 'react';
+import {
+  useSpectrogramBridge,
+  audioBands,
+} from '../stores/spectrogramBridge';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { useThemeStore } from '../theme/themeStore';
@@ -28,6 +32,17 @@ const BUFFER_FRAMES = 128;
 
 /** Pixel height of the rendered spectrogram canvas. */
 const CANVAS_HEIGHT = 256;
+
+/**
+ * Bin ranges for the 4 audio bands fed to StarfieldCanvas shells.
+ * Indices into the 1024-bin FFT array at 44.1 kHz (binHz ≈ 21.5 Hz).
+ */
+const BAND_BINS = {
+  band0: { lo:   1, hi:  11 },  // ~20–237 Hz   (sub/bass)
+  band1: { lo:  12, hi:  92 },  // ~258–1978 Hz  (low-mid)
+  band2: { lo:  93, hi: 371 },  // ~2000–7977 Hz (hi-mid)
+  band3: { lo: 372, hi: 930 },  // ~7998–19993 Hz (high)
+} as const;
 
 // ============================================================
 // Theme Colormap
@@ -445,6 +460,8 @@ const HelpPanel = styled.div`
 
 // (Frequency axis data is defined above in LOG_BINS_LUT / FREQ_AXIS_TICKS)
 
+
+
 // ============================================================
 // Component
 // ============================================================
@@ -504,6 +521,9 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
     const dataBufferRef = useRef<Uint8Array[]>([]);
     const writeHeadRef = useRef(0);
 
+    // ── Lissajous refs (written imperatively from RAF) ────────────────
+    // (removed — audio energies are written to audioBands bridge instead)
+
     // ── State ──────────────────────────────────────────────────
     const [isListening, setIsListening] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -552,6 +572,9 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
     useEffect(() => {
       lutRef.current = buildThemeLUT(theme.colors.spectro1, theme.colors.spectro2, theme.colors.spectro3, theme.colors.spectro4, theme.colors.spectro5, theme.colors.spectro6);
     }, [theme.colors.spectro1, theme.colors.spectro2, theme.colors.spectro3, theme.colors.spectro4, theme.colors.spectro5, theme.colors.spectro6]);
+
+    // ── Update Lissajous colors when theme changes ─────────────
+    // (removed with Lissajous)
 
     // ── Device enumeration ─────────────────────────────────────
     /**
@@ -633,6 +656,17 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
 
       // Step 1 — Read frequency data (byte values 0–255)
       analyser.getByteFrequencyData(freqData);
+
+      // ── Audio bands → StarfieldCanvas bridge (no React re-render) ──
+      const bandAvg = (lo: number, hi: number) => {
+        let s = 0;
+        for (let i = lo; i <= hi; i++) s += freqData[i];
+        return s / ((hi - lo + 1) * 255);
+      };
+      audioBands.band0 = bandAvg(BAND_BINS.band0.lo, BAND_BINS.band0.hi);
+      audioBands.band1 = bandAvg(BAND_BINS.band1.lo, BAND_BINS.band1.hi);
+      audioBands.band2 = bandAvg(BAND_BINS.band2.lo, BAND_BINS.band2.hi);
+      audioBands.band3 = bandAvg(BAND_BINS.band3.lo, BAND_BINS.band3.hi);
 
       // Step 2 — Write to circular buffer
       const head = writeHeadRef.current;
@@ -788,6 +822,11 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
       audioCtxRef.current?.close();
       audioCtxRef.current = null;
       analyserRef.current = null;
+      // Reset band energies so stars return to rest
+      audioBands.band0 = 0;
+      audioBands.band1 = 0;
+      audioBands.band2 = 0;
+      audioBands.band3 = 0;
       setIsListening(false);
       setChannelCount(1);
       setChannelsCapped(false);
@@ -815,6 +854,11 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
         splitter.connect(monitorGain, ch);
       }
     }, []);
+    // Sync isListening to the bridge store so App.tsx header can react
+    useEffect(() => {
+      useSpectrogramBridge.getState().setIsListening(isListening);
+    }, [isListening]);
+
     // Clean up if the component unmounts while listening
     useEffect(() => () => { stopListening(); }, [stopListening]);
 

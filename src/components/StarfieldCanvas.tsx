@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
+import { audioBands } from '../stores/spectrogramBridge';
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const NUM_STARS = 550;
@@ -19,8 +20,10 @@ interface Star {
   oy: number;
   oz: number;
   brightness: number;
-  lfoPhase: number;  // random initial phase [0, 2π]
-  lfoFreq:  number;  // oscillation frequency in rad/s — period ~11–25 s
+  lfoPhase:   number;  // random initial phase [0, 2π]
+  lfoFreq:    number;  // oscillation frequency in rad/s — period ~11–25 s
+  shell:      0 | 1 | 2 | 3; // frequency band this star reacts to
+  reactivity: number;  // [0, 1] — fraction of the shell energy this star receives
 }
 
 // ── Mutable state (lives in ref) ──────────────────────────────────────────
@@ -51,9 +54,16 @@ function hexToRgb(hex: string): [number, number, number] {
   ];
 }
 
-/** Random point in a hollow sphere (inner shell avoids stars too close) */
-function randomStar(): Star {
-  const r = SPHERE_R * (0.35 + Math.random() * 0.65);
+/** Random point in a shell sphere (4 shells at distinct radius ranges) */
+const SHELL_R: [number, number][] = [
+  [0.70, 1.00],  // shell 0 (bass)    — outermost, spreads wide on screen
+  [0.55, 0.85],  // shell 1 (low-mid)
+  [0.40, 0.70],  // shell 2 (hi-mid)
+  [0.25, 0.55],  // shell 3 (high)   — innermost, tighter cluster
+];
+function randomStar(shell: 0|1|2|3): Star {
+  const [rMin, rMax] = SHELL_R[shell];
+  const r = SPHERE_R * (rMin + Math.random() * (rMax - rMin));
   const theta = Math.random() * Math.PI * 2;
   const phi   = Math.acos(2 * Math.random() - 1);
   return {
@@ -61,8 +71,11 @@ function randomStar(): Star {
     oy: r * Math.sin(phi) * Math.sin(theta),
     oz: r * Math.cos(phi),
     brightness: 0.35 + Math.random() * 0.65,
-    lfoPhase: Math.random() * Math.PI * 2,
-    lfoFreq:  0.08 + Math.random() * 0.12,  // period ~52–78 s
+    lfoPhase:   Math.random() * Math.PI * 2,
+    lfoFreq:    0.08 + Math.random() * 0.12,
+    shell,
+    // Skewed distribution: most stars are low-reactivity, a few pop strongly.
+    reactivity: Math.random() < 0.25 ? 0.1 + Math.random() * 0.9 : Math.random() * 0.25,
   };
 }
 
@@ -127,11 +140,16 @@ export const StarfieldCanvas: React.FC<Props> = ({ tabIndex, bgColor = '#0a0a16'
     resize();
     window.addEventListener('resize', resize);
 
-    // Generate stars
+    // Generate stars: equal share per shell
     const st = stateRef.current;
-    st.stars = Array.from({ length: NUM_STARS }, randomStar);
+    st.stars = Array.from({ length: NUM_STARS }, (_, i) =>
+      randomStar((i % 4) as 0|1|2|3)
+    );
 
     let raf = 0;
+    // Per-shell smoothed envelopes — fast attack, slow decay
+    const env = [0, 0, 0, 0];
+    const ATTACK = 0.35, DECAY = 0.96;
 
     const draw = (ms: number) => {
       raf = requestAnimationFrame(draw);
@@ -167,6 +185,21 @@ export const StarfieldCanvas: React.FC<Props> = ({ tabIndex, bgColor = '#0a0a16'
       const cx = W / 2;
       const cy = H / 2;
 
+      // ── Per-shell audio envelopes ──────────────────────────────────────
+      const raw = [audioBands.band0, audioBands.band1, audioBands.band2, audioBands.band3];
+      for (let s = 0; s < 4; s++) {
+        env[s] = raw[s] > env[s]
+          ? raw[s] * ATTACK + env[s] * (1 - ATTACK)
+          : env[s] * DECAY;
+      }
+
+      // Bass pulse: flash the background slightly on strong sub-bass hits
+      const bassPulse = Math.min(0.5, env[0] * 4);
+      if (bassPulse > 0.05 && !isBursting) {
+        ctx.fillStyle = `rgba(${br},${bg},${bb},${bassPulse})`;
+        ctx.fillRect(0, 0, W, H);
+      }
+
       for (const star of st.stars) {
         // Rotate around Y axis
         const x1 =  star.ox * cosY + star.oz * sinY;
@@ -185,16 +218,40 @@ export const StarfieldCanvas: React.FC<Props> = ({ tabIndex, bgColor = '#0a0a16'
         const depth = Math.min(1, z2 / (SPHERE_R * 1.6)); // 0=near, 1=far
         // Per-star LFO on alpha: range [0, 1] so stars can fully vanish → true twinkle.
         const lfo   = 0.5 + 0.5 * Math.sin(t * star.lfoFreq + star.lfoPhase);
-        const size  = Math.max(0.3, (1 - depth) * 2.4);
-        const alpha = star.brightness * lfo * (0.25 + (1 - depth) * 0.75);
 
-        // Warm white nearby, blue-tinted far
-        const r = Math.floor(170 + (1 - depth) * 85);
-        const g = Math.floor(185 + (1 - depth) * 70);
+        // Energy for this star's shell, scaled by its individual reactivity
+        const e = Math.min(1, env[star.shell] * 4 * star.reactivity);
+        const size  = Math.max(0.3, (1 - depth) * 2.4 + e * 3.5);
+        const alpha = Math.min(1, star.brightness * lfo * (0.25 + (1 - depth) * 0.75) + e * 0.7);
+
+        // Shell-based color palette:
+        //   shell 0 (bass)    → warm orange/red
+        //   shell 1 (low-mid) → warm yellow-white
+        //   shell 2 (hi-mid)  → neutral white (default)
+        //   shell 3 (high)    → cool blue/violet
+        const base = 170 + (1 - depth) * 85;
+        let r: number, g: number, b: number;
+        if (star.shell === 0) {
+          r = Math.min(255, Math.floor(base + e * 140));   // push red up
+          g = Math.min(255, Math.floor(base * 0.65 + e * 40));
+          b = Math.floor(100 + (1 - e) * 155);             // push blue down
+        } else if (star.shell === 1) {
+          r = Math.min(255, Math.floor(base + e * 80));
+          g = Math.min(255, Math.floor(base + e * 60));
+          b = Math.floor(180 + (1 - e) * 75);
+        } else if (star.shell === 2) {
+          r = Math.floor(base);
+          g = Math.min(255, Math.floor(base + 20 + e * 40));
+          b = 255;
+        } else {
+          r = Math.floor(base * (0.6 + (1 - e) * 0.4));   // dim red
+          g = Math.floor(base * (0.7 + (1 - e) * 0.3));
+          b = Math.min(255, Math.floor(220 + e * 35));     // push blue up
+        }
 
         ctx.beginPath();
         ctx.arc(sx, sy, size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${r},${g},255,${alpha})`;
+        ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
         ctx.fill();
       }
     };
