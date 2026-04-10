@@ -712,6 +712,15 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
      */
     // Start FFT listening (spectrogram + monitor)
     const startListening = useCallback(async () => {
+      // Resume path: stream already acquired (was paused), just restart the RAF.
+      // This preserves PipeWire routing established at first start.
+      if (streamRef.current && analyserRef.current) {
+        // Resume: do NOT unmute the monitor — routing is managed by qpwgraph.
+        setIsListening(true);
+        animFrameRef.current = requestAnimationFrame(drawFrame);
+        return;
+      }
+
       try {
         setError(null);
 
@@ -769,7 +778,7 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
 
         // Create a GainNode for monitoring (allows mute/unmute)
         const monitorGain = audioCtx.createGain();
-        monitorGain.gain.value = 1;
+        monitorGain.gain.value = 0; // Muted by default
         monitorGainRef.current = monitorGain;
 
         if (actualChannels > 1) {
@@ -804,7 +813,27 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
       }
     }, [drawFrame]);
 
-    /** Cancels the animation loop and releases all audio/stream resources. */
+    /**
+     * Soft stop: cancels the RAF and zeros audio bands but keeps the
+     * MediaStream, AudioContext and Web Audio graph alive so PipeWire /
+     * qpwgraph routing is not destroyed. startListening() will resume
+     * without calling getUserMedia again.
+     */
+    const pauseListening = useCallback(() => {
+      if (animFrameRef.current !== null) {
+        cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
+      }
+      audioBands.band0 = 0;
+      audioBands.band1 = 0;
+      audioBands.band2 = 0;
+      audioBands.band3 = 0;
+      if (monitorGainRef.current) monitorGainRef.current.gain.value = 0;
+      setIsListening(false);
+      // Stream, AudioContext and audio graph are intentionally kept alive.
+    }, []);
+
+    /** Full teardown: releases stream and all audio resources. Reserved for unmount. */
     const stopListening = useCallback(() => {
       if (animFrameRef.current !== null) {
         cancelAnimationFrame(animFrameRef.current);
@@ -858,6 +887,18 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
     useEffect(() => {
       useSpectrogramBridge.getState().setIsListening(isListening);
     }, [isListening]);
+
+    // React to external start/stop requests (e.g. nav toggle button)
+    useEffect(() => {
+      const unsub = useSpectrogramBridge.subscribe(state => {
+        if (state.requestedListening && !isListening) {
+          startListening();
+        } else if (!state.requestedListening && isListening) {
+          pauseListening();
+        }
+      });
+      return unsub;
+    }, [isListening, startListening, pauseListening]);
 
     // Clean up if the component unmounts while listening
     useEffect(() => () => { stopListening(); }, [stopListening]);
@@ -999,7 +1040,7 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
 
         <Controls>
           {isListening ? (
-            <ControlButton $variant="stop" onClick={stopListening}>
+            <ControlButton $variant="stop" onClick={pauseListening}>
               {t('spectrogram.stop')}
             </ControlButton>
           ) : (

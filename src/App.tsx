@@ -18,6 +18,7 @@ import { useMidiActions } from './midi/useMidiActions';
 import { useCurrentPatch, usePatchStore } from './stores/patchStore';
 import { useMutationStore } from './stores/mutationStore';
 import { useUIStore } from './stores/uiStore';
+import { useSpectrogramBridge } from './stores/spectrogramBridge';
 
 type AppScreen = 'patch' | 'matrix' | 'arpfilter' | 'effects' | 'tools';
 
@@ -111,6 +112,43 @@ const NavWrapper = styled.div`
   z-index: 100;
   background-color: ${props => props.theme.colors.background};
   border-bottom: 1px solid ${props => props.theme.colors.border};
+`;
+
+const AudioToggleButton = styled.button<{ $active: boolean }>`
+  height: 36px;
+  padding: 0 8px;
+  gap: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${props => props.$active ? 'rgba(16,185,129,0.15)' : props.theme.colors.button};
+  color: ${props => props.$active ? '#10b981' : props.theme.colors.textMuted};
+  border: 1px solid ${props => props.$active ? '#10b981' : props.theme.colors.border};
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: monospace;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  margin-right: 6px;
+
+  &:hover {
+    border-color: #10b981;
+    color: #10b981;
+  }
+`;
+
+const AudioStatusDot = styled.span<{ $active: boolean }>`
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: ${({ $active }) => ($active ? '#10b981' : '#6b7280')};
+  box-shadow: ${({ $active }) =>
+    $active ? '0 0 5px 1px rgba(16,185,129,0.6)' : 'none'};
+  transition: background 0.3s, box-shadow 0.3s;
 `;
 
 const Nav = styled.nav`
@@ -283,6 +321,7 @@ export default function App() {
   const { t } = useTranslation();
   const { theme } = useThemeStore();
   const { sendPatch, receivePatch, isReceiving, isSending, midi } = useMidiActions();
+  const { isListening: audioListening, requestedListening, setRequestedListening } = useSpectrogramBridge();
 
   // Keyboard shortcut: Ctrl+T to toggle CC Tester
   useEffect(() => {
@@ -330,6 +369,14 @@ export default function App() {
             <TestButton onClick={() => setShowCCTester(prev => !prev)}>
               🧪 Test CC
             </TestButton>
+            <AudioToggleButton
+              $active={audioListening}
+              onClick={() => setRequestedListening(!requestedListening)}
+              title={audioListening ? 'Stop audio input' : 'Start audio input'}
+            >
+              <AudioStatusDot $active={audioListening} />
+              IN
+            </AudioToggleButton>
             <MidiMenu />
             <MidiQuickButtons>
               <QuickMidiButton 

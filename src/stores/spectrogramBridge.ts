@@ -4,11 +4,16 @@ import { create } from 'zustand';
 interface SpectrogramBridgeState {
   isListening: boolean;
   setIsListening: (v: boolean) => void;
+  /** External start/stop request. Set true to start, false to stop. */
+  requestedListening: boolean;
+  setRequestedListening: (v: boolean) => void;
 }
 
 export const useSpectrogramBridge = create<SpectrogramBridgeState>(set => ({
   isListening: false,
   setIsListening: v => set({ isListening: v }),
+  requestedListening: false,
+  setRequestedListening: v => set({ requestedListening: v }),
 }));
 
 // ── Audio band energies — written by PreenSpectrogram RAF, read by StarfieldCanvas RAF ──
