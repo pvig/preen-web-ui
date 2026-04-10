@@ -715,7 +715,8 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
       // Resume path: stream already acquired (was paused), just restart the RAF.
       // This preserves PipeWire routing established at first start.
       if (streamRef.current && analyserRef.current) {
-        // Resume: do NOT unmute the monitor — routing is managed by qpwgraph.
+        // Resume: restore monitor gain (was muted on pause).
+        if (monitorGainRef.current) monitorGainRef.current.gain.value = 1;
         setIsListening(true);
         animFrameRef.current = requestAnimationFrame(drawFrame);
         return;
@@ -796,6 +797,7 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
           source.connect(monitorGain);
         }
         monitorGain.connect(audioCtx.destination);
+        monitorGain.gain.value = 1; // Unmute once the graph is connected.
 
         // Pre-allocate a reusable single-row ImageData (1024 px wide × 1 px tall)
         const ctx = canvasRef.current!.getContext('2d')!;
