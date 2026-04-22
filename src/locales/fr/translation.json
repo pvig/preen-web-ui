@@ -295,6 +295,8 @@
     "canvasAriaLabel": "Spectrogramme fr\u00e9quentiel en temps r\u00e9el",
     "stop": "\u25a0 Arr\u00eater l'\u00e9coute",
     "start": "\u25b6 D\u00e9marrer l'\u00e9coute",
+    "fullscreen": "Plein \u00e9cran",
+    "exitFullscreen": "Quitter plein \u00e9cran",
     "statusLive": "En cours \u2014 capture audio active",
     "statusStopped": "Arr\u00eat\u00e9",
     "errorAccess": "Acc\u00e8s audio refus\u00e9 ou indisponible\u00a0: {{msg}}",

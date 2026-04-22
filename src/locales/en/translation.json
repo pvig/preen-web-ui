@@ -295,6 +295,8 @@
     "canvasAriaLabel": "Real-time frequency spectrogram",
     "stop": "\u25a0 Stop Listening",
     "start": "\u25b6 Start Listening",
+    "fullscreen": "Full Screen",
+    "exitFullscreen": "Exit Full Screen",
     "statusLive": "Live \u2014 capturing audio",
     "statusStopped": "Stopped",
     "errorAccess": "Audio access denied or unavailable: {{msg}}",

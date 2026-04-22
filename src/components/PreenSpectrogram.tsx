@@ -219,6 +219,29 @@ const CanvasWrapper = styled.div`
     height: ${CANVAS_HEIGHT}px;
     image-rendering: pixelated;
   }
+
+  /* Fullscreen: GPU-scale the canvas to fill the screen — zero CPU overhead. */
+  &:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    border: none;
+    canvas { height: 100%; }
+  }
+  &:-webkit-full-screen {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    border: none;
+    canvas { height: 100%; }
+  }
+  &:-moz-full-screen {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    border: none;
+    canvas { height: 100%; }
+  }
 `;
 
 /** Frequency axis labels overlaid on the canvas. */
@@ -261,6 +284,29 @@ const ControlButton = styled.button<{ $variant: 'start' | 'stop' }>`
     $variant === 'start' ? theme.colors.primary : theme.colors.button};
   color: ${({ $variant, theme }) =>
     $variant === 'start' ? theme.colors.background : theme.colors.text};
+
+  &:hover:not(:disabled) {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
+const FullscreenButton = styled.button`
+  padding: 6px 10px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: ${({ theme }) => theme.colors.button};
+  color: ${({ theme }) => theme.colors.text};
+  line-height: 1;
 
   &:hover:not(:disabled) {
     opacity: 0.85;
@@ -553,11 +599,29 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
     );
     /** Controls visibility of the multi-channel setup help panel. */
     const [showHelp, setShowHelp] = useState(false);
+    const canvasWrapperRef = useRef<HTMLDivElement>(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
 
     const dismissWarning = useCallback(() => {
       sessionStorage.setItem('spectrogram-ch-warning-dismissed', '1');
       setWarningDismissed(true);
       setShowHelp(false);
+    }, []);
+
+    const toggleFullscreen = useCallback(() => {
+      if (!document.fullscreenElement) {
+        canvasWrapperRef.current?.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }, []);
+
+    useEffect(() => {
+      const onFullscreenChange = () =>
+        setIsFullscreen(!!document.fullscreenElement);
+      document.addEventListener('fullscreenchange', onFullscreenChange);
+      return () =>
+        document.removeEventListener('fullscreenchange', onFullscreenChange);
     }, []);
 
     // ── Initialise circular buffer once ────────────────────────
@@ -1022,7 +1086,7 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
           </WarningBox>
         )}
 
-        <CanvasWrapper>
+        <CanvasWrapper ref={canvasWrapperRef}>
           {/* Pixel buffer: 1024 bins wide × CANVAS_HEIGHT px tall.
               CSS stretches it to fill the container. */}
           <canvas
@@ -1050,6 +1114,13 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
               {t('spectrogram.start')}
             </ControlButton>
           )}
+          <FullscreenButton
+            onClick={toggleFullscreen}
+            disabled={!isListening}
+            title={isFullscreen ? t('spectrogram.exitFullscreen') : t('spectrogram.fullscreen')}
+          >
+            {isFullscreen ? t('spectrogram.exitFullscreen') : t('spectrogram.fullscreen')}
+          </FullscreenButton>
           <StatusDot $active={isListening} />
           <StatusText>
             {isListening ? t('spectrogram.statusLive') : t('spectrogram.statusStopped')}
