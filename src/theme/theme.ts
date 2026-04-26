@@ -63,13 +63,19 @@ export interface Theme {
     adsrSustain: string;
     adsrRelease: string;
 
-    // Spectrogram LUT — 6 color stops (silence → peak)
-    spectro1: string;   // silence / near-black
-    spectro2: string;   // very low — deep space
-    spectro3: string;   // low — nebula blue
-    spectro4: string;   // mid — primary
-    spectro5: string;   // high — accent / violet
-    spectro6: string;   // peak — bright white-hot
+    // Spectrogram LUT — 12 color stops (silence → peak, cold nebula)
+    spectro1: string;   // void / near-black
+    spectro2: string;   // deep cold space
+    spectro3: string;   // dark navy
+    spectro4: string;   // cobalt
+    spectro5: string;   // slate blue
+    spectro6: string;   // mid blue
+    spectro7: string;   // grey-blue
+    spectro8: string;   // cold teal intrusion (irrational jump)
+    spectro9: string;   // violet-grey
+    spectro10: string;  // lavender dust
+    spectro11: string;  // pale mauve
+    spectro12: string;  // cold near-white
   };
 }
 
@@ -124,13 +130,19 @@ export const darkTheme: Theme = {
     adsrSustain: '#4299E1',
     adsrRelease: '#F6AD55',
 
-    // Spectrogram LUT — 6 color stops (silence → peak)
-    spectro1: '#000004',   // silence — near-black
-    spectro2: '#0d1b4b',   // deep space blue
-    spectro3: '#284d96',   // nebula blue
-    spectro4: '#8c94c0',   // mid — muted primary
-    spectro5: '#9F7AEA',   // violet — accent
-    spectro6: '#f0d0ff',   // peak — bright lavender-white
+    // Spectrogram LUT — 12 color stops (silence → peak, Andromeda galaxy)
+    spectro1:  '#000002',   // void
+    spectro2:  '#040a10',   // deep space
+    spectro3:  '#0e1830',   // halo extérieur marine
+    spectro4:  '#181e4c',   // halo bleu-indigo
+    spectro5:  '#301858',   // violet — étoiles pop. II (saut irrrationnel)
+    spectro6:  '#3c1008',   // ANNEAU DE POUSSIÈRE — brun sombre brutal
+    spectro7:  '#621e10',   // rouille sombre (bras de poussière)
+    spectro8:  '#904828',   // ocre-rouille chaud
+    spectro9:  '#0e0604',   // VIDE INTERSTELLAIRE — notch sombre (~73% amp)
+    spectro10: '#b86820',   // ambre doré (reprise bulbe)
+    spectro11: '#d8a840',   // or pâle
+    spectro12: '#eede98',   // crème-ivoire (noyau)
   },
 };
 
@@ -185,12 +197,18 @@ export const lightTheme: Theme = {
     adsrSustain: '#3182ce',
     adsrRelease: '#dd6b20',
 
-    // Spectrogram LUT — 6 color stops (silence → peak)
-    spectro1: '#000004',   // silence — near-black
-    spectro2: '#0a132e',   // deep space blue
-    spectro3: '#0f1f3d',   // nebula blue
-    spectro4: '#3182ce',   // mid — primary
-    spectro5: '#805ad5',   // violet — accent
-    spectro6: '#e9d5ff',   // peak — bright lavender-white
+    // Spectrogram LUT — 12 color stops (silence → peak, Andromeda galaxy)
+    spectro1:  '#000002',
+    spectro2:  '#040810',
+    spectro3:  '#0c1428',
+    spectro4:  '#141840',
+    spectro5:  '#28144c',   // violet — étoiles pop. II
+    spectro6:  '#340e08',   // ANNEAU DE POUSSIÈRE — brun sombre brutal
+    spectro7:  '#581a0e',
+    spectro8:  '#804020',
+    spectro9:  '#0a0604',   // VIDE INTERSTELLAIRE — notch sombre (~73% amp)
+    spectro10: '#a06020',
+    spectro11: '#c89430',
+    spectro12: '#e4d080',   // crème doré (noyau)
   },
 };

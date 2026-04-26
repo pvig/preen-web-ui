@@ -57,15 +57,25 @@ function hexToRgb(hex: string): [number, number, number] {
   ];
 }
 
-/** Builds a 256-entry RGB LUT from 6 evenly-spaced theme color stops. */
-function buildThemeLUT(c1: string, c2: string, c3: string, c4: string, c5: string, c6: string): Uint8ClampedArray {
+/** Builds a 256-entry RGB LUT from 12 evenly-spaced color stops. */
+function buildThemeLUT(
+  c1: string,  c2: string,  c3: string,  c4: string,
+  c5: string,  c6: string,  c7: string,  c8: string,
+  c9: string,  c10: string, c11: string, c12: string
+): Uint8ClampedArray {
   const stops: [number, number, number, number][] = [
-    [0.00, ...hexToRgb(c1)],
-    [0.20, ...hexToRgb(c2)],
-    [0.40, ...hexToRgb(c3)],
-    [0.60, ...hexToRgb(c4)],
-    [0.80, ...hexToRgb(c5)],
-    [1.00, ...hexToRgb(c6)],
+    [ 0/11, ...hexToRgb(c1)],
+    [ 1/11, ...hexToRgb(c2)],
+    [ 2/11, ...hexToRgb(c3)],
+    [ 3/11, ...hexToRgb(c4)],
+    [ 4/11, ...hexToRgb(c5)],
+    [ 5/11, ...hexToRgb(c6)],
+    [ 6/11, ...hexToRgb(c7)],
+    [ 7/11, ...hexToRgb(c8)],
+    [ 8/11, ...hexToRgb(c9)],
+    [ 9/11, ...hexToRgb(c10)],
+    [10/11, ...hexToRgb(c11)],
+    [11/11, ...hexToRgb(c12)],
   ];
   const lut = new Uint8ClampedArray(256 * 3);
   for (let i = 0; i < 256; i++) {
@@ -86,6 +96,225 @@ function buildThemeLUT(c1: string, c2: string, c3: string, c4: string, c5: strin
   return lut;
 }
 
+/** Builds a 256-entry RGB LUT for the Herbig-Haro 110 jet palette (treble end).
+ *  HH 110 — protostellar jet (Hubble): deep indigo shock → electric blue → cyan → ice white. */
+function buildHH110LUT(): Uint8ClampedArray {
+  return buildThemeLUT(
+    '#000002', '#030514', '#060e28', '#0a1848',
+    '#0e2870', '#060c18', '#1060c0', '#1888d0',  // stop 6: vide interstellaire (~45% amp)
+    '#20b0c8', '#30c8b8', '#70e0d0', '#c0f0ec'
+  );
+}
+
+// ============================================================
+// WebGL2 helpers
+// ============================================================
+
+function compileShader(gl: WebGL2RenderingContext, type: number, src: string): WebGLShader {
+  const shader = gl.createShader(type)!;
+  gl.shaderSource(shader, src);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
+    throw new Error(gl.getShaderInfoLog(shader) ?? 'Shader compile error');
+  return shader;
+}
+
+interface WebGLRes {
+  gl: WebGL2RenderingContext;
+  program: WebGLProgram;
+  vao: WebGLVertexArrayObject;
+  vbo: WebGLBuffer;
+  uWriteHead: WebGLUniformLocation;
+  uTime: WebGLUniformLocation;
+  uDataTex: WebGLTexture;
+  uLutATex: WebGLTexture;
+  uLutBTex: WebGLTexture;
+}
+
+const VERT_SRC = `#version 300 es
+in vec2 aPos;
+out vec2 vUV;
+void main() {
+  vUV = aPos * 0.5 + 0.5;
+  gl_Position = vec4(aPos, 0.0, 1.0);
+}`;
+
+// NOTE: FRAMES is embedded at compile time from the module-level constant.
+const FRAG_SRC = `#version 300 es
+precision mediump float;
+uniform sampler2D uData;
+uniform sampler2D uLutA;
+uniform sampler2D uLutB;
+uniform int   uWriteHead;
+uniform float uTime;
+in vec2 vUV;
+out vec4 fragColor;
+const float LOG_F_MIN  = 20.0;
+const float LOG_F_NYQ  = 22050.0;
+const int   FRAMES     = ${BUFFER_FRAMES};
+// Precomputed at shader compile time — avoids log() call per fragment.
+const float LOG_RANGE  = log(LOG_F_NYQ / LOG_F_MIN);
+
+// ── Procedural noise helpers (value noise + 5-octave FBM) ──────────────
+float hash(vec2 p) {
+  p = fract(p * vec2(127.1, 311.7));
+  p += dot(p, p + 19.19);
+  return fract(p.x * p.y);
+}
+float valueNoise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  float a = hash(i);
+  float b = hash(i + vec2(1.0, 0.0));
+  float c = hash(i + vec2(0.0, 1.0));
+  float d = hash(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+float fbm(vec2 p) {
+  float v = 0.0, amp = 0.5;
+  // 4 octaves: 5th contributes only ~3 % of total amplitude — not visible.
+  for (int i = 0; i < 4; i++) {
+    v   += amp * valueNoise(p);
+    p   *= 2.1;
+    amp *= 0.48;
+  }
+  return v;
+}
+
+void main() {
+  // ── Log-scale frequency axis (x) ──────────────────────────────────
+  float u = LOG_F_MIN * exp(vUV.x * LOG_RANGE) / LOG_F_NYQ;
+
+  // ── 2D time axis: vUV.y=1 (top) = newest, vUV.y=0 (bottom) = oldest
+  float ageF     = (1.0 - vUV.y) * float(FRAMES - 1);
+  float frameIdx = mod(float(uWriteHead) + ageF, float(FRAMES));
+  float v        = (frameIdx + 0.5) / float(FRAMES);
+  float amp      = texture(uData, vec2(u, v)).r;
+
+  // ── Spectrogram color (dual-LUT + timeFade + vignette) ────────────
+  float timeFade = 0.55 + vUV.y * 0.45; // top (newest) = 1.0, bottom (oldest) = 0.55
+  float blend    = pow(vUV.x, 1.3);
+  float lu       = amp * (255.0 / 256.0) + 0.5 / 256.0;
+  vec3  colA     = texture(uLutA, vec2(lu, 0.5)).rgb;
+  vec3  colB     = texture(uLutB, vec2(lu, 0.5)).rgb;
+  float vignette = 1.0 - pow(abs(vUV.x - 0.5) * 2.0, 2.5) * 0.4;
+  vec3  specCol  = mix(colA, colB, blend) * timeFade * vignette;
+
+  // ── Nebula gas-cloud overlay (3 FBM layers, Hubble palette) ───────
+  // Signal presence masks the clouds: loud bins → no cloud, silence → full cloud.
+  float silence = 1.0 - clamp(amp * 2.2, 0.0, 1.0);
+  // Early-exit: skip all FBM work for fully-masked pixels (signal present).
+  // Coherent across warps on the lower rows where signal is strongest.
+  if (silence < 0.01) {
+    fragColor = vec4(specCol, 1.0);
+    return;
+  }
+
+  // Layer A — Hα crimson (bass region, large slow drift)
+  vec2 uvA = vec2(vUV.x * 3.2 + uTime * 0.018, vUV.y * 2.1 + uTime * 0.007);
+  float fA = clamp(fbm(uvA) - 0.30, 0.0, 1.0) * 1.6;
+  // Frequency weight: peaks in low-freq zone (vUV.x near 0)
+  float wA = exp(-vUV.x * 2.8);
+  vec3  cA = vec3(0.72, 0.05, 0.10); // Hα crimson
+
+  // Layer B — [OIII] cobalt (mid region, medium drift)
+  vec2 uvB = vec2(vUV.x * 4.8 - uTime * 0.012, vUV.y * 3.0 + uTime * 0.015);
+  float fB = clamp(fbm(uvB) - 0.28, 0.0, 1.0) * 1.5;
+  // Frequency weight: Gaussian centred at mid (vUV.x ~ 0.45)
+  float wB = exp(-pow((vUV.x - 0.45) * 3.0, 2.0));
+  vec3  cB = vec3(0.06, 0.22, 0.72); // [OIII] cobalt
+
+  // Layer C — [SII] amber (treble region, finer/faster drift)
+  vec2 uvC = vec2(vUV.x * 7.0 + uTime * 0.030, vUV.y * 4.5 - uTime * 0.010);
+  float fC = clamp(fbm(uvC) - 0.32, 0.0, 1.0) * 1.4;
+  // Frequency weight: peaks in high-freq zone (vUV.x near 1)
+  float wC = exp(-(1.0 - vUV.x) * 2.8);
+  vec3  cC = vec3(0.75, 0.45, 0.04); // [SII] amber
+
+  // Modulate each layer by its frequency weight and signal silence
+  const float CLOUD_GAIN = 0.45;
+  vec3 cloudCol = (cA * fA * wA + cB * fB * wB + cC * fC * wC) * silence * CLOUD_GAIN;
+
+  // ── Additive composite ─────────────────────────────────────────────
+  fragColor = vec4(specCol + cloudCol, 1.0);
+}`;
+
+/**
+ * Initialises a WebGL2 context on the given canvas, compiles shaders,
+ * uploads the initial LUT A palette, and returns all GPU resources.
+ * Called once per listening session inside startListening().
+ */
+function initWebGL(canvas: HTMLCanvasElement, lutAData: Uint8ClampedArray): WebGLRes {
+  const gl = canvas.getContext('webgl2');
+  if (!gl) throw new Error('WebGL2 not supported in this browser');
+
+  const vert = compileShader(gl, gl.VERTEX_SHADER, VERT_SRC);
+  const frag = compileShader(gl, gl.FRAGMENT_SHADER, FRAG_SRC);
+  const program = gl.createProgram()!;
+  gl.attachShader(program, vert);
+  gl.attachShader(program, frag);
+  gl.linkProgram(program);
+  gl.deleteShader(vert);
+  gl.deleteShader(frag);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS))
+    throw new Error(gl.getProgramInfoLog(program) ?? 'Program link error');
+  gl.useProgram(program);
+
+  // Fullscreen quad: BL, BR, TL, TR (TRIANGLE_STRIP)
+  const vao = gl.createVertexArray()!;
+  const vbo = gl.createBuffer()!;
+  gl.bindVertexArray(vao);
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const aPosLoc = gl.getAttribLocation(program, 'aPos');
+  gl.enableVertexAttribArray(aPosLoc);
+  gl.vertexAttribPointer(aPosLoc, 2, gl.FLOAT, false, 0, 0);
+
+  gl.uniform1i(gl.getUniformLocation(program, 'uData'),  0);
+  gl.uniform1i(gl.getUniformLocation(program, 'uLutA'), 1);
+  gl.uniform1i(gl.getUniformLocation(program, 'uLutB'), 2);
+  const uWriteHead = gl.getUniformLocation(program, 'uWriteHead')!;
+  const uTime      = gl.getUniformLocation(program, 'uTime')!;
+
+  // uData: FREQ_BINS × BUFFER_FRAMES, R8 — ring buffer (initialised to 0)
+  const uDataTex = gl.createTexture()!;
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, uDataTex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, FREQ_BINS, BUFFER_FRAMES, 0,
+    gl.RED, gl.UNSIGNED_BYTE, null);
+
+  // uLutA: 256×1, RGB8 — theme-dependent palette (updated on theme change)
+  const uLutATex = gl.createTexture()!;
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, uLutATex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB8, 256, 1, 0,
+    gl.RGB, gl.UNSIGNED_BYTE, lutAData);
+
+  // uLutB: 256×1, RGB8 — HH110 palette (constant)
+  const lutBData = buildHH110LUT();
+  const uLutBTex = gl.createTexture()!;
+  gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_2D, uLutBTex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB8, 256, 1, 0,
+    gl.RGB, gl.UNSIGNED_BYTE, lutBData);
+
+  gl.viewport(0, 0, FREQ_BINS, CANVAS_HEIGHT);
+  return { gl, program, vao, vbo, uWriteHead, uTime, uDataTex, uLutATex, uLutBTex };
+}
+
 // ============================================================
 // Logarithmic frequency scale
 // ============================================================
@@ -103,27 +332,8 @@ const LOG_F_NYQ = 22050;
  * how the human auditory system perceives pitch.
  */
 /**
- * Fractional bin positions for log-scale mapping (Float32Array).
- * Storing sub-integer positions allows the render loop to linearly
- * interpolate between adjacent FFT bins, eliminating the block artifacts
- * that appear when many pixels round to the same integer bin (bass region).
- */
-const LOG_BINS_LUT: Float32Array = (() => {
-  const lut      = new Float32Array(FREQ_BINS);
-  const logRange = Math.log(LOG_F_NYQ / LOG_F_MIN);
-  const maxBin   = FREQ_BINS - 1;
-  for (let x = 0; x < FREQ_BINS; x++) {
-    const t    = x / maxBin;
-    const freq = LOG_F_MIN * Math.exp(t * logRange);
-    const bin  = freq / LOG_F_NYQ * maxBin;          // fractional
-    lut[x] = Math.min(Math.max(bin, 0), maxBin);
-  }
-  return lut;
-})();
-
-/**
- * Tick marks for the logarithmic frequency axis.
- * pct: horizontal position [0–100] computed from the same log formula as LOG_BINS_LUT.
+ * Tick marks for the logarithmic frequency axis (used for overlay labels).
+ * pct: horizontal position [0–100] computed from the same log formula as the fragment shader.
  */
 const FREQ_AXIS_TICKS: { label: string; pct: number }[] = (() => {
   const freqs  = [100, 500, 1_000, 2_000, 5_000, 10_000, 20_000];
@@ -210,6 +420,7 @@ const CanvasWrapper = styled.div`
   border-radius: 6px;
   overflow: hidden;
   border: 1px solid ${({ theme }) => theme.colors.border};
+  isolation: isolate;
 
   canvas {
     display: block;
@@ -217,7 +428,7 @@ const CanvasWrapper = styled.div`
        while preserving all frequency bins in the underlying data. */
     width: 100%;
     height: ${CANVAS_HEIGHT}px;
-    image-rendering: pixelated;
+    image-rendering: auto;
   }
 
   /* Fullscreen: GPU-scale the canvas to fill the screen — zero CPU overhead. */
@@ -504,7 +715,7 @@ const HelpPanel = styled.div`
   }
 `;
 
-// (Frequency axis data is defined above in LOG_BINS_LUT / FREQ_AXIS_TICKS)
+// (Frequency axis ticks are defined above in FREQ_AXIS_TICKS)
 
 
 
@@ -539,19 +750,21 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
     const { theme } = useThemeStore();
     // ── Refs ───────────────────────────────────────────────────
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const lutRef = useRef<Uint8ClampedArray>(buildThemeLUT(theme.colors.spectro1, theme.colors.spectro2, theme.colors.spectro3, theme.colors.spectro4, theme.colors.spectro5, theme.colors.spectro6));
+    /** WebGL2 GPU resources — allocated in startListening, freed in stopListening. */
+    const glRef = useRef<WebGLRes | null>(null);
+    /** Current theme LUT A data — kept current by the theme useEffect so
+     *  startListening always gets the latest palette even if called stale. */
+    const lutARef = useRef<Uint8ClampedArray>(buildThemeLUT(
+      theme.colors.spectro1,  theme.colors.spectro2,  theme.colors.spectro3,  theme.colors.spectro4,
+      theme.colors.spectro5,  theme.colors.spectro6,  theme.colors.spectro7,  theme.colors.spectro8,
+      theme.colors.spectro9,  theme.colors.spectro10, theme.colors.spectro11, theme.colors.spectro12
+    ));
     const audioCtxRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
     const splitterRef = useRef<ChannelSplitterNode | null>(null);
     const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
     const animFrameRef = useRef<number | null>(null);
-
-    /**
-     * Pre-allocated ImageData for a single pixel row (1024×1).
-     * Reusing this object every frame avoids GC pressure.
-     */
-    const rowImageDataRef = useRef<ImageData | null>(null);
 
     /**
      * Flat Uint8Array used as the read target for getByteFrequencyData().
@@ -600,6 +813,8 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
     /** Controls visibility of the multi-channel setup help panel. */
     const [showHelp, setShowHelp] = useState(false);
     const canvasWrapperRef = useRef<HTMLDivElement>(null);
+    const starCanvasRef = useRef<HTMLCanvasElement>(null);
+    const starRafRef = useRef<number | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
 
     const dismissWarning = useCallback(() => {
@@ -624,6 +839,241 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
         document.removeEventListener('fullscreenchange', onFullscreenChange);
     }, []);
 
+    // ── Starfield background inside fullscreen spectrogram ────
+    useEffect(() => {
+      const canvas = starCanvasRef.current;
+      if (!isFullscreen || !canvas) {
+        if (starRafRef.current !== null) {
+          cancelAnimationFrame(starRafRef.current);
+          starRafRef.current = null;
+        }
+        return;
+      }
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const resize = () => {
+        canvas.width  = canvas.offsetWidth  || window.innerWidth;
+        canvas.height = canvas.offsetHeight || window.innerHeight;
+      };
+      resize();
+      window.addEventListener('resize', resize);
+
+      const SF_R = 900, SF_FOCAL = 500;
+      const SF_SHELLS: [number, number][] = [
+        [0.70, 1.00], [0.55, 0.85], [0.40, 0.70], [0.25, 0.55],
+      ];
+
+      // ── Star population: 400 normal + 120 galactic disc ─────────────────
+      const DISC_COUNT = 120;
+      const TOTAL_STARS = 400 + DISC_COUNT;
+      const stars = Array.from({ length: TOTAL_STARS }, (_, i) => {
+        const isDisc = i >= 400;
+        const shell  = (i % 4) as 0|1|2|3;
+        const [rMin, rMax] = SF_SHELLS[isDisc ? 1 : shell];
+        const r = SF_R * (rMin + Math.random() * (rMax - rMin));
+        const theta = Math.random() * Math.PI * 2;
+        // Disc stars: constrained near the equatorial plane (phi ≈ π/2 ± 0.15)
+        const phi = isDisc
+          ? Math.PI / 2 + (Math.random() - 0.5) * 0.30
+          : Math.acos(2 * Math.random() - 1);
+        const brightness = isDisc ? 0.18 + Math.random() * 0.35 : 0.35 + Math.random() * 0.65;
+        return {
+          ox: r * Math.sin(phi) * Math.cos(theta),
+          oy: r * Math.sin(phi) * Math.sin(theta),
+          oz: r * Math.cos(phi),
+          brightness,
+          lfoPhase:    Math.random() * Math.PI * 2,
+          lfoFreq:     0.08 + Math.random() * 0.12,
+          // Atmospheric scintillation — two independent sine oscillators per star
+          scintPhaseX: Math.random() * Math.PI * 2,
+          scintPhaseY: Math.random() * Math.PI * 2,
+          scintFreq:   20 + Math.random() * 40,    // 3–10 Hz — crisp atmospheric shimmer
+          shell,
+          reactivity: Math.random() < 0.25 ? 0.1 + Math.random() * 0.9 : Math.random() * 0.25,
+          isDisc,
+          // ~20 % of bright non-disc stars can produce diffraction-spike flares
+          flareable: !isDisc && brightness > 0.55 && Math.random() < 0.20,
+        };
+      });
+
+      // Pre-computed indices of flareable stars for O(1) random selection
+      const flareableIndices = stars.reduce<number[]>((acc, s, i) => {
+        if (s.flareable) acc.push(i);
+        return acc;
+      }, []);
+
+      // ── Nebula blobs: 4 radial clouds, one per audio band ───────────────
+      // Positions are slightly off-center; colors are Hubble-inspired.
+      const nebulae = [
+        { bx: 0.38, by: 0.42, r: 0.28, band: 0, cr: 140, cg: 20,  cb: 60  }, // Hα red (bass)
+        { bx: 0.62, by: 0.35, r: 0.22, band: 1, cr: 20,  cg: 55,  cb: 120 }, // O III blue (lo-mid)
+        { bx: 0.45, by: 0.65, r: 0.20, band: 2, cr: 20,  cg: 110, cb: 90  }, // S II teal (hi-mid)
+        { bx: 0.70, by: 0.60, r: 0.18, band: 3, cr: 150, cg: 95,  cb: 15  }, // stellar amber (high)
+      ];
+
+      // ── Stellar flares: brief diffraction-spike flashes ──────────────────
+      interface Flare { starIdx: number; life: number; maxLife: number; spikeLen: number; }
+      const flares: Flare[] = [];
+
+      let angleY = 0, angleX = 0;
+      const env = [0, 0, 0, 0];
+      const ATTACK = 0.35, DECAY = 0.96;
+
+      const drawStar = (ms: number) => {
+        starRafRef.current = requestAnimationFrame(drawStar);
+        const t = ms * 0.001;
+        const { width: W, height: H } = canvas;
+        angleY += 0.00015;
+        angleX += 0.00018;
+        const cosY = Math.cos(angleY), sinY = Math.sin(angleY);
+        const cosX = Math.cos(angleX), sinX = Math.sin(angleX);
+
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.fillRect(0, 0, W, H);
+
+        const cx = W / 2, cy = H / 2;
+        const raw = [audioBands.band0, audioBands.band1, audioBands.band2, audioBands.band3];
+        for (let s = 0; s < 4; s++) {
+          env[s] = raw[s] > env[s]
+            ? raw[s] * ATTACK + env[s] * (1 - ATTACK)
+            : env[s] * DECAY;
+        }
+
+        // ── Nebula clouds ────────────────────────────────────────────────
+        for (const nb of nebulae) {
+          const e = env[nb.band];
+          const alpha  = 0.015 + e * 0.06;
+          const radius = (nb.r * Math.min(W, H)) * (1 + e * 0.3);
+          const bx = nb.bx * W, by = nb.by * H;
+          const grad = ctx.createRadialGradient(bx, by, 0, bx, by, radius);
+          grad.addColorStop(0,   `rgba(${nb.cr},${nb.cg},${nb.cb},${alpha})`);
+          grad.addColorStop(0.4, `rgba(${nb.cr},${nb.cg},${nb.cb},${alpha * 0.4})`);
+          grad.addColorStop(1,   `rgba(${nb.cr},${nb.cg},${nb.cb},0)`);
+          ctx.beginPath();
+          ctx.arc(bx, by, radius, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.fill();
+        }
+
+        // ── Stars (sphere projection + atmospheric scintillation) ────────
+        for (const star of stars) {
+          const x1 =  star.ox * cosY + star.oz * sinY;
+          const z1 = -star.ox * sinY + star.oz * cosY;
+          const y2 =  star.oy * cosX - z1 * sinX;
+          const z2 =  star.oy * sinX + z1 * cosX;
+          if (z2 < 50) continue;
+          const depth = Math.min(1, z2 / (SF_R * 1.6));
+          // Sub-pixel jitter simulates atmospheric wavefront distortion.
+          // Amplitude scales with nearness; disc stars get half amplitude.
+          const jAmp   = star.isDisc ? 0.08 : (0.22 - depth * 0.15);
+          const scintX = Math.sin(t * star.scintFreq        + star.scintPhaseX) * jAmp;
+          const scintY = Math.cos(t * star.scintFreq * 0.73 + star.scintPhaseY) * jAmp;
+          // Independent alpha flicker (±15 %) at a slightly different frequency
+          const scintA = 0.88 + 0.12 * Math.sin(t * star.scintFreq * 1.4 + star.scintPhaseX + 0.9);
+          const sx = (x1 / z2) * SF_FOCAL + cx + scintX;
+          const sy = (y2 / z2) * SF_FOCAL + cy + scintY;
+          const lfo   = 0.5 + 0.5 * Math.sin(t * star.lfoFreq + star.lfoPhase);
+          const e     = Math.min(1, env[star.shell] * 4 * star.reactivity);
+          const size  = star.isDisc
+            ? Math.max(0.2, (1 - depth) * 1.4)
+            : Math.max(0.3, (1 - depth) * 2.4 + e * 3.5);
+          const alpha = Math.min(1, (star.brightness * lfo * (0.25 + (1 - depth) * 0.75) + e * 0.7) * scintA);
+          const base  = 170 + (1 - depth) * 85;
+          let r: number, g: number, b: number;
+          if (star.isDisc) {
+            // Disc stars: warm yellowish-white, subtly tinted by shell band
+            const tint = env[star.shell] * 30;
+            r = Math.min(255, Math.floor(base + tint));
+            g = Math.min(255, Math.floor(base * 0.9 + tint * 0.5));
+            b = Math.floor(base * 0.7);
+          } else if (star.shell === 0) {
+            r = Math.min(255, Math.floor(base + e * 140));
+            g = Math.min(255, Math.floor(base * 0.65 + e * 40));
+            b = Math.floor(100 + (1 - e) * 155);
+          } else if (star.shell === 1) {
+            r = Math.min(255, Math.floor(base + e * 80));
+            g = Math.min(255, Math.floor(base + e * 60));
+            b = Math.floor(180 + (1 - e) * 75);
+          } else if (star.shell === 2) {
+            r = Math.floor(base);
+            g = Math.min(255, Math.floor(base + 20 + e * 40));
+            b = 255;
+          } else {
+            r = Math.floor(base * (0.6 + (1 - e) * 0.4));
+            g = Math.floor(base * (0.7 + (1 - e) * 0.3));
+            b = Math.min(255, Math.floor(220 + e * 35));
+          }
+          ctx.beginPath();
+          ctx.arc(sx, sy, size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+          ctx.fill();
+        }
+
+        // ── Stellar flares (diffraction spikes) ──────────────────────────
+        // ~1 flare every 5-6 s at 60 fps (p=0.003/frame); max 3 concurrent
+        if (flares.length < 3 && flareableIndices.length > 0 && Math.random() < 0.003) {
+          const idx = flareableIndices[Math.floor(Math.random() * flareableIndices.length)];
+          if (!flares.some(f => f.starIdx === idx)) {
+            flares.push({
+              starIdx:  idx,
+              life:     0,
+              maxLife:  10 + Math.floor(Math.random() * 12),
+              spikeLen: 8  + Math.random() * 9,
+            });
+          }
+        }
+        for (let i = flares.length - 1; i >= 0; i--) {
+          const fl   = flares[i];
+          fl.life++;
+          if (fl.life > fl.maxLife) { flares.splice(i, 1); continue; }
+          const star = stars[fl.starIdx];
+          // Re-project the star (at most 3 extra projections per frame)
+          const fx1 =  star.ox * cosY + star.oz * sinY;
+          const fz1 = -star.ox * sinY + star.oz * cosY;
+          const fy2 =  star.oy * cosX - fz1 * sinX;
+          const fz2 =  star.oy * sinX + fz1 * cosX;
+          if (fz2 < 50) continue;
+          const fsx    = (fx1 / fz2) * SF_FOCAL + cx;
+          const fsy    = (fy2 / fz2) * SF_FOCAL + cy;
+          const fDepth = Math.min(1, fz2 / (SF_R * 1.6));
+          const fSize  = Math.max(0.3, (1 - fDepth) * 2.4);
+          // Bell-curve envelope: alpha rises then falls symmetrically
+          const fAlpha = Math.sin(Math.PI * (fl.life / fl.maxLife));
+          const sLen   = fl.spikeLen * fAlpha;
+          ctx.save();
+          ctx.globalAlpha = fAlpha * 0.88;
+          ctx.strokeStyle = 'rgba(215,232,255,1)';
+          ctx.lineWidth   = 0.7;
+          // 4 diffraction arms at 0 / 45 / 90 / 135°
+          for (let a = 0; a < 4; a++) {
+            const ang = (a * Math.PI) / 4;
+            const dx  = Math.cos(ang) * sLen;
+            const dy  = Math.sin(ang) * sLen;
+            ctx.beginPath();
+            ctx.moveTo(fsx - dx, fsy - dy);
+            ctx.lineTo(fsx + dx, fsy + dy);
+            ctx.stroke();
+          }
+          // Bright radial glow at the flare core
+          ctx.beginPath();
+          ctx.arc(fsx, fsy, fSize * (1 + fAlpha * 2.2), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(230,242,255,${(fAlpha * 0.65).toFixed(3)})`;
+          ctx.fill();
+          ctx.restore();
+        }
+      };
+
+      starRafRef.current = requestAnimationFrame(drawStar);
+      return () => {
+        if (starRafRef.current !== null) {
+          cancelAnimationFrame(starRafRef.current);
+          starRafRef.current = null;
+        }
+        window.removeEventListener('resize', resize);
+      };
+    }, [isFullscreen]);
+
     // ── Initialise circular buffer once ────────────────────────
     useEffect(() => {
       dataBufferRef.current = Array.from(
@@ -632,10 +1082,21 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
       );
     }, []);
 
-    // ── Rebuild LUT when theme colors change ───────────────────
+    // ── Rebuild LUT A: update ref + re-upload GL texture when theme changes ──
     useEffect(() => {
-      lutRef.current = buildThemeLUT(theme.colors.spectro1, theme.colors.spectro2, theme.colors.spectro3, theme.colors.spectro4, theme.colors.spectro5, theme.colors.spectro6);
-    }, [theme.colors.spectro1, theme.colors.spectro2, theme.colors.spectro3, theme.colors.spectro4, theme.colors.spectro5, theme.colors.spectro6]);
+      const lutAData = buildThemeLUT(
+        theme.colors.spectro1,  theme.colors.spectro2,  theme.colors.spectro3,  theme.colors.spectro4,
+        theme.colors.spectro5,  theme.colors.spectro6,  theme.colors.spectro7,  theme.colors.spectro8,
+        theme.colors.spectro9,  theme.colors.spectro10, theme.colors.spectro11, theme.colors.spectro12
+      );
+      lutARef.current = lutAData;
+      const res = glRef.current;
+      if (!res) return;
+      res.gl.activeTexture(res.gl.TEXTURE1);
+      res.gl.bindTexture(res.gl.TEXTURE_2D, res.uLutATex);
+      res.gl.texSubImage2D(res.gl.TEXTURE_2D, 0, 0, 0, 256, 1,
+        res.gl.RGB, res.gl.UNSIGNED_BYTE, lutAData);
+    }, [theme.colors.spectro1, theme.colors.spectro2, theme.colors.spectro3, theme.colors.spectro4, theme.colors.spectro5, theme.colors.spectro6, theme.colors.spectro7, theme.colors.spectro8, theme.colors.spectro9, theme.colors.spectro10, theme.colors.spectro11, theme.colors.spectro12]);
 
     // ── Update Lissajous colors when theme changes ─────────────
     // (removed with Lissajous)
@@ -699,26 +1160,25 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
     /**
      * drawFrame — called once per requestAnimationFrame tick.
      *
-     * 1. Read frequency data from the AnalyserNode.
-     * 2. Store it in the circular buffer.
-     * 3. Scroll the canvas content up by 1 px via drawImage()
-     *    (leverages GPU compositing — no pixel enumeration needed).
-     * 4. Paint the new bottom row using the pre-computed Magma LUT.
-     * 5. Request the next frame.
+     * CPU work per frame (WebGL path):
+     *   1. getByteFrequencyData → freqData[] (Web Audio API, unavoidable)
+     *   2. 4 bandAvg loops for audioBands bridge (starfield, unavoidable)
+     *   3. dataBuffer[head].set(freqData) (ML ring buffer, unavoidable)
+     *   4. texSubImage2D — DMA of 1024 bytes to GPU texture row
+     *   5. uniform1i + drawArrays — one draw call
+     *
+     * All log-scale mapping, LUT lookup, palette blend and scrolling
+     * happen entirely on the GPU in the fragment shader.
      */
     const drawFrame = useCallback(() => {
       const analyser = analyserRef.current;
-      const canvas = canvasRef.current;
-      if (!analyser || !canvas) return;
+      const res = glRef.current;
+      if (!analyser || !res) return;
 
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
+      const { gl, uWriteHead, uTime, uDataTex } = res;
       const freqData = freqDataRef.current;
-      const rowImageData = rowImageDataRef.current;
-      if (!rowImageData) return;
 
-      // Step 1 — Read frequency data (byte values 0–255)
+      // Step 1 — Read FFT data (byte values 0–255)
       analyser.getByteFrequencyData(freqData);
 
       // ── Audio bands → StarfieldCanvas bridge (no React re-render) ──
@@ -732,39 +1192,26 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
       audioBands.band2 = bandAvg(BAND_BINS.band2.lo, BAND_BINS.band2.hi);
       audioBands.band3 = bandAvg(BAND_BINS.band3.lo, BAND_BINS.band3.hi);
 
-      // Step 2 — Write to circular buffer
+      // Step 2 — Write to circular buffer (for getNormalizedBuffer / ML)
       const head = writeHeadRef.current;
       dataBufferRef.current[head].set(freqData);
       writeHeadRef.current = (head + 1) % BUFFER_FRAMES;
 
-      // Step 3 — Scroll existing content up by 1 pixel.
-      //   drawImage(source, dx, dy) copies the canvas onto itself at offset
-      //   (0, -1), which shifts all content 1 px upward.  No pixel-by-pixel
-      //   loop is needed — the GPU handles the blit.
-      ctx.drawImage(canvas, 0, -1);
+      // Step 3 — Upload the new row to GPU texture (DMA: 1024 bytes)
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, uDataTex);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, head, FREQ_BINS, 1,
+        gl.RED, gl.UNSIGNED_BYTE, freqData);
 
-      // Step 4 — Build the new bottom row using the Magma LUT (log-scale axis).
-      // LOG_BINS_LUT[x] is a fractional bin index; we linearly interpolate
-      // between the two surrounding FFT bins to avoid the staircase banding
-      // that appears when several pixels share the same integer bin (bass region).
-      const pixels = rowImageData.data;
-      for (let x = 0; x < FREQ_BINS; x++) {
-        const fBin = LOG_BINS_LUT[x];
-        const lo   = fBin | 0;                    // Math.floor via bitwise OR
-        const hi   = lo < FREQ_BINS - 1 ? lo + 1 : lo;
-        const frac = fBin - lo;                   // interpolation weight [0, 1)
-        const amp  = (freqData[lo] * (1 - frac) + freqData[hi] * frac) | 0;
-        const px = x * 4; // RGBA stride
-        pixels[px + 0] = lutRef.current[amp * 3 + 0]; // R
-        pixels[px + 1] = lutRef.current[amp * 3 + 1]; // G
-        pixels[px + 2] = lutRef.current[amp * 3 + 2]; // B
-        pixels[px + 3] = 255;                      // A — fully opaque
-      }
+      // Step 4 — Update uniforms and render the full spectrogram.
+      //   The fragment shader addresses the ring buffer using uWriteHead,
+      //   so the "scroll" is free — no drawImage blit needed.
+      gl.uniform1i(uWriteHead, writeHeadRef.current);
+      // Wrap at 1 h to keep mediump float precision in the FBM hash functions.
+      gl.uniform1f(uTime, (performance.now() * 0.001) % 3600.0);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-      // Step 5 — Paint the row at the very bottom of the canvas.
-      ctx.putImageData(rowImageData, 0, CANVAS_HEIGHT - 1);
-
-      // Step 6 — Schedule the next frame.
+      // Step 5 — Schedule next frame
       animFrameRef.current = requestAnimationFrame(drawFrame);
     }, []);
 
@@ -863,13 +1310,9 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
         monitorGain.connect(audioCtx.destination);
         monitorGain.gain.value = 1; // Unmute once the graph is connected.
 
-        // Pre-allocate a reusable single-row ImageData (1024 px wide × 1 px tall)
-        const ctx = canvasRef.current!.getContext('2d')!;
-        rowImageDataRef.current = ctx.createImageData(FREQ_BINS, 1);
-
-        // Fill the canvas with the darkest Magma colour before the first frame
-        ctx.fillStyle = '#000004';
-        ctx.fillRect(0, 0, FREQ_BINS, CANVAS_HEIGHT);
+        // Initialise WebGL2 renderer (lutARef.current is always up-to-date
+        // thanks to the theme useEffect that runs on every theme change)
+        glRef.current = initWebGL(canvasRef.current!, lutARef.current);
 
         setIsListening(true);
         animFrameRef.current = requestAnimationFrame(drawFrame);
@@ -899,7 +1342,7 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
       // Stream, AudioContext and audio graph are intentionally kept alive.
     }, []);
 
-    /** Full teardown: releases stream and all audio resources. Reserved for unmount. */
+    /** Full teardown: releases stream, all audio resources, and WebGL context. Reserved for unmount. */
     const stopListening = useCallback(() => {
       if (animFrameRef.current !== null) {
         cancelAnimationFrame(animFrameRef.current);
@@ -917,6 +1360,17 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
       audioCtxRef.current?.close();
       audioCtxRef.current = null;
       analyserRef.current = null;
+      // Destroy WebGL resources
+      if (glRef.current) {
+        const { gl, program, vao, vbo, uDataTex, uLutATex, uLutBTex } = glRef.current;
+        gl.deleteTexture(uDataTex);
+        gl.deleteTexture(uLutATex);
+        gl.deleteTexture(uLutBTex);
+        gl.deleteProgram(program);
+        gl.deleteVertexArray(vao);
+        gl.deleteBuffer(vbo);
+        glRef.current = null;
+      }
       // Reset band energies so stars return to rest
       audioBands.band0 = 0;
       audioBands.band1 = 0;
@@ -1087,6 +1541,16 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
         )}
 
         <CanvasWrapper ref={canvasWrapperRef}>
+          {/* Starfield background — active only in fullscreen, screen-blended with spectrogram. */}
+          <canvas
+            ref={starCanvasRef}
+            style={{
+              position: 'absolute',
+              top: 0, left: 0, right: 0, bottom: 0,
+              width: '100%', height: '100%',
+              display: isFullscreen ? 'block' : 'none',
+            }}
+          />
           {/* Pixel buffer: 1024 bins wide × CANVAS_HEIGHT px tall.
               CSS stretches it to fill the container. */}
           <canvas
@@ -1094,6 +1558,7 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
             width={FREQ_BINS}
             height={CANVAS_HEIGHT}
             aria-label={t('spectrogram.canvasAriaLabel')}
+            style={{ mixBlendMode: 'screen' }}
           />
 
           {/* Frequency axis (approximate — valid at 44.1 kHz sample rate) */}
