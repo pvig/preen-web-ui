@@ -1540,7 +1540,7 @@ const PreenSpectrogram = forwardRef<PreenSpectrogramHandle>(
           </WarningBox>
         )}
 
-        <CanvasWrapper ref={canvasWrapperRef}>
+        <CanvasWrapper ref={canvasWrapperRef} onDoubleClick={toggleFullscreen}>
           {/* Starfield background — active only in fullscreen, screen-blended with spectrogram. */}
           <canvas
             ref={starCanvasRef}

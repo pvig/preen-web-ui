@@ -90,8 +90,8 @@ const glitch = keyframes`
 `;
 
 const subtitlePulse = keyframes`
-  0%, 100% { opacity: 0.9; text-shadow: 0 0 6px #0af, 0 0 18px #08f; }
-  50%       { opacity: 1;   text-shadow: 0 0 10px #0cf, 0 0 28px #0af, 0 0 50px #08f; }
+  0%, 100% { opacity: 0.6; text-shadow: 0 0 8px #0af; }
+  50%       { opacity: 0.9; text-shadow: 0 0 14px #0cf, 0 0 32px #08f; }
 `;
 
 const glitchColor = keyframes`
@@ -162,13 +162,12 @@ const CopperBar = styled.div`
   height: 4px;
   background: linear-gradient(
     90deg,
-    hsl(0,100%,55%), hsl(30,100%,55%), hsl(60,100%,55%), hsl(90,100%,55%),
-    hsl(120,100%,55%), hsl(150,100%,55%), hsl(180,100%,55%), hsl(210,100%,55%),
-    hsl(240,100%,55%), hsl(270,100%,55%), hsl(300,100%,55%), hsl(330,100%,55%),
-    hsl(360,100%,55%)
+    #030318, #061040, #082060, #0840a0,
+    #0a60c0, #0a80d0, #0a60c0, #0840a0,
+    #082060, #061040, #030318
   );
-  background-size: 300% 100%;
-  animation: ${gradientSlide} 1.4s linear infinite;
+  background-size: 400% 100%;
+  animation: ${gradientSlide} 7s ease-in-out infinite;
 `;
 
 const Body = styled.div`
@@ -202,9 +201,7 @@ const CloseBtn = styled.button`
   }
 `;
 
-const LogoGlitch = styled.div`
-  animation: ${glitch} 9s linear infinite;
-`;
+const LogoGlitch = styled.div``;
 
 const LogoLine = styled.pre`
   margin: 0;
@@ -221,7 +218,7 @@ const Subtitle = styled.div`
   letter-spacing: 0.12em;
   color: #0af;
   margin: 6px 0 14px;
-  animation: ${subtitlePulse} 2.4s ease-in-out infinite;
+  animation: ${subtitlePulse} 7s ease-in-out infinite;
 `;
 
 const Hr = styled.div`
@@ -275,17 +272,17 @@ const ScrollerWrap = styled.div`
     pointer-events: none;
     z-index: 10;
     opacity: 0;
-    animation: ${glitchBar} 9s linear infinite;
+    animation: none;
   }
 `;
 
 const ScrollerText = styled.span`
   display: inline-block;
   white-space: nowrap;
-  color: #00ee44;
+  color: #0af;
   font-size: 0.8rem;
-  text-shadow: 0 0 6px #00ee44;
-  animation: ${scrollMarquee} 20s linear infinite, ${glitchColor} 9s linear infinite;
+  text-shadow: 0 0 6px #08f;
+  animation: ${scrollMarquee} 30s linear infinite;
 `;
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -323,20 +320,15 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onClose, noAutoClose
     if (!container) return;
     const spans = Array.from(container.querySelectorAll<HTMLSpanElement>('span[data-col]'));
     const loop = (ms: number) => {
-      const t = ms * 0.001;
+      const t = ms * 0.0004;
       for (const span of spans) {
         const col = Number(span.dataset.col);
         const row = Number(span.dataset.row);
         const v = plasmaVal(col, row, t);
-        const hue = (v * 300 + t * 30) % 360;
-        const [rR, gR, bR] = hslToRgb(hue, 1, 0.62);
-        const [rS, gS, bS] = sampleGradient(spectroStops, v);
-        const r = (rR * 0.55 + rS * 0.45) | 0;
-        const g = (gR * 0.55 + gS * 0.45) | 0;
-        const b = (bR * 0.55 + bS * 0.45) | 0;
+        const [r, g, b] = sampleGradient(spectroStops, v);
         const c = `rgb(${r},${g},${b})`;
         span.style.color = c;
-        span.style.textShadow = `0 0 5px ${c}`;
+        span.style.textShadow = `0 0 8px ${c}`;
       }
       plasmaRafRef.current = requestAnimationFrame(loop);
     };
