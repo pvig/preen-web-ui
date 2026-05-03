@@ -29,12 +29,6 @@ function hexToRgb(hex: string): [number, number, number] {
   const n = parseInt(hex.replace('#', ''), 16);
   return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
 }
-/** HSL (h∈[0,360], s∈[0,1], l∈[0,1]) → [r, g, b] in [0,255] */
-function hslToRgb(h: number, s: number, l: number): [number, number, number] {
-  const a = s * Math.min(l, 1 - l);
-  const f = (n: number) => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
-  return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
-}
 /** Linear interpolation between two RGB triples */
 function lerpRgb(a: [number, number, number], b: [number, number, number], t: number): [number, number, number] {
   return [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t), Math.round(a[2] + (b[2] - a[2]) * t)];
@@ -82,34 +76,9 @@ const shrinkWidth = keyframes`
   to   { width: 0%; }
 `;
 
-const glitch = keyframes`
-  0%, 93%, 100% { clip-path: none; transform: skewX(0deg); }
-  94% { clip-path: polygon(0 15%, 100% 15%, 100% 35%, 0 35%); transform: skewX(-3deg); }
-  95% { clip-path: polygon(0 55%, 100% 55%, 100% 75%, 0 75%); transform: skewX(2deg); }
-  96% { clip-path: none; transform: skewX(0deg); }
-`;
-
 const subtitlePulse = keyframes`
   0%, 100% { opacity: 0.6; text-shadow: 0 0 8px #0af; }
   50%       { opacity: 0.9; text-shadow: 0 0 14px #0cf, 0 0 32px #08f; }
-`;
-
-const glitchColor = keyframes`
-  0%, 79%, 84%, 100% { filter: none; }
-  80% { filter: hue-rotate(175deg) brightness(1.8) saturate(1.5); }
-  81% { filter: hue-rotate(-65deg) brightness(0.7); }
-  82% { filter: none; }
-  92% { filter: hue-rotate(115deg) brightness(2) saturate(1.3); }
-  93% { filter: none; }
-`;
-
-const glitchBar = keyframes`
-  0%, 78%, 84%, 91%, 97%, 100% { opacity: 0; }
-  79% { opacity: 0.55; transform: translateY(5px);  background: rgba(0,255,255,0.4); }
-  80% { opacity: 0.3;  transform: translateY(16px); background: rgba(255,0,255,0.35); }
-  81% { opacity: 0; }
-  92% { opacity: 0.45; transform: translateY(10px); background: rgba(0,255,80,0.3); }
-  93% { opacity: 0; }
 `;
 
 // ── Styled components ──────────────────────────────────────────────────────
