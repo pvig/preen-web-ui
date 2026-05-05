@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { useThemeStore } from '../theme/themeStore';
 
 const DURATION_MS = 15000;
 const EXIT_MS = 500;
@@ -265,12 +264,10 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onClose, noAutoClose
   const [leaving, setLeaving] = useState(false);
   const closingRef = useRef(false);
 
-  const { theme } = useThemeStore();
-
-  // Plasma palette: spectro3–spectro6 (bright stops) blended with rainbow HSL
+  // Plasma palette: bright neon stops for the logo
   const spectroStops = useMemo<[number, number, number][]>(
-    () => [theme.colors.spectro3, theme.colors.spectro4, theme.colors.spectro5, theme.colors.spectro6].map(hexToRgb),
-    [theme.colors.spectro3, theme.colors.spectro4, theme.colors.spectro5, theme.colors.spectro6],
+    () => ['#00ccff', '#7744ff', '#ff44cc', '#00ffaa', '#00ccff'].map(hexToRgb),
+    [],
   );
 
   const logoRef = useRef<HTMLDivElement>(null);
