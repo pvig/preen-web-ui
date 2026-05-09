@@ -7,6 +7,8 @@ import { useCurrentPatch, updateGlobal } from '../stores/patchStore';
 import ModulationIndexesEditor from '../components/fmEngine/ModulationIndexesEditor';
 import KnobBase from '../components/knobs/KnobBase';
 import { useThemeStore } from '../theme/themeStore';
+import { useSynthStore } from '../stores/synthStore';
+import { FilterEditor } from '../components/modulations/FilterEditor';
 
 interface RowProps {
   width?: string | number;
@@ -67,6 +69,7 @@ const GlobalKnobWrapper = styled.div`
 export function PatchEditor() {
   const { theme } = useThemeStore();
   const currentPatch = useCurrentPatch();
+  const pfm3Version = useSynthStore(state => state.pfm3Version);
 
   if(!currentPatch) {
     return null;
@@ -160,6 +163,13 @@ export function PatchEditor() {
         
         <Row>
           <CarrierControls />
+        </Row>
+
+        <Row>
+          <FilterEditor filterIndex={0} />
+          {pfm3Version !== null && pfm3Version > 100 && (
+            <FilterEditor filterIndex={1} />
+          )}
         </Row>
 
       </FMSynthProvider>

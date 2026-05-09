@@ -131,7 +131,7 @@ export const MatrixEditor: React.FC = () => {
               <AmountLabel>{t('modulation.amount')}</AmountLabel>
               <KnobContainer>
                 <KnobBase
-                  size={50}
+                  size={41}
                   knobRadius={16}
                   min={-10}
                   max={24}
