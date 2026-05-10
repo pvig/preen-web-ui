@@ -53,10 +53,11 @@ export const OperatorPanel = ({ opNumber }: OperatorPanelProps) => {
       onMouseEnter={() => setHighlightedNode(opNumber)}
       onMouseLeave={() => setHighlightedNode(null)}
     >
-      <h3>{t('operator.title', { number: opNumber })}</h3>
 
       <ControlsRow>
-         <KnobBase
+          <h3>{t('operator.title', { number: opNumber })}</h3>
+         
+        <KnobBase
             label={t('operator.frequency')}
             value={selectedOperator?.frequency ?? 0}
             min={0}
@@ -64,7 +65,7 @@ export const OperatorPanel = ({ opNumber }: OperatorPanelProps) => {
             step={0.01}
             onChange={val => updateOperator(opId, { frequency: val })}
             renderLabel={(v: number) => v.toFixed(2)}
-            labelPosition="left"
+            labelPosition="top"
             color={theme.colors.knobFrequency}
             strokeColor={theme.colors.knobStroke}
             backgroundColor={theme.colors.knobBackground}
@@ -79,7 +80,7 @@ export const OperatorPanel = ({ opNumber }: OperatorPanelProps) => {
             step={0.01}
             onChange={val => updateOperator(opId, { detune: val })}
             renderLabel={(v: number) => v.toFixed(2)}
-            labelPosition="left"
+            labelPosition="top"
             color={theme.colors.knobFrequency}
             strokeColor={theme.colors.knobStroke}
             backgroundColor={theme.colors.knobBackground}

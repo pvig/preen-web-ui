@@ -10,7 +10,6 @@ import { PreenTools } from './screens/PreenTools';
 import { MidiMenu } from './components/MidiMenu';
 import { MidiCCTester } from './components/MidiCCTester';
 import { HamburgerMenu } from './components/HamburgerMenu';
-import { SplashScreen } from './components/SplashScreen';
 import { StarfieldCanvas } from './components/StarfieldCanvas';
 import { useThemeStore } from './theme/themeStore';
 import { GlobalStyles } from './theme/GlobalStyles';
@@ -19,8 +18,10 @@ import { useCurrentPatch, usePatchStore } from './stores/patchStore';
 import { useMutationStore } from './stores/mutationStore';
 import { useUIStore } from './stores/uiStore';
 import { useSpectrogramBridge } from './stores/spectrogramBridge';
+import { useAuthStore } from './stores/authStore';
+import { CommunityScreen } from './screens/CommunityScreen';
 
-type AppScreen = 'patch' | 'matrix' | 'arpfilter' | 'effects' | 'tools';
+type AppScreen = 'patch' | 'modulations' | 'arp' | 'effects' | 'tools' | 'community';
 
 const AppContainer = styled.div<{ $starfield: boolean }>`
   background-color: ${props =>
@@ -317,11 +318,16 @@ const PatchNameEditorComponent: React.FC = () => {
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('patch');
   const [showCCTester, setShowCCTester] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
   const { t } = useTranslation();
   const { theme } = useThemeStore();
   const { sendPatch, receivePatch, isReceiving, isSending, midi } = useMidiActions();
   const { isListening: audioListening, requestedListening, setRequestedListening } = useSpectrogramBridge();
+  const { restoreSession } = useAuthStore();
+
+  // Restore JWT session on mount
+  useEffect(() => {
+    restoreSession();
+  }, [restoreSession]);
 
   // Keyboard shortcut: Ctrl+T to toggle CC Tester
   useEffect(() => {
@@ -337,7 +343,7 @@ export default function App() {
   }, []);
 
   const { starfieldEnabled } = useUIStore();
-  const TAB_ORDER: AppScreen[] = ['patch', 'matrix', 'arpfilter', 'tools'];
+  const TAB_ORDER: AppScreen[] = ['patch', 'modulations', 'arp', 'tools'];
 
   return (
     <ThemeProvider theme={theme}>
@@ -351,14 +357,17 @@ export default function App() {
             <button onClick={() => setCurrentScreen('patch')} className={currentScreen === 'patch' ? 'active' : ''}>
               {t('nav.patch')}
             </button>
-            <button onClick={() => setCurrentScreen('matrix')} className={currentScreen === 'matrix' ? 'active' : ''}>
+            <button onClick={() => setCurrentScreen('modulations')} className={currentScreen === 'modulations' ? 'active' : ''}>
               {t('nav.modulations')}
             </button>
-            <button onClick={() => setCurrentScreen('arpfilter')} className={currentScreen === 'arpfilter' ? 'active' : ''}>
-              {t('nav.arpFilter')}
+            <button onClick={() => setCurrentScreen('arp')} className={currentScreen === 'arp' ? 'active' : ''}>
+              {t('nav.arp')}
             </button>
             <button onClick={() => setCurrentScreen('tools')} className={currentScreen === 'tools' ? 'active' : ''}>
               {t('nav.tools')}
+            </button>
+            <button onClick={() => setCurrentScreen('community')} className={currentScreen === 'community' ? 'active' : ''}>
+              {t('nav.community')}
             </button>
           </div>
           
@@ -403,17 +412,19 @@ export default function App() {
 
         <Main>
           {currentScreen === 'patch' && <PatchEditor />}
-          {currentScreen === 'matrix' && <ModulationsEditor />}
-          {currentScreen === 'arpfilter' && <ArpFilterEditor />}
+          {currentScreen === 'modulations' && <ModulationsEditor />}
+          {currentScreen === 'arp' && <ArpFilterEditor />}
           {currentScreen === 'effects' && <EffectsEditor />}
           {/* Always mounted — preserves state across tab switches */}
           <div style={currentScreen !== 'tools' ? { display: 'none' } : undefined}>
             <PreenTools />
           </div>
+          {currentScreen === 'community' && (
+            <CommunityScreen onNavigateToPatch={() => setCurrentScreen('patch')} />
+          )}
         </Main>
         
         {showCCTester && <MidiCCTester onClose={() => setShowCCTester(false)} />}
-        {showSplash && <SplashScreen onClose={() => setShowSplash(false)} />}
       </AppContainer>
     </ThemeProvider>
   );

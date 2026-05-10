@@ -7,6 +7,8 @@
     "load": "Charger",
     "reset": "Réinitialiser",
     "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "deleting": "Suppression…",
     "apply": "Appliquer",
     "off": "Désactivé",
     "noPatch": "Aucun patch chargé"
@@ -183,9 +185,56 @@
   "nav": {
     "patch": "Patch",
     "modulations": "Modulations",
-    "arpFilter": "Arp/Filtre",
+    "arp": "Arp",
     "tools": "Outils",
-    "variator": "Variateur"
+    "variator": "Variateur",
+    "community": "Partage"
+  },
+  "auth": {
+    "title": "Compte",
+    "login": "Connexion",
+    "register": "Inscription",
+    "logout": "Déconnexion",
+    "email": "Email",
+    "password": "Mot de passe",
+    "name": "Nom d'affichage",
+    "confirmPassword": "Confirmer le mot de passe",
+    "loggingIn": "Connexion…",
+    "registering": "Création du compte…",
+    "errors": {
+      "invalidEmail": "Veuillez saisir une adresse email valide.",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères.",
+      "passwordMismatch": "Les mots de passe ne correspondent pas.",
+      "nameRequired": "Le nom d'affichage est obligatoire."
+    }
+  },
+  "community": {
+    "by": "par {{name}}",
+    "loadInEditor": "Charger dans l'éditeur",
+    "deletePatch": "Supprimer le patch",
+    "deleteConfirm": "Confirmer la suppression ?",
+    "publish": "Publier le patch",
+    "publishing": "Publication…",
+    "publishSuccess": "Patch publié !",
+    "publishError": "Échec de la publication.",
+    "loginToPublish": "Connectez-vous pour publier un patch",
+    "patchName": "Nom du patch",
+    "description": "Description",
+    "descriptionPlaceholder": "Décrivez votre patch (optionnel)",
+    "tags": "Tags",
+    "searchPlaceholder": "Rechercher des patches…",
+    "noPatches": "Aucun patch trouvé.",
+    "loadError": "Impossible de charger les patches.",
+    "page": "Page {{current}} / {{total}} ({{count}} patches)",
+    "commentsCount_one": "{{count}} commentaire",
+    "commentsCount_other": "{{count}} commentaires",
+    "comments": {
+      "title": "Commentaires",
+      "placeholder": "Laisser un commentaire…",
+      "post": "Publier",
+      "posting": "Envoi…",
+      "loginRequired": "Connectez-vous pour commenter."
+    }
   },
   "mutation": {
     "title": "Mutation de patch",

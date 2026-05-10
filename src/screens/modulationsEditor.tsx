@@ -3,6 +3,7 @@ import { MatrixEditor } from '../components/modulations/MatrixEditor';
 import { LfoEditor } from '../components/modulations/LfoEditor';
 import { LfoEnvEditor } from '../components/modulations/LfoEnvEditor';
 import { SeqEditor } from '../components/modulations/SeqEditor';
+import { NoteCurveEditor } from '../components/modulations/NoteCurveEditor';
 
 const ModulationsContainer = styled.div`
   display: grid;
@@ -31,17 +32,20 @@ const LeftColumn = styled.div`
 const RightColumn = styled.div`
   display: flex;
   flex-direction: column;
+  gap: 20px;
 `;
 
-/**
- * Éditeur de Modulations
- * Basé sur le PanelModulation du preenfm2Controller
- * Contient 4 sections principales :
- * - Matrix : Matrice de modulation (sources externes) - Moitié droite
- * - LFO : 3 LFOs - Moitié gauche
- * - LFO Env : 2 enveloppes libres - Moitié gauche
- * - Seq : 2 séquenceurs à pas - Moitié gauche
- */
+const NoteCurveRow = styled.div`
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
 export function ModulationsEditor() {
   return (
     <ModulationsContainer>
@@ -50,10 +54,15 @@ export function ModulationsEditor() {
         <LfoEnvEditor />
         <SeqEditor />
       </LeftColumn>
-      
+
       <RightColumn>
         <MatrixEditor />
       </RightColumn>
+
+      <NoteCurveRow>
+        <NoteCurveEditor curveIndex={0} />
+        <NoteCurveEditor curveIndex={1} />
+      </NoteCurveRow>
     </ModulationsContainer>
   );
 }

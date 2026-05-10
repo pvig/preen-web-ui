@@ -11,9 +11,10 @@ const FilterContainer = styled.div`
   background: ${props => props.theme.colors.panel};
   border-radius: 8px;
   padding: 12px;
+  margin: 10px;
   border: 1px solid ${props => props.theme.colors.border};
   width: 100%;
-  max-width: 520px;
+  max-width: 440px;
 `;
 
 const FilterHeader = styled.div`

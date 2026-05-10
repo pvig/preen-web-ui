@@ -7,6 +7,8 @@
     "load": "Load",
     "reset": "Reset",
     "cancel": "Cancel",
+    "confirm": "Confirm",
+    "deleting": "Deleting…",
     "apply": "Apply",
     "off": "Off",
     "noPatch": "No patch loaded"
@@ -183,9 +185,56 @@
   "nav": {
     "patch": "Patch",
     "modulations": "Modulations",
-    "arpFilter": "Arp/Filter",
+    "arp": "Arp",
     "tools": "Tools",
-    "variator": "Variator"
+    "variator": "Variator",
+    "community": "Community"
+  },
+  "auth": {
+    "title": "Account",
+    "login": "Sign in",
+    "register": "Sign up",
+    "logout": "Sign out",
+    "email": "Email",
+    "password": "Password",
+    "name": "Display name",
+    "confirmPassword": "Confirm password",
+    "loggingIn": "Signing in…",
+    "registering": "Creating account…",
+    "errors": {
+      "invalidEmail": "Please enter a valid email address.",
+      "passwordTooShort": "Password must be at least 8 characters.",
+      "passwordMismatch": "Passwords do not match.",
+      "nameRequired": "Display name is required."
+    }
+  },
+  "community": {
+    "by": "by {{name}}",
+    "loadInEditor": "Load in editor",
+    "deletePatch": "Delete patch",
+    "deleteConfirm": "Are you sure?",
+    "publish": "Publish patch",
+    "publishing": "Publishing…",
+    "publishSuccess": "Patch published!",
+    "publishError": "Failed to publish patch.",
+    "loginToPublish": "Sign in to publish a patch",
+    "patchName": "Patch name",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe your patch (optional)",
+    "tags": "Tags",
+    "searchPlaceholder": "Search patches…",
+    "noPatches": "No patches found.",
+    "loadError": "Failed to load patches.",
+    "page": "Page {{current}} / {{total}} ({{count}} patches)",
+    "commentsCount_one": "{{count}} comment",
+    "commentsCount_other": "{{count}} comments",
+    "comments": {
+      "title": "Comments",
+      "placeholder": "Leave a comment…",
+      "post": "Post",
+      "posting": "Posting…",
+      "loginRequired": "Sign in to post a comment."
+    }
   },
   "mutation": {
     "title": "Patch Mixing",
