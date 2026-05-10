@@ -14,6 +14,9 @@ function loadStarfield(): boolean {
 interface UIStore {
   starfieldEnabled: boolean;
   toggleStarfield: () => void;
+  slowApiRequestCount: number;
+  incrementSlowRequest: () => void;
+  decrementSlowRequest: () => void;
 }
 
 export const useUIStore = create<UIStore>((set, get) => ({
@@ -23,4 +26,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
     try { localStorage.setItem(LS_KEY, String(next)); } catch { /* ignore */ }
     set({ starfieldEnabled: next });
   },
+  slowApiRequestCount: 0,
+  incrementSlowRequest: () => set(s => ({ slowApiRequestCount: s.slowApiRequestCount + 1 })),
+  decrementSlowRequest: () => set(s => ({ slowApiRequestCount: Math.max(0, s.slowApiRequestCount - 1) })),
 }));

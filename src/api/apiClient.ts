@@ -65,51 +65,75 @@ async function request<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
-    method,
-    credentials: 'include',
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
-
-  if (response.status === 401 && token && !isRetry) {
-    // Try to refresh the access token once using the HttpOnly refresh_token cookie.
-    const newToken = await attemptTokenRefresh();
-    if (newToken) {
-      return request<T>(method, path, body, true);
-    }
-    logout();
-    const error = new Error('Session expired');
-    (error as Error & { status: number }).status = 401;
-    throw error;
+  // Detect slow requests (e.g. Render.com cold start). Only for the initial call, not the
+  // internal retry after token refresh (which is already covered by the outer timer).
+  let slowTimer: ReturnType<typeof setTimeout> | null = null;
+  let isSlowRequest = false;
+  if (!isRetry) {
+    slowTimer = setTimeout(() => {
+      isSlowRequest = true;
+      import('../stores/uiStore').then(({ useUIStore }) => {
+        useUIStore.getState().incrementSlowRequest();
+      });
+    }, 4000);
   }
 
-  if (!response.ok) {
-    let message: string;
-    try {
-      const json = await response.json() as { message?: string };
-      message = json.message || response.statusText || `HTTP ${response.status}`;
-    } catch {
-      message = await response.text().catch(() => response.statusText) || `HTTP ${response.status}`;
-    }
+  try {
+    const response = await fetch(`${BASE_URL}${path}`, {
+      method,
+      credentials: 'include',
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
 
-    // Only auto-logout on 401 when a session token already exists (expired session).
-    // A 401 on login/register has no token yet, so we must not clear the auth state.
-    if (response.status === 401 && token) {
+    if (response.status === 401 && token && !isRetry) {
+      // Try to refresh the access token once using the HttpOnly refresh_token cookie.
+      const newToken = await attemptTokenRefresh();
+      if (newToken) {
+        return request<T>(method, path, body, true);
+      }
       logout();
+      const error = new Error('Session expired');
+      (error as Error & { status: number }).status = 401;
+      throw error;
     }
 
-    const error = new Error(message);
-    (error as Error & { status: number }).status = response.status;
-    throw error;
-  }
+    if (!response.ok) {
+      let message: string;
+      try {
+        const json = await response.json() as { message?: string };
+        message = json.message || response.statusText || `HTTP ${response.status}`;
+      } catch {
+        message = await response.text().catch(() => response.statusText) || `HTTP ${response.status}`;
+      }
 
-  // 204 No Content
-  if (response.status === 204) {
-    return undefined as T;
-  }
+      // Only auto-logout on 401 when a session token already exists (expired session).
+      // A 401 on login/register has no token yet, so we must not clear the auth state.
+      if (response.status === 401 && token) {
+        logout();
+      }
 
-  return response.json() as Promise<T>;
+      const error = new Error(message);
+      (error as Error & { status: number }).status = response.status;
+      throw error;
+    }
+
+    // 204 No Content
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
+    return response.json() as Promise<T>;
+  } finally {
+    if (slowTimer !== null) {
+      clearTimeout(slowTimer);
+    }
+    if (isSlowRequest) {
+      import('../stores/uiStore').then(({ useUIStore }) => {
+        useUIStore.getState().decrementSlowRequest();
+      });
+    }
+  }
 }
 
 export const apiClient = {

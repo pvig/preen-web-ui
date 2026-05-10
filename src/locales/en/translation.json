@@ -11,7 +11,8 @@
     "deleting": "Deleting…",
     "apply": "Apply",
     "off": "Off",
-    "noPatch": "No patch loaded"
+    "noPatch": "No patch loaded",
+    "slowRequest": "Server is waking up, please wait…"
   },
   "lfo": {
     "title": "LFO {{number}}",

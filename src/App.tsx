@@ -20,6 +20,7 @@ import { useUIStore } from './stores/uiStore';
 import { useSpectrogramBridge } from './stores/spectrogramBridge';
 import { useAuthStore } from './stores/authStore';
 import { CommunityScreen } from './screens/CommunityScreen';
+import { SlowRequestBanner } from './components/SlowRequestBanner';
 
 type AppScreen = 'patch' | 'modulations' | 'arp' | 'effects' | 'tools' | 'community';
 
@@ -425,6 +426,7 @@ export default function App() {
         </Main>
         
         {showCCTester && <MidiCCTester onClose={() => setShowCCTester(false)} />}
+        <SlowRequestBanner />
       </AppContainer>
     </ThemeProvider>
   );

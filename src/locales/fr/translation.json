@@ -11,7 +11,8 @@
     "deleting": "Suppression…",
     "apply": "Appliquer",
     "off": "Désactivé",
-    "noPatch": "Aucun patch chargé"
+    "noPatch": "Aucun patch chargé",
+    "slowRequest": "Le serveur démarre, veuillez patienter…"
   },
   "lfo": {
     "title": "LFO {{number}}",
