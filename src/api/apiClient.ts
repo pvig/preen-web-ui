@@ -3,17 +3,17 @@
  * and handles 401 with automatic access-token refresh before logging out.
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL as string ?? 'http://localhost:8080';
+const BASE_URL = import.meta.env.VITE_API_URL as string;
+
+// In-memory token — set by authStore, never written to localStorage.
+let _token: string | null = null;
+
+export function setApiToken(token: string | null): void {
+  _token = token;
+}
 
 function getToken(): string | null {
-  try {
-    const raw = localStorage.getItem('preenfm3-auth');
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { state?: { token?: string } };
-    return parsed?.state?.token ?? null;
-  } catch {
-    return null;
-  }
+  return _token;
 }
 
 function logout(): void {
@@ -37,6 +37,7 @@ async function attemptTokenRefresh(): Promise<string | null> {
       });
       if (!res.ok) return null;
       const data = await res.json() as { accessToken: string };
+      setApiToken(data.accessToken);
       const { useAuthStore } = await import('../stores/authStore');
       useAuthStore.getState().setToken(data.accessToken);
       return data.accessToken;

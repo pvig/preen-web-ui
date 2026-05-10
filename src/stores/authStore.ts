@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { authApi } from '../api/authApi';
+import { setApiToken } from '../api/apiClient';
 import type { UserProfileDto } from '../types/community';
 
 interface AuthState {
@@ -32,6 +33,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         set({ isLoading: true, error: null });
         try {
           const { accessToken } = await authApi.login({ email, password });
+          setApiToken(accessToken);
           set({ token: accessToken });
           const user = await authApi.fetchProfile();
           set({ user, isLoading: false });
@@ -50,6 +52,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         set({ isLoading: true, error: null });
         try {
           const { accessToken } = await authApi.register({ name, email, password });
+          setApiToken(accessToken);
           set({ token: accessToken });
           const user = await authApi.fetchProfile();
           set({ user, isLoading: false });
@@ -65,6 +68,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       },
 
       logout: () => {
+        setApiToken(null);
         set({ user: null, token: null, error: null });
       },
 
@@ -73,6 +77,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       },
 
       setToken: (token) => {
+        setApiToken(token);
         set({ token });
       },
 
@@ -84,6 +89,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           if (!token) {
             // No access token — try a silent refresh via the HttpOnly cookie.
             const { accessToken } = await authApi.refresh();
+            setApiToken(accessToken);
             set({ token: accessToken });
           }
           const user = await authApi.fetchProfile();
@@ -96,8 +102,9 @@ export const useAuthStore = create<AuthState & AuthActions>()(
     }),
     {
       name: 'preenfm3-auth',
-      // Only persist token; user profile is re-fetched on session restore
-      partialize: (state) => ({ token: state.token }),
+      // Token is NOT persisted — it lives in memory only.
+      // On page reload, restoreSession() uses the HttpOnly refresh_token cookie to get a new one.
+      partialize: () => ({}),
     },
   ),
 );
