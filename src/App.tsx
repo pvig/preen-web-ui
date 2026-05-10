@@ -10,7 +10,6 @@ import { PreenTools } from './screens/PreenTools';
 import { MidiMenu } from './components/MidiMenu';
 import { MidiCCTester } from './components/MidiCCTester';
 import { HamburgerMenu } from './components/HamburgerMenu';
-import { SplashScreen } from './components/SplashScreen';
 import { StarfieldCanvas } from './components/StarfieldCanvas';
 import { useThemeStore } from './theme/themeStore';
 import { GlobalStyles } from './theme/GlobalStyles';
@@ -319,7 +318,6 @@ const PatchNameEditorComponent: React.FC = () => {
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('patch');
   const [showCCTester, setShowCCTester] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
   const { t } = useTranslation();
   const { theme } = useThemeStore();
   const { sendPatch, receivePatch, isReceiving, isSending, midi } = useMidiActions();
@@ -427,7 +425,6 @@ export default function App() {
         </Main>
         
         {showCCTester && <MidiCCTester onClose={() => setShowCCTester(false)} />}
-        {showSplash && <SplashScreen onClose={() => setShowSplash(false)} />}
       </AppContainer>
     </ThemeProvider>
   );

@@ -188,6 +188,35 @@ const PostButton = styled.button`
   }
 `;
 
+const DeleteButton = styled.button`
+  background: transparent !important;
+  color: ${props => props.theme.colors.textMuted} !important;
+  border: 1px solid ${props => props.theme.colors.border} !important;
+  border-radius: 6px !important;
+  padding: 0.5rem 1.25rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  align-self: flex-start;
+
+  &:hover:not(:disabled) {
+    color: #e05a5a !important;
+    border-color: #e05a5a !important;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+`;
+
+const ActionRow = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+`;
+
 const AuthHint = styled.p`
   margin: 0;
   font-size: 0.8rem;
@@ -201,15 +230,18 @@ interface Props {
   patch: PublishedPatch;
   onClose: () => void;
   onLoadInEditor: () => void;
+  onDeleted?: () => void;
 }
 
-export const PatchDetailModal: React.FC<Props> = ({ patch, onClose, onLoadInEditor }) => {
+export const PatchDetailModal: React.FC<Props> = ({ patch, onClose, onLoadInEditor, onDeleted }) => {
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const { loadPatch } = usePatchStore();
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState('');
   const [posting, setPosting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     communityApi.listComments(patch.id).then(setComments).catch(() => {});
@@ -220,6 +252,23 @@ export const PatchDetailModal: React.FC<Props> = ({ patch, onClose, onLoadInEdit
     onLoadInEditor();
     onClose();
   };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await communityApi.deletePatch(patch.id);
+      onDeleted?.();
+      onClose();
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
+  };
+
+  const handleDeleteRequest = () => setConfirmDelete(true);
+  const handleDeleteCancel = () => setConfirmDelete(false);
+
+  const isOwner = user?.sub === patch.author.sub;
 
   const handlePostComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -259,9 +308,34 @@ export const PatchDetailModal: React.FC<Props> = ({ patch, onClose, onLoadInEdit
 
           {patch.description && <Description>{patch.description}</Description>}
 
-          <LoadButton onClick={handleLoad}>
-            {t('community.loadInEditor')}
-          </LoadButton>
+          <ActionRow>
+            <LoadButton onClick={handleLoad}>
+              {t('community.loadInEditor')}
+            </LoadButton>
+            {isOwner && (
+              confirmDelete ? (
+                <>
+                  <span style={{ fontSize: '0.8rem', color: 'inherit', alignSelf: 'center' }}>
+                    {t('community.deleteConfirm')}
+                  </span>
+                  <DeleteButton onClick={handleDelete} disabled={deleting}>
+                    {deleting ? t('common.deleting') : t('common.confirm')}
+                  </DeleteButton>
+                  <CloseButton
+                    onClick={handleDeleteCancel}
+                    style={{ fontSize: '0.85rem', padding: '0.5rem 0.75rem' }}
+                    aria-label={t('common.cancel')}
+                  >
+                    {t('common.cancel')}
+                  </CloseButton>
+                </>
+              ) : (
+                <DeleteButton onClick={handleDeleteRequest}>
+                  {t('community.deletePatch')}
+                </DeleteButton>
+              )
+            )}
+          </ActionRow>
 
           {/* Comments */}
           <div>

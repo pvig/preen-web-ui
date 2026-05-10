@@ -7,6 +7,8 @@
     "load": "Load",
     "reset": "Reset",
     "cancel": "Cancel",
+    "confirm": "Confirm",
+    "deleting": "Deleting…",
     "apply": "Apply",
     "off": "Off",
     "noPatch": "No patch loaded"
@@ -209,6 +211,8 @@
   "community": {
     "by": "by {{name}}",
     "loadInEditor": "Load in editor",
+    "deletePatch": "Delete patch",
+    "deleteConfirm": "Are you sure?",
     "publish": "Publish patch",
     "publishing": "Publishing…",
     "publishSuccess": "Patch published!",

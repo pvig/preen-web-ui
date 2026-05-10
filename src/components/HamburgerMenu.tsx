@@ -169,7 +169,7 @@ const ToggleSwitch = styled.button<{ $on: boolean }>`
 export const HamburgerMenu: React.FC = () => {
   const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(true);
   const [isSplashOpen, setIsSplashOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { starfieldEnabled, toggleStarfield } = useUIStore();

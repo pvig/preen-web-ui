@@ -7,6 +7,8 @@
     "load": "Charger",
     "reset": "Réinitialiser",
     "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "deleting": "Suppression…",
     "apply": "Appliquer",
     "off": "Désactivé",
     "noPatch": "Aucun patch chargé"
@@ -209,6 +211,8 @@
   "community": {
     "by": "par {{name}}",
     "loadInEditor": "Charger dans l'éditeur",
+    "deletePatch": "Supprimer le patch",
+    "deleteConfirm": "Confirmer la suppression ?",
     "publish": "Publier le patch",
     "publishing": "Publication…",
     "publishSuccess": "Patch publié !",

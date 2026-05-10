@@ -367,6 +367,7 @@ export const CommunityScreen: React.FC<Props> = ({ onNavigateToPatch }) => {
           patch={selectedPatch}
           onClose={() => setSelectedPatch(null)}
           onLoadInEditor={() => onNavigateToPatch?.()}
+          onDeleted={() => { setSelectedPatch(null); fetchPatches(); }}
         />
       )}
 
