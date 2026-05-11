@@ -90,7 +90,7 @@ async function request<T>(
       // Try to refresh the access token once using the HttpOnly refresh_token cookie.
       const newToken = await attemptTokenRefresh();
       if (newToken) {
-        return request<T>(method, path, body, true);
+        return await request<T>(method, path, body, true);
       }
       logout();
       const error = new Error('Session expired');

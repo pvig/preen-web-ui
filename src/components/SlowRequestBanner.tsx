@@ -9,13 +9,13 @@ const spin = keyframes`
 `;
 
 const fadeSlide = keyframes`
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(-12px); }
   to   { opacity: 1; transform: translateY(0); }
 `;
 
 const Banner = styled.div<{ $visible: boolean }>`
   position: fixed;
-  bottom: 20px;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
