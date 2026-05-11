@@ -173,7 +173,8 @@
     "about": "About",
     "info": "Info",
     "splash": "Splash screen",
-    "splashOpen": "Show"
+    "splashOpen": "Show",
+    "open": "Open"
   },
   "about": {
     "title": "PreenFM3 Web Editor",

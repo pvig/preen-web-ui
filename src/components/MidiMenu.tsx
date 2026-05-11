@@ -4,7 +4,6 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const MidiMenuContainer = styled.div`
-  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
 `;
@@ -15,13 +14,19 @@ const MidiToggleButton = styled.button`
   background: ${props => props.theme.colors.primary};
   color: ${props => props.theme.colors.background};
   border: none;
+  outline: none;
   cursor: pointer;
   transition: background 0.2s;
   font-weight: 500;
   font-size: 0.875rem;
-  
+
   &:hover {
     background: ${props => props.theme.colors.buttonHover || props.theme.colors.accent};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${props => props.theme.colors.primary};
+    outline-offset: 2px;
   }
 `;
 

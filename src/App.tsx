@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled, { ThemeProvider } from 'styled-components';
 import { PatchEditor } from './screens/PatchEditor';
@@ -14,8 +14,6 @@ import { StarfieldCanvas } from './components/StarfieldCanvas';
 import { useThemeStore } from './theme/themeStore';
 import { GlobalStyles } from './theme/GlobalStyles';
 import { useMidiActions } from './midi/useMidiActions';
-import { useCurrentPatch, usePatchStore } from './stores/patchStore';
-import { useMutationStore } from './stores/mutationStore';
 import { useUIStore } from './stores/uiStore';
 import { useSpectrogramBridge } from './stores/spectrogramBridge';
 import { useAuthStore } from './stores/authStore';
@@ -53,8 +51,8 @@ const TestButton = styled.button`
 
 const MidiQuickButtons = styled.div`
   display: flex;
-  gap: 2px;
-  margin: 4px;
+  gap: 4px;
+  margin: 0 4px;
 `;
 
 const QuickMidiButton = styled.button<{ $isReceiving?: boolean; $isSending?: boolean }>`
@@ -172,7 +170,7 @@ const Nav = styled.nav`
   
   .nav-right {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
   }
   
   button {
@@ -222,99 +220,6 @@ const Main = styled.main`
   padding: 20px 0 0 0;
   margin: 0 auto;
 `;
-
-const PatchNameEditor = styled.div`
-  display: flex;
-  align-items: center;
-  margin: 0 1rem;
-  cursor: pointer;
-  
-  input {
-    background: transparent;
-    border: none;
-    color: ${props => props.theme.colors.text};
-    font-size: 1rem;
-    font-weight: 500;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    min-width: 120px;
-    max-width: 200px;
-    
-    &:focus {
-      outline: 1px solid ${props => props.theme.colors.primary};
-      background: ${props => props.theme.colors.panel};
-    }
-    
-    &:hover:not(:focus) {
-      background: ${props => `${props.theme.colors.primary}10`};
-    }
-  }
-  
-  span {
-    color: ${props => props.theme.colors.text};
-    font-size: 1rem;
-    font-weight: 500;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    
-    &:hover {
-      background: ${props => `${props.theme.colors.primary}10`};
-    }
-  }
-`;
-
-const PatchNameEditorComponent: React.FC = () => {
-  const currentPatch = useCurrentPatch();
-  const { updatePatchName } = usePatchStore();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState('');
-
-  const handleStartEdit = () => {
-    setEditValue(currentPatch.name);
-    setIsEditing(true);
-  };
-
-  const handleSave = () => {
-    if (editValue.trim() && editValue !== currentPatch.name) {
-      updatePatchName(editValue.trim());
-      // Preserve user-edited name during mutation interpolation
-      const { sourceA, sourceB, setCustomName } = useMutationStore.getState();
-      if (sourceA && sourceB) {
-        setCustomName(editValue.trim());
-      }
-    }
-    setIsEditing(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSave();
-    } else if (e.key === 'Escape') {
-      setIsEditing(false);
-    }
-  };
-
-  return (
-    <PatchNameEditor>
-      {isEditing ? (
-        <input
-          type="text"
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value.replace(/[^\x20-\x7E]/g, '').slice(0, 12))}
-          onBlur={handleSave}
-          onKeyDown={handleKeyDown}
-          autoFocus
-          maxLength={12}
-          placeholder="Nom du patch"
-        />
-      ) : (
-        <span onClick={handleStartEdit} title="Cliquer pour éditer le nom">
-          {currentPatch.name}
-        </span>
-      )}
-    </PatchNameEditor>
-  );
-};
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('patch');
@@ -371,9 +276,6 @@ export default function App() {
               {t('nav.community')}
             </button>
           </div>
-          
-          
-          <PatchNameEditorComponent />
           
           <div className="nav-right">
             <TestButton onClick={() => setShowCCTester(prev => !prev)}>
