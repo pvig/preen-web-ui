@@ -1,7 +1,9 @@
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { AlgorithmVisualization } from './AlgorithmVisualization';
 import { DEFAULT_ALGORITHMS } from '../../types/patch';
-import { useCurrentPatch, selectAlgorithm } from '../../stores/patchStore';
+import { useCurrentPatch, selectAlgorithm, usePatchStore } from '../../stores/patchStore';
+import { useMutationStore } from '../../stores/mutationStore';
 
 const SelectorContainer = styled.div`
   display: flex;
@@ -18,6 +20,39 @@ const SelectorContainer = styled.div`
   @media (max-width: 768px) {
     max-width: 100%;
     width: 100%;
+  }
+`;
+
+const PatchNameBar = styled.div`
+  display: flex;
+  align-items: center;
+
+  input {
+    background: transparent;
+    border: none;
+    color: ${props => props.theme.colors.text};
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    min-width: 80px;
+    max-width: 160px;
+    &:focus {
+      outline: 1px solid ${props => props.theme.colors.primary};
+      background: ${props => props.theme.colors.panel};
+    }
+  }
+
+  span {
+    color: ${props => props.theme.colors.text};
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    cursor: pointer;
+    &:hover {
+      background: ${props => `${props.theme.colors.primary}18`};
+    }
   }
 `;
 
@@ -119,6 +154,50 @@ const VisualizationContainer = styled.div`
   min-height: 220px;
 `;
 
+function PatchNameEditorComponent() {
+  const currentPatch = useCurrentPatch();
+  const { updatePatchName } = usePatchStore();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
+
+  const handleSave = () => {
+    if (editValue.trim() && editValue !== currentPatch?.name) {
+      updatePatchName(editValue.trim());
+      const { sourceA, sourceB, setCustomName } = useMutationStore.getState();
+      if (sourceA && sourceB) setCustomName(editValue.trim());
+    }
+    setIsEditing(false);
+  };
+
+  if (!currentPatch) return null;
+
+  return (
+    <PatchNameBar>
+      {isEditing ? (
+        <input
+          type="text"
+          value={editValue}
+          onChange={e => setEditValue(e.target.value.replace(/[^\x20-\x7E]/g, '').slice(0, 12))}
+          onBlur={handleSave}
+          onKeyDown={(e: React.KeyboardEvent) => {
+            if (e.key === 'Enter') handleSave();
+            else if (e.key === 'Escape') setIsEditing(false);
+          }}
+          autoFocus
+          maxLength={12}
+        />
+      ) : (
+        <span
+          onClick={() => { setEditValue(currentPatch.name); setIsEditing(true); }}
+          title="Cliquer pour éditer le nom"
+        >
+          {currentPatch.name}
+        </span>
+      )}
+    </PatchNameBar>
+  );
+}
+
 export const FMAlgorithmSelector = () => {
 
   const currentPatch = useCurrentPatch();
@@ -149,6 +228,7 @@ export const FMAlgorithmSelector = () => {
     <SelectorContainer>
 
       <NavigationControls>
+        <PatchNameEditorComponent />
         <AlgorithmSection>
           <NavButtonsContainer>
             <NavButton

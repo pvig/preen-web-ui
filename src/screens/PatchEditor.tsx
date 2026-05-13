@@ -1,12 +1,9 @@
-import { useState } from 'react';
-import React from 'react';
 import styled from 'styled-components';
 import OperatorPanel from '../components/fmEngine/OperatorPanel';
 import { FMSynthProvider } from '../components/fmEngine/FMSynthContext';
 import { FMAlgorithmSelector } from '../components/fmEngine/FMAlgorithmSelector';
 import CarrierControls from '../components/fmEngine/CarrierControls';
-import { useCurrentPatch, updateGlobal, usePatchStore } from '../stores/patchStore';
-import { useMutationStore } from '../stores/mutationStore';
+import { useCurrentPatch, updateGlobal } from '../stores/patchStore';
 import ModulationIndexesEditor from '../components/fmEngine/ModulationIndexesEditor';
 import KnobBase from '../components/knobs/KnobBase';
 import { useThemeStore } from '../theme/themeStore';
@@ -67,85 +64,6 @@ const GlobalKnobWrapper = styled.div`
     transform: scale(0.85);
   }
 `;
-
-const PatchNameBar = styled.div`
-  display: flex;
-  align-items: center;
-  max-width: 900px;
-  margin: 0 auto 0.75rem;
-  padding: 0 0.5rem;
-
-  input {
-    background: transparent;
-    border: none;
-    color: ${props => props.theme.colors.text};
-    font-size: 1.1rem;
-    font-weight: 700;
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
-    min-width: 120px;
-    max-width: 220px;
-    &:focus {
-      outline: 1px solid ${props => props.theme.colors.primary};
-      background: ${props => props.theme.colors.panel};
-    }
-  }
-
-  span {
-    color: ${props => props.theme.colors.text};
-    font-size: 1.1rem;
-    font-weight: 700;
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
-    cursor: pointer;
-    &:hover {
-      background: ${props => `${props.theme.colors.primary}18`};
-    }
-  }
-`;
-
-function PatchNameEditorComponent() {
-  const currentPatch = useCurrentPatch();
-  const { updatePatchName } = usePatchStore();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState('');
-
-  const handleSave = () => {
-    if (editValue.trim() && editValue !== currentPatch.name) {
-      updatePatchName(editValue.trim());
-      const { sourceA, sourceB, setCustomName } = useMutationStore.getState();
-      if (sourceA && sourceB) setCustomName(editValue.trim());
-    }
-    setIsEditing(false);
-  };
-
-  return (
-    <PatchNameBar>
-      {isEditing ? (
-        <input
-          type="text"
-          value={editValue}
-          onChange={e => setEditValue(e.target.value.replace(/[^\x20-\x7E]/g, '').slice(0, 12))}
-          onBlur={handleSave}
-          onKeyDown={(e: React.KeyboardEvent) => {
-            if (e.key === 'Enter') handleSave();
-            else if (e.key === 'Escape') setIsEditing(false);
-          }}
-          autoFocus
-          maxLength={12}
-        />
-      ) : (
-        <span
-          onClick={() => { setEditValue(currentPatch.name); setIsEditing(true); }}
-          title="Cliquer pour éditer le nom"
-        >
-          {currentPatch.name}
-        </span>
-      )}
-    </PatchNameBar>
-  );
-}
-
 
 export function PatchEditor() {
   const { theme } = useThemeStore();
@@ -225,7 +143,6 @@ export function PatchEditor() {
 
   return (
     <div className="editor-container">
-      <PatchNameEditorComponent />
       <FMSynthProvider patch={currentPatch}>
         <Row>
           <BaseFMGrid>

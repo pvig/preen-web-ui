@@ -44,7 +44,23 @@
     "adsr": "Enveloppe ADSR"
   },
   "waveformSelector": {
-    "label": "Forme d'onde"
+    "label": "Forme d'onde",
+    "types": {
+      "OFF": "Désactivé",
+      "SINE": "Sinus",
+      "SAW": "Dent de scie",
+      "SQUARE": "Carré",
+      "SIN_SQUARED": "Sin²",
+      "SIN_ZERO": "Sin Zéro",
+      "SIN_POS": "Sin+",
+      "RAND": "Aléatoire",
+      "USER1": "User 1",
+      "USER2": "User 2",
+      "USER3": "User 3",
+      "USER4": "User 4",
+      "USER5": "User 5",
+      "USER6": "User 6"
+    }
   },
    "keyboardTrackingSelect": {
     "label": "Suivi clavier"

@@ -44,7 +44,23 @@
     "adsr": "ADSR Envelope"
   },
   "waveformSelector": {
-    "label": "Waveform"
+    "label": "Waveform",
+    "types": {
+      "OFF": "Off",
+      "SINE": "Sine",
+      "SAW": "Saw",
+      "SQUARE": "Square",
+      "SIN_SQUARED": "Sin²",
+      "SIN_ZERO": "Sin Zero",
+      "SIN_POS": "Sin+",
+      "RAND": "Random",
+      "USER1": "User 1",
+      "USER2": "User 2",
+      "USER3": "User 3",
+      "USER4": "User 4",
+      "USER5": "User 5",
+      "USER6": "User 6"
+    }
   },
    "keyboardTrackingSelect": {
     "label": "Keyboard Tracking"

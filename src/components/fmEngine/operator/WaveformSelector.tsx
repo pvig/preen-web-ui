@@ -1,6 +1,5 @@
 import styled from 'styled-components';
 import { WaveformType, WAVEFORMS } from '../../../types/waveform';
-import { waveformToDisplayName } from '../../../utils/waveformUtils';
 import { useTranslation } from 'react-i18next';
 
 const ControlContainer = styled.div`
@@ -50,7 +49,7 @@ export const WaveformSelector = ({ value, onChange }: { value?: WaveformType; on
       >
         {WAVEFORMS.map(wave => (
           <option key={wave.name} value={wave.name}>
-            {waveformToDisplayName(wave.name)}
+            {t(`waveformSelector.types.${wave.name}`)}
           </option>
         ))}
       </StyledSelect>

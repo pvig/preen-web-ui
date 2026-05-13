@@ -2,7 +2,8 @@
 import React from 'react';
 import { WaveformType, WAVEFORMS, WaveformItem } from '../../types/waveform';
 import { cn } from '../../utils/cn';
-import { generateWaveformPath, waveformToDisplayName } from '../../utils/waveformUtils';
+import { generateWaveformPath } from '../../utils/waveformUtils';
+import { useTranslation } from 'react-i18next';
 
 interface WaveformSelectorProps {
   value: WaveformType;
@@ -17,10 +18,11 @@ const WaveformSelector: React.FC<WaveformSelectorProps> = ({
   disabled = false,
   compact = true,
 }) => {
+  const { t } = useTranslation();
   if (compact) {
     return (
       <div className="flex flex-col space-y-1">
-        <label className="text-xs text-gray-400 font-medium">Forme d'onde</label>
+        <label className="text-xs text-gray-400 font-medium">{t('waveformSelector.label')}</label>
         <select
           value={value}
           onChange={(e) => onChange(e.target.value as WaveformType)}
@@ -29,7 +31,7 @@ const WaveformSelector: React.FC<WaveformSelectorProps> = ({
         >
           {WAVEFORMS.map((waveform: WaveformItem) => (
             <option key={waveform.id} value={waveform.name}>
-              {waveformToDisplayName(waveform.name)}
+              {t(`waveformSelector.types.${waveform.name}`)}
             </option>
           ))}
         </select>
@@ -39,7 +41,7 @@ const WaveformSelector: React.FC<WaveformSelectorProps> = ({
 
   return (
     <div className="space-y-2">
-      <label className="text-sm text-gray-400 font-medium">Forme d'onde</label>
+      <label className="text-sm text-gray-400 font-medium">{t('waveformSelector.label')}</label>
       <div className="grid grid-cols-3 gap-2">
         {WAVEFORMS.map((waveform: WaveformItem) => (
           <button
@@ -64,7 +66,7 @@ const WaveformSelector: React.FC<WaveformSelectorProps> = ({
               />
             </svg>
             <span className="text-xs text-gray-300">
-              {waveformToDisplayName(waveform.name)}
+              {t(`waveformSelector.types.${waveform.name}`)}
             </span>
           </button>
         ))}

@@ -20,7 +20,7 @@ const PanelContainer = styled.div<{ $isHighlighted?: boolean }>`
   margin: 14px;
   width:270px;
   h3 {
-    margin: 0 0 15px 0;
+    margin: -12px 0 0 0;
     color: ${props => props.theme.colors.text};
     font-size: 1rem;
     text-align: center;
@@ -29,10 +29,10 @@ const PanelContainer = styled.div<{ $isHighlighted?: boolean }>`
 
 const ControlsRow = styled.div`
   display: flex;
-  gap: 0;
-
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 0;
+  padding-top: 8px;
 `;
 
 interface OperatorPanelProps {
@@ -55,8 +55,7 @@ export const OperatorPanel = ({ opNumber }: OperatorPanelProps) => {
     >
 
       <ControlsRow>
-          <h3>{t('operator.title', { number: opNumber })}</h3>
-         
+        <h3>{t('operator.title', { number: opNumber })}</h3>
         <KnobBase
             label={t('operator.frequency')}
             value={selectedOperator?.frequency ?? 0}
