@@ -211,17 +211,16 @@ function KnobBase({
     <div
       title={title}
       style={{
-        position: "relative",
-        display: (valuePosition === 'left' || labelPosition === 'left') ? 'flex' : 'block',
-        alignItems: (valuePosition === 'left' || labelPosition === 'left') ? 'center' : 'initial',
-        gap: (valuePosition === 'left' || labelPosition === 'left') ? '4px' : 0,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
       }}
     >
       {/* Label à gauche */}
       {labelPosition === 'left' && label && (
         <div
           className='label'
-
           style={{
             fontSize: 11,
             color: theme.colors.knobLabel,
@@ -271,63 +270,37 @@ function KnobBase({
         </div>
       )}
 
+      {/* Colonne knob : label-top / value-top / SVG / value-bottom / label-bottom */}
       <div
         style={{
-          position: "relative",
-          width: size,
-          height: size,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
         }}
       >
-        {/* SVG du knob */}
-        <svg
-          ref={svgRef}
-          width={size}
-          height={size}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-          style={{ userSelect: "none", cursor: "pointer", touchAction: "none" }}
-        >
-          <circle
-            cx={center}
-            cy={center}
-            r={radius * 1.2}
-            fill="transparent"
-          />
-          <circle
-            cx={center}
-            cy={center}
-            r={radius}
-            fill={backgroundColor}
-            stroke={strokeColor}
-            strokeWidth="2"
-          />
-          <line {...tickMin} stroke={theme.colors.knobTick} strokeWidth="2" />
-          <line {...tickMax} stroke={theme.colors.knobTick} strokeWidth="2" />
-          {tickZero && (
-            <line {...tickZero} stroke={theme.colors.knobTick} strokeWidth="2" opacity="0.6" />
-          )}
-          <line
-            x1={center}
-            y1={center}
-            x2={pointerX}
-            y2={pointerY}
-            stroke={color}
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-        </svg>
+        {/* Label au-dessus */}
+        {labelPosition === 'top' && label && (
+          <div
+            className='label'
+            style={{
+              width: size,
+              textAlign: "center",
+              fontSize: 12,
+              fontWeight: "bold",
+              pointerEvents: "none",
+              color: theme.colors.knobLabel,
+            }}
+          >
+            {label}
+          </div>
+        )}
 
         {/* Valeur au-dessus */}
         {valuePosition === 'top' && (
           <div
             className='label'
             style={{
-              position: "absolute",
-              top: -8,
-              left: 0,
-              width: "100%",
+              width: size,
               textAlign: "center",
               fontSize: 12,
               color: color,
@@ -357,23 +330,81 @@ function KnobBase({
           </div>
         )}
 
-        {/* Label au-dessus */}
-        {labelPosition === 'top' && label && (
+        {/* SVG du knob */}
+        <div style={{ width: size, height: size }}>
+          <svg
+            ref={svgRef}
+            width={size}
+            height={size}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            style={{ userSelect: "none", cursor: "pointer", touchAction: "none" }}
+          >
+            <circle
+              cx={center}
+              cy={center}
+              r={radius * 1.2}
+              fill="transparent"
+            />
+            <circle
+              cx={center}
+              cy={center}
+              r={radius}
+              fill={backgroundColor}
+              stroke={strokeColor}
+              strokeWidth="2"
+            />
+            <line {...tickMin} stroke={theme.colors.knobTick} strokeWidth="2" />
+            <line {...tickMax} stroke={theme.colors.knobTick} strokeWidth="2" />
+            {tickZero && (
+              <line {...tickZero} stroke={theme.colors.knobTick} strokeWidth="2" opacity="0.6" />
+            )}
+            <line
+              x1={center}
+              y1={center}
+              x2={pointerX}
+              y2={pointerY}
+              stroke={color}
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+
+        {/* Valeur en dessous */}
+        {valuePosition === 'bottom' && (
           <div
             className='label'
             style={{
-              position: "absolute",
-              top: -12,
-              left: 0,
-              width: "100%",
+              width: size,
               textAlign: "center",
               fontSize: 12,
-              fontWeight: "bold",
-              pointerEvents: "none",
-              color: theme.colors.knobLabel
+              color: color,
             }}
           >
-            {label}
+            {isEditing ? (
+              <input
+                ref={inputRef}
+                type="text"
+                inputMode="decimal"
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                onBlur={commitEdit}
+                onKeyDown={handleEditKeyDown}
+                autoFocus
+                style={editInputStyle}
+              />
+            ) : (
+              <span
+                onClick={startEditing}
+                style={{ cursor: 'text', userSelect: 'none' }}
+                title="Cliquer pour éditer"
+              >
+                {renderLabel(value)}
+              </span>
+            )}
           </div>
         )}
 
@@ -382,56 +413,15 @@ function KnobBase({
           <div
             className='label'
             style={{
-              position: "absolute",
-              bottom: -12,
-              left: 0,
-              width: "100%",
+              width: size,
               textAlign: "center",
               fontSize: 12,
               fontWeight: "bold",
               pointerEvents: "none",
-              color: theme.colors.knobLabel
+              color: theme.colors.knobLabel,
             }}
           >
             {label}
-          </div>
-        )}
-
-        {/* Valeur en dessous */}
-        {valuePosition === 'bottom' && (
-          <div
-            className='label'
-            style={{
-              position: "absolute",
-              bottom: -8,
-              left: 0,
-              width: "100%",
-              textAlign: "center",
-              fontSize: 12,
-              color: color,
-            }}
-          >
-            {isEditing ? (
-              <input
-                ref={inputRef}
-                type="text"
-                inputMode="decimal"
-                value={editText}
-                onChange={(e) => setEditText(e.target.value)}
-                onBlur={commitEdit}
-                onKeyDown={handleEditKeyDown}
-                autoFocus
-                style={editInputStyle}
-              />
-            ) : (
-              <span
-                onClick={startEditing}
-                style={{ cursor: 'text', userSelect: 'none' }}
-                title="Cliquer pour éditer"
-              >
-                {renderLabel(value)}
-              </span>
-            )}
           </div>
         )}
       </div>

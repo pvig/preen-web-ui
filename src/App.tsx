@@ -159,7 +159,7 @@ const Nav = styled.nav`
   align-items: end;
   gap: 0.5rem;
   margin: 0 auto;
-  padding: 0.5rem 1rem 0 1rem;
+  padding: 0.5rem 0.1rem 0 0.1rem;
   max-width: 900px;
   
   .nav-tabs {
@@ -217,7 +217,7 @@ const Nav = styled.nav`
 `;
 
 const Main = styled.main`
-  padding: 20px 0 0 0;
+  padding: 8px 0 0 0;
   margin: 0 auto;
 `;
 
