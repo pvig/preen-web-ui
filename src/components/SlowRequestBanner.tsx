@@ -13,26 +13,35 @@ const fadeSlide = keyframes`
   to   { opacity: 1; transform: translateY(0); }
 `;
 
-const Banner = styled.div<{ $visible: boolean }>`
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 20px;
-  border-radius: 8px;
-  background: ${props => props.theme.colors.panel
-    ? `${props.theme.colors.panel}cc`
-    : 'rgba(30, 30, 40, 0.80)'};
-  backdrop-filter: blur(8px);
-  border: 1px solid ${props =>
-    props.theme.colors.primary
-      ? `${props.theme.colors.primary}44`
-      : 'rgba(255,255,255,0.12)'};
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+const Banner = styled.div<{ $visible: boolean; $inline?: boolean }>`
+  ${props => props.$inline
+    ? css`
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      `
+    : css`
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        background: ${props.theme.colors.panel
+          ? `${props.theme.colors.panel}cc`
+          : 'rgba(30, 30, 40, 0.80)'};
+        backdrop-filter: blur(8px);
+        border: 1px solid ${
+          props.theme.colors.primary
+            ? `${props.theme.colors.primary}44`
+            : 'rgba(255,255,255,0.12)'};
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+      `
+  }
   color: ${props => props.theme.colors.text ?? '#e0e0e0'};
   font-size: 0.875rem;
   white-space: nowrap;
@@ -62,16 +71,20 @@ const Spinner = styled.span`
   flex-shrink: 0;
 `;
 
-export const SlowRequestBanner: React.FC = () => {
+interface SlowRequestBannerProps {
+  inline?: boolean;
+}
+
+export const SlowRequestBanner: React.FC<SlowRequestBannerProps> = ({ inline }) => {
   const { t } = useTranslation();
   const slowApiRequestCount = useUIStore(s => s.slowApiRequestCount);
   const visible = slowApiRequestCount > 0;
 
   // Keep the DOM element mounted so the fade-out transition can play
   return (
-    <Banner $visible={visible} role="status" aria-live="polite">
+    <Banner $visible={visible} $inline={inline} role="status" aria-live="polite">
       <Spinner />
-      {t('common.slowRequest')}
+      {!inline && t('common.slowRequest')}
     </Banner>
   );
 };

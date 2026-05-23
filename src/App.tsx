@@ -18,7 +18,6 @@ import { useUIStore } from './stores/uiStore';
 import { useSpectrogramBridge } from './stores/spectrogramBridge';
 import { useAuthStore } from './stores/authStore';
 import { CommunityScreen } from './screens/CommunityScreen';
-import { SlowRequestBanner } from './components/SlowRequestBanner';
 
 type AppScreen = 'patch' | 'modulations' | 'arp' | 'effects' | 'tools' | 'community';
 
@@ -250,11 +249,19 @@ export default function App() {
 
   const { starfieldEnabled } = useUIStore();
   const TAB_ORDER: AppScreen[] = ['patch', 'modulations', 'arp', 'tools'];
+  const PLUNGE_SCREENS: AppScreen[] = ['patch', 'modulations', 'arp'];
+  const movementMode = PLUNGE_SCREENS.includes(currentScreen) ? 'plunge' : 'rotation';
 
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyles />
-      {theme.name === 'dark' && starfieldEnabled && <StarfieldCanvas tabIndex={TAB_ORDER.indexOf(currentScreen)} bgColor={theme.colors.background} />}
+      {theme.name === 'dark' && starfieldEnabled && (
+        <StarfieldCanvas
+          tabIndex={TAB_ORDER.indexOf(currentScreen)}
+          bgColor={theme.colors.background}
+          movement={movementMode}
+        />
+      )}
       <AppContainer $starfield={theme.name === 'dark' && starfieldEnabled}>
         
         <NavWrapper>
@@ -328,7 +335,6 @@ export default function App() {
         </Main>
         
         {showCCTester && <MidiCCTester onClose={() => setShowCCTester(false)} />}
-        <SlowRequestBanner />
       </AppContainer>
     </ThemeProvider>
   );

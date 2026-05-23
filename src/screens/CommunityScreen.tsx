@@ -9,6 +9,7 @@ import { useAuthStore } from '../stores/authStore';
 import { UserBadge } from '../components/UserBadge';
 import { PatchDetailModal } from '../components/PatchDetailModal';
 import { PublishPatchModal } from '../components/PublishPatchModal';
+import { SlowRequestBanner } from '../components/SlowRequestBanner';
 
 // ─── Styled components ────────────────────────────────────────────────────────
 
@@ -34,6 +35,9 @@ const ScreenTitle = styled.h1`
   font-size: 1.1rem;
   font-weight: 700;
   color: ${props => props.theme.colors.text};
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 `;
 
 const Controls = styled.div`
@@ -288,7 +292,10 @@ export const CommunityScreen: React.FC<Props> = ({ onNavigateToPatch }) => {
   return (
     <Screen>
       <TopBar>
-        <ScreenTitle>{t('nav.community')}</ScreenTitle>
+        <ScreenTitle>
+          {t('nav.community')}
+          <SlowRequestBanner inline />
+        </ScreenTitle>
         <Controls>
           <SearchInput
             type="search"
