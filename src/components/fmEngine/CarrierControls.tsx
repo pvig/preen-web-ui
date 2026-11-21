@@ -148,14 +148,6 @@ const ControlLabel = styled.span`
   text-transform: uppercase;
 `;
 
-const ControlInput = styled.input`
-  font-size: 0.8rem;
-  color: #a0aec0;
-  text-align: center;
-  width: 80px;
-  margin-top: 5px;
-`;
-
 const CarrierFooter = styled.div`
   display: flex;
   align-items: center;
@@ -316,13 +308,14 @@ export const CarrierControls: React.FC = () => {
                 </ControlGroup>
 
                 <ControlGroup>
-                  <ControlInput
+                  <CompactRange
                     type="range"
                     min="-1"
                     max="1"
                     step="0.01"
                     value={operator?.pan ?? 0}
                     onChange={e => updateOperator(id, { pan: Number(e.target.value) })}
+                    onDoubleClick={() => updateOperator(id, { pan: 0 })}
                   />
                   <ControlLabel>Pan</ControlLabel>
                 </ControlGroup>
