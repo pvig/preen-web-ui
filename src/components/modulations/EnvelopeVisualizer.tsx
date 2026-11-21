@@ -49,7 +49,8 @@ export type EnvelopeData = EnvelopeDataADSR | EnvelopeDataSAR;
 
 interface Props {
   envelope: EnvelopeData;
-  onChange: (envelope: EnvelopeData) => void;
+  onChange: (envelope: EnvelopeData, changedPoint: PointType) => void;
+  onLiveChange?: (envelope: EnvelopeData, changedPoint: PointType) => void;
   type: 'env1' | 'env2';  // Specify which envelope structure to use
   attackCurve?: CurveType;
   releaseCurve?: CurveType;
@@ -57,7 +58,7 @@ interface Props {
 
 type PointTypeEnv1 = 'attack' | 'decay' | 'sustain' | 'release';
 type PointTypeEnv2 = 'silence' | 'attack' | 'release';
-type PointType = PointTypeEnv1 | PointTypeEnv2;
+export type PointType = PointTypeEnv1 | PointTypeEnv2;
 
 const toLineCommands = (points: CurvePoint[]): string =>
   points.slice(1).map((p) => `L ${p.x} ${p.y}`).join(' ');
@@ -65,19 +66,62 @@ const toLineCommands = (points: CurvePoint[]): string =>
 export const EnvelopeVisualizer: React.FC<Props> = ({
   envelope,
   onChange,
+  onLiveChange,
   type,
   attackCurve = 'linear',
   releaseCurve = 'linear',
 }) => {
   const [draggingPoint, setDraggingPoint] = useState<PointType | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<PointType | null>(null);
-  const [hoveredAxis, setHoveredAxis] = useState<'x' | 'y' | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const { theme } = useThemeStore();
   
   const isEnv1 = type === 'env1';
+  const [dragEnvelope, setDragEnvelope] = useState<EnvelopeData | null>(null);
+  const dragEnvelopeRef = useRef<EnvelopeData | null>(null);
+  const changedPointRef = useRef<PointType | null>(null);
+  const lastCommitRef = useRef(0);
+  const flushDragRef = useRef<() => void>(() => {});
+  const handleDragRef = useRef<(mouseX: number, mouseY: number) => void>(() => {});
+  const dragAxisRef = useRef<{ maxTime: number; sustainOffset: number } | null>(null);
+  const displayEnvelope = dragEnvelope ?? envelope;
+  const env1Data = displayEnvelope as EnvelopeDataADSR;
+  const env2Data = displayEnvelope as EnvelopeDataSAR;
+  const actualTotal = isEnv1
+    ? env1Data.attack.time + env1Data.decay.time + env1Data.sustain.time + env1Data.release.time
+    : env2Data.silence.time + env2Data.attack.time + env2Data.release.time;
+  const computedSustainOffset = isEnv1 ? Math.max(actualTotal, 4) * 0.05 : 0;
+  const computedMaxTime = Math.max(actualTotal + computedSustainOffset, 4);
+  const frozenAxis = dragAxisRef.current;
+  const sustainOffset = frozenAxis ? frozenAxis.sustainOffset : computedSustainOffset;
+  const maxTime = frozenAxis ? frozenAxis.maxTime : computedMaxTime;
+
+  const commitDrag = () => {
+    const current = dragEnvelopeRef.current;
+    const point = changedPointRef.current;
+    if (!current || !point) return;
+    const now = performance.now();
+    if (now - lastCommitRef.current >= 50) {
+      lastCommitRef.current = now;
+      onLiveChange?.(current, point);
+    }
+  };
+
+  const flushDrag = () => {
+    const current = dragEnvelopeRef.current;
+    const point = changedPointRef.current;
+    if (current && point) {
+      onChange(current, point);
+    }
+    dragEnvelopeRef.current = null;
+    changedPointRef.current = null;
+    dragAxisRef.current = null;
+    setDragEnvelope(null);
+    setDraggingPoint(null);
+  };
+  flushDragRef.current = flushDrag;
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -94,9 +138,20 @@ export const EnvelopeVisualizer: React.FC<Props> = ({
 
   useEffect(() => {
     if (!draggingPoint) return;
-    const stopDragging = () => setDraggingPoint(null);
+    const stopDragging = () => flushDragRef.current();
     window.addEventListener('mouseup', stopDragging);
     return () => window.removeEventListener('mouseup', stopDragging);
+  }, [draggingPoint]);
+
+  useEffect(() => {
+    if (!draggingPoint) return;
+    const onWindowMouseMove = (e: MouseEvent) => {
+      if (!svgRef.current) return;
+      const rect = svgRef.current.getBoundingClientRect();
+      handleDragRef.current(e.clientX - rect.left, e.clientY - rect.top);
+    };
+    window.addEventListener('mousemove', onWindowMouseMove);
+    return () => window.removeEventListener('mousemove', onWindowMouseMove);
   }, [draggingPoint]);
 
   const width = dimensions.width;
@@ -111,48 +166,15 @@ export const EnvelopeVisualizer: React.FC<Props> = ({
 
   // Convert envelope points to screen coordinates
   const getScreenPosition = (time: number, level: number) => {
-    // Calculate cumulative time position based on envelope type
-    const totalTime = isEnv1
-      ? (envelope as EnvelopeDataADSR).attack.time + 
-        (envelope as EnvelopeDataADSR).decay.time + 
-        (envelope as EnvelopeDataADSR).sustain.time + 
-        (envelope as EnvelopeDataADSR).release.time
-      : (envelope as EnvelopeDataSAR).silence.time +
-        (envelope as EnvelopeDataSAR).attack.time +
-        (envelope as EnvelopeDataSAR).release.time;
-    
-    // Pour Env1, ajouter le décalage de sustain au temps total pour l'échelle
-    const sustainOffset = isEnv1 ? Math.max(totalTime, 4) * 0.05 : 0;
-    const adjustedTotalTime = totalTime + sustainOffset;
-    
-    // Ensure minimum scale for visibility  
-    const maxTime = Math.max(adjustedTotalTime, 4);
-    
     const x = MARGIN.left + (time / maxTime) * graphWidth;
     const y = MARGIN.top + graphHeight - (level * graphHeight);
-    
     return { x, y };
   };
 
   // Convert screen coordinates to envelope values
   const getEnvelopeValues = (screenX: number, screenY: number) => {
-    const totalTime = isEnv1
-      ? (envelope as EnvelopeDataADSR).attack.time + 
-        (envelope as EnvelopeDataADSR).decay.time + 
-        (envelope as EnvelopeDataADSR).sustain.time + 
-        (envelope as EnvelopeDataADSR).release.time
-      : (envelope as EnvelopeDataSAR).silence.time +
-        (envelope as EnvelopeDataSAR).attack.time +
-        (envelope as EnvelopeDataSAR).release.time;
-    
-    // Pour Env1, ajouter le décalage de sustain au temps total pour l'échelle
-    const sustainOffset = isEnv1 ? Math.max(totalTime, 4) * 0.05 : 0;
-    const adjustedTotalTime = totalTime + sustainOffset;
-    const maxTime = Math.max(adjustedTotalTime, 4);
-
-    const time = Math.max(0, Math.min(16, ((screenX - MARGIN.left) / graphWidth) * maxTime));
+    const time = Math.max(0, ((screenX - MARGIN.left) / graphWidth) * maxTime);
     const level = Math.max(0, Math.min(1, 1 - ((screenY - MARGIN.top) / graphHeight)));
-    
     return { time, level };
   };
 
@@ -174,47 +196,31 @@ export const EnvelopeVisualizer: React.FC<Props> = ({
 
   const pointsEnv1: PointsEnv1 | null = isEnv1 ? {
     start: getScreenPosition(0, 0),
-    attack: getScreenPosition((envelope as EnvelopeDataADSR).attack.time, 1),
+    attack: getScreenPosition(env1Data.attack.time, 1),
     decay: getScreenPosition(
-      (envelope as EnvelopeDataADSR).attack.time + (envelope as EnvelopeDataADSR).decay.time,
-      (envelope as EnvelopeDataADSR).decay.level
+      env1Data.attack.time + env1Data.decay.time,
+      env1Data.decay.level
     ),
     // Point S à 5% de la largeur graphique depuis D
-    sustain: (() => {
-      const totalTime = (envelope as EnvelopeDataADSR).attack.time + 
-        (envelope as EnvelopeDataADSR).decay.time + 
-        (envelope as EnvelopeDataADSR).sustain.time + 
-        (envelope as EnvelopeDataADSR).release.time;
-      const maxTime = Math.max(totalTime, 4);
-      const sustainOffset = maxTime * 0.05; // 5% de la largeur d'affichage en temps
-      return getScreenPosition(
-        (envelope as EnvelopeDataADSR).attack.time + (envelope as EnvelopeDataADSR).decay.time + sustainOffset,
-        (envelope as EnvelopeDataADSR).decay.level
-      );
-    })(),
-    release: (() => {
-      const totalTime = (envelope as EnvelopeDataADSR).attack.time + 
-        (envelope as EnvelopeDataADSR).decay.time + 
-        (envelope as EnvelopeDataADSR).sustain.time + 
-        (envelope as EnvelopeDataADSR).release.time;
-      const maxTime = Math.max(totalTime, 4);
-      const sustainOffset = maxTime * 0.05;
-      return getScreenPosition(
-        (envelope as EnvelopeDataADSR).attack.time + (envelope as EnvelopeDataADSR).decay.time + sustainOffset + (envelope as EnvelopeDataADSR).release.time,
-        (envelope as EnvelopeDataADSR).release.level
-      );
-    })(),
+    sustain: getScreenPosition(
+      env1Data.attack.time + env1Data.decay.time + sustainOffset,
+      env1Data.decay.level
+    ),
+    release: getScreenPosition(
+      env1Data.attack.time + env1Data.decay.time + sustainOffset + env1Data.release.time,
+      env1Data.release.level
+    ),
   } : null;
 
   const pointsEnv2: PointsEnv2 | null = !isEnv1 ? {
     start: getScreenPosition(0, 0),
-    silence: getScreenPosition((envelope as EnvelopeDataSAR).silence.time, 0),  // Silence stays at 0
+    silence: getScreenPosition(env2Data.silence.time, 0),  // Silence stays at 0
     attack: getScreenPosition(
-      (envelope as EnvelopeDataSAR).silence.time + (envelope as EnvelopeDataSAR).attack.time,
+      env2Data.silence.time + env2Data.attack.time,
       1  // Attack level is always 1
     ),
     release: getScreenPosition(
-      (envelope as EnvelopeDataSAR).silence.time + (envelope as EnvelopeDataSAR).attack.time + (envelope as EnvelopeDataSAR).release.time,
+      env2Data.silence.time + env2Data.attack.time + env2Data.release.time,
       0  // Release level is 0
     ),
   } : null;
@@ -280,49 +286,48 @@ export const EnvelopeVisualizer: React.FC<Props> = ({
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
-    if (draggingPoint) {
-      handleDrag(mouseX, mouseY);
-    } else {
-      const { point, axis } = findClosestPoint(mouseX, mouseY);
-      setHoveredPoint(point);
-      setHoveredAxis(axis);
-    }
+    if (draggingPoint) return;
+    const { point } = findClosestPoint(mouseX, mouseY);
+    setHoveredPoint(point);
   };
 
   const handleMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
     if (hoveredPoint) {
+      dragAxisRef.current = {
+        maxTime: computedMaxTime,
+        sustainOffset: computedSustainOffset,
+      };
       setDraggingPoint(hoveredPoint);
       e.preventDefault();
     }
   };
 
   const handleMouseUp = () => {
-    setDraggingPoint(null);
+    flushDrag();
   };
 
   const handleMouseLeave = () => {
     setHoveredPoint(null);
-    setHoveredAxis(null);
-    setDraggingPoint(null);
   };
 
   const handleDrag = (mouseX: number, mouseY: number) => {
     if (!draggingPoint) return;
+    changedPointRef.current = draggingPoint;
 
     const { time, level } = getEnvelopeValues(mouseX, mouseY);
 
     if (isEnv1) {
-      const env = envelope as EnvelopeDataADSR;
+      const env = displayEnvelope as EnvelopeDataADSR;
       const newEnvelope = { ...env };
 
       switch (draggingPoint) {
         case 'attack':
-          newEnvelope.attack = { time: Math.max(0, time), level: Math.max(0, Math.min(1, level)) };
+          newEnvelope.attack = { time: Math.min(16, Math.max(0, time)), level: 1 };
           break;
         case 'decay': {
           const prevTime = env.attack.time;
           newEnvelope.decay = { 
-            time: Math.max(0, time - prevTime), 
+            time: Math.min(16, Math.max(0, time - prevTime)), 
             level: Math.max(0, Math.min(1, level)) 
           };
           break;
@@ -333,34 +338,33 @@ export const EnvelopeVisualizer: React.FC<Props> = ({
         }
         case 'release': {
           // Empêche R d'être placé avant S (5% de la largeur d'affichage)
-          const totalTime = env.attack.time + env.decay.time + env.sustain.time + env.release.time;
-          const maxTime = Math.max(totalTime, 4);
-          const sustainOffset = maxTime * 0.05;
           const minTime = env.attack.time + env.decay.time + sustainOffset;
-          const releaseTime = Math.max(0, time - minTime);
+          const releaseTime = Math.min(16, Math.max(0, time - minTime));
           newEnvelope.release = {
             time: releaseTime,
-            level: Math.max(0, Math.min(1, level))
+            level: 0
           };
           break;
         }
       }
-      onChange(newEnvelope);
+      dragEnvelopeRef.current = newEnvelope;
+      setDragEnvelope(newEnvelope);
+      commitDrag();
     } else {
       // Env2: Silence-Attack-Release
-      const env = envelope as EnvelopeDataSAR;
+      const env = displayEnvelope as EnvelopeDataSAR;
       const newEnvelope = { ...env };
 
       switch (draggingPoint) {
         case 'silence':
           // Silence: only time can be modified, level is always 0
-          newEnvelope.silence = { time: Math.max(0, time), level: 0 };
+          newEnvelope.silence = { time: Math.min(16, Math.max(0, time)), level: 0 };
           break;
         case 'attack': {
           // Attack: only time can be modified, level is always 1
           const prevTime = env.silence.time;
           newEnvelope.attack = { 
-            time: Math.max(0, time - prevTime), 
+            time: Math.min(16, Math.max(0, time - prevTime)), 
             level: 1
           };
           break;
@@ -369,15 +373,18 @@ export const EnvelopeVisualizer: React.FC<Props> = ({
           // Release: only time can be modified, level is always 0
           const prevTime = env.silence.time + env.attack.time;
           newEnvelope.release = { 
-            time: Math.max(0, time - prevTime),
+            time: Math.min(16, Math.max(0, time - prevTime)),
             level: 0
           };
           break;
         }
       }
-      onChange(newEnvelope);
+      dragEnvelopeRef.current = newEnvelope;
+      setDragEnvelope(newEnvelope);
+      commitDrag();
     }
   };
+  handleDragRef.current = handleDrag;
 
   // Build the envelope path based on type
   const pathData = isEnv1
@@ -408,20 +415,6 @@ export const EnvelopeVisualizer: React.FC<Props> = ({
 
   // Draw grid lines
   const gridLines = [];
-  // Calculate total envelope duration (maxTime) as in getScreenPosition
-  const totalTime = isEnv1
-    ? (envelope as EnvelopeDataADSR).attack.time +
-      (envelope as EnvelopeDataADSR).decay.time +
-      (envelope as EnvelopeDataADSR).sustain.time +
-      (envelope as EnvelopeDataADSR).release.time
-    : (envelope as EnvelopeDataSAR).silence.time +
-      (envelope as EnvelopeDataSAR).attack.time +
-      (envelope as EnvelopeDataSAR).release.time;
-  
-  // Pour Env1, ajouter le décalage de sustain au temps total pour l'échelle
-  const sustainOffset = isEnv1 ? Math.max(totalTime, 4) * 0.05 : 0;
-  const adjustedTotalTime = totalTime + sustainOffset;
-  const maxTime = Math.max(adjustedTotalTime, 4);
   // 1 vertical line per second, min 2, max 16
   const numVerticalLines = Math.max(2, Math.min(16, Math.round(maxTime)));
   for (let i = 0; i <= numVerticalLines; i++) {
@@ -505,26 +498,25 @@ export const EnvelopeVisualizer: React.FC<Props> = ({
         />
 
         {/* Guide lines for hovered/dragged point */}
-        {(hoveredPoint || draggingPoint) && hoveredAxis && (() => {
-          const activePoint = draggingPoint || hoveredPoint!;
-          const activePointPos = isEnv1 
+        {(() => {
+          const activePoint = draggingPoint || hoveredPoint;
+          if (!activePoint) return null;
+          const activePointPos = isEnv1
             ? (pointsEnv1 as any)[activePoint]
             : (pointsEnv2 as any)[activePoint];
-          
+
           return (
             <>
-              {hoveredAxis === 'y' && (
-                <line
-                  x1={activePointPos.x}
-                  y1={MARGIN.top}
-                  x2={activePointPos.x}
-                  y2={height - MARGIN.bottom}
-                  stroke={theme.colors.highlight}
-                  strokeWidth="1"
-                  strokeDasharray="4 2"
-                />
-              )}
-              {hoveredAxis === 'x' && (
+              <line
+                x1={activePointPos.x}
+                y1={MARGIN.top}
+                x2={activePointPos.x}
+                y2={height - MARGIN.bottom}
+                stroke={theme.colors.highlight}
+                strokeWidth="1"
+                strokeDasharray="4 2"
+              />
+              {activePoint === 'decay' && (
                 <line
                   x1={MARGIN.left}
                   y1={activePointPos.y}

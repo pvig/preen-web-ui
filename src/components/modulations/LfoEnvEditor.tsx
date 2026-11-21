@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { sendLfoEnvelope, sendLfoEnvelope2, sendLfoEnvelopeCurve } from '../../midi/midiService';
+import { sendLfoEnvelopeCurve, sendLfoEnvelopeParam } from '../../midi/midiService';
 import styled from 'styled-components';
 import KnobBase from '../knobs/KnobBase';
 import { useLfoEnvelope, updateLfoEnvelope } from '../../stores/patchStore';
 import type { LfoEnvLoopMode } from '../../types/modulation';
 import { ADSR_CURVE_TYPES, type CurveType } from '../../types/patch';
-import { EnvelopeVisualizer, type EnvelopeDataADSR, type EnvelopeDataSAR } from './EnvelopeVisualizer';
+import { EnvelopeVisualizer, type EnvelopeDataADSR, type EnvelopeDataSAR, type PointType } from './EnvelopeVisualizer';
 import { useThemeStore } from '../../theme/themeStore';
 import { StyledSelect } from '../StyledSelect';
 
@@ -149,8 +149,61 @@ export const LfoEnvEditor: React.FC = () => {
     }
   };
 
-  // Handle envelope changes from visualizer (Env1: only 4 params editable)
-  const handleEnvelopeChange = (envelopeData: EnvelopeDataADSR | EnvelopeDataSAR) => {
+  // Send envelope values to the PreenFM3 in real time
+  const sendEnvelopeMidi = (
+    envelopeData: EnvelopeDataADSR | EnvelopeDataSAR,
+    changedPoint: PointType,
+  ) => {
+    if (activeEnv === 0) {
+      const env1Data = envelopeData as EnvelopeDataADSR;
+      switch (changedPoint) {
+        case 'attack':
+          sendLfoEnvelopeParam(0, 'attack', env1Data.attack.time);
+          break;
+        case 'decay':
+          sendLfoEnvelopeParam(0, 'decay', env1Data.decay.time);
+          sendLfoEnvelopeParam(0, 'sustain', env1Data.decay.level);
+          break;
+        case 'sustain':
+          sendLfoEnvelopeParam(0, 'sustain', env1Data.decay.level);
+          break;
+        case 'release':
+          sendLfoEnvelopeParam(0, 'release', env1Data.release.time);
+          break;
+        default:
+          break;
+      }
+    } else {
+      const env2Data = envelopeData as EnvelopeDataSAR;
+      switch (changedPoint) {
+        case 'silence':
+          sendLfoEnvelopeParam(1, 'silence', env2Data.silence.time);
+          break;
+        case 'attack':
+          sendLfoEnvelopeParam(1, 'attack', env2Data.attack.time);
+          break;
+        case 'release':
+          sendLfoEnvelopeParam(1, 'release', env2Data.release.time);
+          break;
+        default:
+          break;
+      }
+    }
+  };
+
+  // Live drag: MIDI only, no store update
+  const handleLiveEnvelopeChange = (
+    envelopeData: EnvelopeDataADSR | EnvelopeDataSAR,
+    changedPoint: PointType,
+  ) => {
+    sendEnvelopeMidi(envelopeData, changedPoint);
+  };
+
+  // Drag end: update store, then send final MIDI
+  const handleEnvelopeChange = (
+    envelopeData: EnvelopeDataADSR | EnvelopeDataSAR,
+    changedPoint: PointType,
+  ) => {
     if (activeEnv === 0) {
       const env1Data = envelopeData as EnvelopeDataADSR;
       // Only allow editing of attack.time, decay.time, decay.level (S), release.time
@@ -174,13 +227,6 @@ export const LfoEnvEditor: React.FC = () => {
           },
         },
       });
-      // Send values to PreenFM in real time
-      sendLfoEnvelope(0, {
-        attack: env1Data.attack.time,
-        decay: env1Data.decay.time,
-        sustain: env1Data.decay.level,
-        release: env1Data.release.time
-      });
     } else {
       // Env2: Silence-Attack-Release
       const env2Data = envelopeData as EnvelopeDataSAR;
@@ -199,14 +245,8 @@ export const LfoEnvEditor: React.FC = () => {
           release: { time: 0, level: 0 },
         },
       });
-      // Send values to PreenFM in real time for Env2
-      sendLfoEnvelope2({
-        silence: env2Data.silence.time,
-        attack: env2Data.attack.time,
-        release: env2Data.release.time,
-        loopMode: env.loopMode === 'Off' ? 0 : env.loopMode === 'Silence' ? 1 : 2
-      });
     }
+    sendEnvelopeMidi(envelopeData, changedPoint);
   };
 
   return (
@@ -230,6 +270,7 @@ export const LfoEnvEditor: React.FC = () => {
       <EnvelopeVisualizer 
         envelope={toEnvelopeData()} 
         onChange={handleEnvelopeChange}
+        onLiveChange={handleLiveEnvelopeChange}
         type={activeEnv === 0 ? 'env1' : 'env2'}
         attackCurve={env.attackCurve}
         releaseCurve={env.releaseCurve}
@@ -252,12 +293,7 @@ export const LfoEnvEditor: React.FC = () => {
                     adsr: { ...env.adsr, attack: { ...env.adsr.attack, time } }
                   });
                   if (activeEnv === 0) {
-                    sendLfoEnvelope(0, {
-                      attack: time,
-                      decay: env.adsr.decay.time,
-                      sustain: env.adsr.decay.level / 100,
-                      release: env.adsr.release.time
-                    });
+                    sendLfoEnvelopeParam(0, 'attack', time);
                   }
                 }}
                 color={theme.colors.adsrAttack}
@@ -281,12 +317,7 @@ export const LfoEnvEditor: React.FC = () => {
                     adsr: { ...env.adsr, decay: { ...env.adsr.decay, time } }
                   });
                   if (activeEnv === 0) {
-                    sendLfoEnvelope(0, {
-                      attack: env.adsr.attack.time,
-                      decay: time,
-                      sustain: env.adsr.decay.level / 100,
-                      release: env.adsr.release.time
-                    });
+                    sendLfoEnvelopeParam(0, 'decay', time);
                   }
                 }}
                 color={theme.colors.adsrDecay}
@@ -314,12 +345,7 @@ export const LfoEnvEditor: React.FC = () => {
                     }
                   });
                   if (activeEnv === 0) {
-                    sendLfoEnvelope(0, {
-                      attack: env.adsr.attack.time,
-                      decay: env.adsr.decay.time,
-                      sustain: level / 100,
-                      release: env.adsr.release.time
-                    });
+                    sendLfoEnvelopeParam(0, 'sustain', level / 100);
                   }
                 }}
                 color={theme.colors.adsrSustain}
@@ -343,12 +369,7 @@ export const LfoEnvEditor: React.FC = () => {
                     adsr: { ...env.adsr, release: { ...env.adsr.release, time } }
                   });
                   if (activeEnv === 0) {
-                    sendLfoEnvelope(0, {
-                      attack: env.adsr.attack.time,
-                      decay: env.adsr.decay.time,
-                      sustain: env.adsr.decay.level / 100,
-                      release: time
-                    });
+                    sendLfoEnvelopeParam(0, 'release', time);
                   }
                 }}
                 color={theme.colors.adsrRelease}
@@ -374,12 +395,7 @@ export const LfoEnvEditor: React.FC = () => {
                 onChange={(silence) => {
                   updateLfoEnvelope(activeEnv, { silence });
                   if (activeEnv === 1) {
-                    sendLfoEnvelope2({
-                      silence: env.silence,
-                      attack: env.adsr.attack.time,
-                      release: env.adsr.decay.time,
-                      loopMode: env.loopMode === 'Off' ? 0 : env.loopMode === 'Silence' ? 1 : 2
-                    });
+                    sendLfoEnvelopeParam(1, 'silence', silence);
                   }
                 }}
                 color={theme.colors.knobSeq}
@@ -404,12 +420,7 @@ export const LfoEnvEditor: React.FC = () => {
                     adsr: { ...env.adsr, attack: { time, level: 100 } }
                   });
                   if (activeEnv === 1) {
-                    sendLfoEnvelope2({
-                      silence: env.silence,
-                      attack: time,
-                      release: env.adsr.decay.time,
-                      loopMode: env.loopMode === 'Off' ? 0 : env.loopMode === 'Silence' ? 1 : 2
-                    });
+                    sendLfoEnvelopeParam(1, 'attack', time);
                   }
                 }}
                 color={theme.colors.adsrAttack}
@@ -434,12 +445,7 @@ export const LfoEnvEditor: React.FC = () => {
                     adsr: { ...env.adsr, decay: { time, level: 0 } }
                   });
                   if (activeEnv === 1) {
-                    sendLfoEnvelope2({
-                      silence: env.silence,
-                      attack: env.adsr.attack.time,
-                      release: time,
-                      loopMode: env.loopMode === 'Off' ? 0 : env.loopMode === 'Silence' ? 1 : 2
-                    });
+                    sendLfoEnvelopeParam(1, 'release', time);
                   }
                 }}
                 color={theme.colors.knobFrequency}
@@ -503,12 +509,7 @@ export const LfoEnvEditor: React.FC = () => {
                 const newMode = e.target.value as LfoEnvLoopMode;
                 updateLfoEnvelope(activeEnv, { loopMode: newMode });
                 if (activeEnv === 1) {
-                  sendLfoEnvelope2({
-                    silence: env.silence,
-                    attack: env.adsr.attack.time,
-                    release: env.adsr.decay.time,
-                    loopMode: newMode === 'Off' ? 0 : newMode === 'Silence' ? 1 : 2
-                  });
+                  sendLfoEnvelopeParam(1, 'loopMode', newMode === 'Off' ? 0 : newMode === 'Silence' ? 1 : 2);
                 }
               }}
             >

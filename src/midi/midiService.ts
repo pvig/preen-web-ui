@@ -389,57 +389,37 @@ export function sendLfoParamNRPN(lfoIndex: 0 | 1 | 2, param: 'shape' | 'frequenc
   };
   sendNRPN(nrpn, currentChannel, param === 'shape' || param === 'keysync');
 }
+export type LfoEnvelopeParam =
+  | 'attack'
+  | 'decay'
+  | 'sustain'
+  | 'release'
+  | 'silence'
+  | 'loopMode';
+
 /**
- * Envoie l'enveloppe libre 2 (Free Env2) au PreenFM3 via NRPN
- * silence: temps de silence (s)
- * attack: temps d'attaque (s)
- * release: temps de release (s)
- * loopMode: 0=Off, 1=Silence, 2=Attack
+ * Envoie un seul paramètre d'enveloppe libre via NRPN.
+ * Env1: attack=52, decay=53, sustain=54, release=55
+ * Env2: silence=56, attack=57, release=58, loopMode=59
  */
-export function sendLfoEnvelope2(params: { silence: number, attack: number, release: number, loopMode: number }) {
-  // NRPN MSB=1, LSB: 56=silence, 57=attack, 58=release, 59=loopMode
-  const lsbs = [56, 57, 58, 59];
-  const values = [
-    Math.round(params.silence * 100),   // Silence time (centièmes de seconde)
-    Math.round(params.attack * 100),    // Attack time
-    Math.round(params.release * 100),   // Release time
-    params.loopMode ?? 0                // Loop mode (0-2)
-  ];
-  lsbs.forEach((lsb, i) => {
-    const value = values[i];
-    const nrpn = {
-      paramMSB: 1,
-      paramLSB: lsb,
-      valueMSB: (value >> 7) & 0x7F,
-      valueLSB: value & 0x7F
-    };
-    sendNRPN(nrpn);
-  });
-}
-/**
- * Envoie l'enveloppe libre (Free Env1 ou Env2) au PreenFM3 via NRPN
- * envIndex: 0 = Env1, 1 = Env2
- * envelope: { attack, decay, sustain, release } (temps en secondes, level 0-1)
- */
-export function sendLfoEnvelope(envIndex: 0 | 1, envelope: { attack: number, decay: number, sustain: number, release: number }) {
-  // NRPN MSB=1, LSB fixes : Env1=52-55, Env2=56-59
-  const lsbs = envIndex === 0 ? [52, 53, 54, 55] : [56, 57, 58, 59];
-  const values = [
-    Math.round(envelope.attack * 100),   // Attack time (centièmes de seconde)
-    Math.round(envelope.decay * 100),    // Decay time
-    Math.round(envelope.sustain * 100),  // Sustain level (0-100)
-    Math.round(envelope.release * 100),  // Release time
-  ];
-  lsbs.forEach((lsb, i) => {
-    const value = values[i];
-    const nrpn = {
-      paramMSB: 1,
-      paramLSB: lsb,
-      valueMSB: (value >> 7) & 0x7F,
-      valueLSB: value & 0x7F
-    };
-    sendNRPN(nrpn);
-  });
+export function sendLfoEnvelopeParam(
+  envIndex: 0 | 1,
+  param: LfoEnvelopeParam,
+  value: number,
+) {
+  const lsbMap: Record<LfoEnvelopeParam, number> = envIndex === 0
+    ? { attack: 52, decay: 53, sustain: 54, release: 55, silence: -1, loopMode: -1 }
+    : { silence: 56, attack: 57, release: 58, loopMode: 59, decay: -1, sustain: -1 };
+  const lsb = lsbMap[param];
+  if (lsb < 0) return;
+  const rawValue = param === 'loopMode' ? Math.round(value) : Math.round(value * 100);
+  const nrpn = {
+    paramMSB: 1,
+    paramLSB: lsb,
+    valueMSB: (rawValue >> 7) & 0x7F,
+    valueLSB: rawValue & 0x7F
+  };
+  sendNRPN(nrpn);
 }
 
 /**

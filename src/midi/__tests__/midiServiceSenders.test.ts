@@ -3,7 +3,7 @@
  *
  * Covers:
  * - Arpeggiator senders: guard against unknown values (indexOf === -1)
- * - sendLfoEnvelope: correct NRPN LSB addresses for Env1 and Env2
+ * - sendLfoEnvelopeParam: correct NRPN LSB addresses for Env1 and Env2
  * - sendPatchName: uses 0x20 (space) to clear remaining positions
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -42,7 +42,7 @@ import {
   sendArpeggiatorUserPatternLength,
   sendArpeggiatorUserStepState,
   sendArpeggiatorUserStepAction,
-  sendLfoEnvelope,
+  sendLfoEnvelopeParam,
   sendLfoEnvelopeCurve,
   sendPatchName,
   sendOperatorMix,
@@ -220,36 +220,40 @@ describe('Arpeggiator senders — guard against unknown values', () => {
   });
 });
 
-// ── sendLfoEnvelope NRPN addresses ───────────────────────────────────────────
+// ── sendLfoEnvelopeParam NRPN addresses ─────────────────────────────────────
 
-describe('sendLfoEnvelope — NRPN LSB addresses', () => {
-  it('Env1 (envIndex=0) uses LSBs [52, 53, 54, 55]', async () => {
-    sendLfoEnvelope(0, { attack: 1, decay: 0.5, sustain: 0.8, release: 0.3 });
+describe('sendLfoEnvelopeParam — NRPN LSB addresses', () => {
+  it('Env1 attack uses LSB 52 and encodes 1.5s as 150', async () => {
+    sendLfoEnvelopeParam(0, 'attack', 1.5);
     await flushQueue();
     const nrpns = allSentNRPNs();
-    expect(nrpns.length).toBe(4);
-    expect(nrpns.map(n => n.paramLSB)).toEqual([52, 53, 54, 55]);
-    // All should have MSB=1
-    expect(nrpns.every(n => n.paramMSB === 1)).toBe(true);
+    expect(nrpns.length).toBe(1);
+    expect(nrpns[0].paramMSB).toBe(1);
+    expect(nrpns[0].paramLSB).toBe(52);
+    expect(nrpns[0].valueMSB).toBe((150 >> 7) & 0x7F);
+    expect(nrpns[0].valueLSB).toBe(150 & 0x7F);
   });
 
-  it('Env2 (envIndex=1) uses LSBs [56, 57, 58, 59] — no collision with Seq1 BPM (LSB=60)', async () => {
-    sendLfoEnvelope(1, { attack: 0.2, decay: 0.4, sustain: 0.6, release: 0.8 });
+  it('Env1 sustain uses LSB 54 and encodes 0.8 as 80', async () => {
+    sendLfoEnvelopeParam(0, 'sustain', 0.8);
+    await flushQueue();
+    const nrpns = allSentNRPNs();
+    expect(nrpns.length).toBe(1);
+    expect(nrpns[0].paramLSB).toBe(54);
+    expect((nrpns[0].valueMSB << 7) | nrpns[0].valueLSB).toBe(80);
+  });
+
+  it('Env2 params use LSB 56/57/58/59 and loopMode is raw', async () => {
+    sendLfoEnvelopeParam(1, 'silence', 0.2);
+    sendLfoEnvelopeParam(1, 'attack', 0.4);
+    sendLfoEnvelopeParam(1, 'release', 0.6);
+    sendLfoEnvelopeParam(1, 'loopMode', 2);
     await flushQueue();
     const nrpns = allSentNRPNs();
     expect(nrpns.length).toBe(4);
     expect(nrpns.map(n => n.paramLSB)).toEqual([56, 57, 58, 59]);
-    // Must NOT contain LSB=60 (Seq1 BPM address)
-    expect(nrpns.some(n => n.paramLSB === 60)).toBe(false);
-  });
-
-  it('Env1 attack=1.5s encodes as 150 (centiseconds)', async () => {
-    sendLfoEnvelope(0, { attack: 1.5, decay: 0, sustain: 0, release: 0 });
-    await flushQueue();
-    const nrpns = allSentNRPNs();
-    // First NRPN is attack: value = 150 → valueMSB=1 (150>>7), valueLSB=22 (150&0x7F)
-    expect(nrpns[0].valueMSB).toBe((150 >> 7) & 0x7F); // 1
-    expect(nrpns[0].valueLSB).toBe(150 & 0x7F);         // 22
+    expect(nrpns.every(n => n.paramMSB === 1)).toBe(true);
+    expect((nrpns[3].valueMSB << 7) | nrpns[3].valueLSB).toBe(2);
   });
 });
 
