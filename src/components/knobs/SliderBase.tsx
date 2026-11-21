@@ -121,7 +121,7 @@ function SliderBase({
     borderRadius: 3,
     color,
     fontSize: 12,
-    fontFamily: 'monospace',
+    fontFamily: 'var(--app-font-digit)',
     textAlign: 'center',
     outline: 'none',
     padding: '0 2px',
@@ -141,7 +141,7 @@ function SliderBase({
   const valueStyle: React.CSSProperties = {
     fontSize: 12,
     color,
-    fontFamily: 'monospace',
+    fontFamily: 'var(--app-font-digit)',
     minWidth: '40px',
     textAlign: 'center',
     whiteSpace: 'nowrap',

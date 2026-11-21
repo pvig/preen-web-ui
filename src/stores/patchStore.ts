@@ -58,7 +58,7 @@ const createDefaultPatch = (): Patch => ({
   operators: DEFAULT_ALGORITHMS[DEFAULT_ALGO_ID].ops.map((op, i) => ({
     ...op,
     enabled: i === 0, // Seul le premier oscillateur est activé par défaut
-    frequency: i === 0 ? 8 : 8 * (i + 1) // Fréquences harmoniques
+    frequency: 1.0 * (i + 1) // Fréquences harmoniques
   })),
 
   modulationMatrix: Array(12).fill(null).map(() => ({

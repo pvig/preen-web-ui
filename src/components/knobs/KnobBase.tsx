@@ -1,5 +1,8 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useThemeStore } from '../../theme/themeStore';
+import { useUIStore } from '../../stores/uiStore';
+
+type MovePos = { clientX: number; clientY: number; shiftKey: boolean };
 
 type ValuePosition = 'top' | 'bottom' | 'left' | 'none';
 type LabelPosition = 'top' | 'left' | 'bottom' | 'none';
@@ -22,6 +25,42 @@ interface KnobBaseProps {
   labelPosition?: LabelPosition; // Position d'affichage du label
 }
 
+interface VerticalDragParams {
+  startValue: number;
+  startY: number;
+  currentY: number;
+  min: number;
+  max: number;
+  dragRangePx: number;
+  step?: number;
+  fine?: boolean;
+}
+
+export function clampAndStep(raw: number, min: number, max: number, step?: number): number {
+  const clamped = Math.max(min, Math.min(max, raw));
+  if (step && step > 0) {
+    return Math.max(min, Math.min(max, Math.round(clamped / step) * step));
+  }
+  return clamped;
+}
+
+export function valueFromVerticalDrag({
+  startValue,
+  startY,
+  currentY,
+  min,
+  max,
+  dragRangePx,
+  step,
+  fine = false,
+}: VerticalDragParams): number {
+  const dragRange = dragRangePx > 0 ? dragRangePx : 1;
+  const sensitivity = fine ? 0.1 : 1;
+  const deltaPx = startY - currentY;
+  const raw = startValue + (deltaPx * (max - min)) / dragRange * sensitivity;
+  return clampAndStep(raw, min, max, step);
+}
+
 function KnobBase({
   size = 100,
   knobRadius = 20,
@@ -40,11 +79,30 @@ function KnobBase({
   labelPosition = 'top'
 }: KnobBaseProps) {
   const { theme } = useThemeStore();
+  const knobDragMode = useUIStore(state => state.knobDragMode);
   const center = size / 2;
   const radius = knobRadius ?? (center - 10);
-  const tickLength = 6;
   const isDragging = useRef(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const verticalDragRef = useRef<{ startY: number; startValue: number; lastY: number; lastValue: number; fine: boolean } | null>(null);
+  const pendingMoveRef = useRef<MovePos | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const applyMoveRef = useRef<(pos: MovePos) => void>(() => {});
+  const wheelHandlerRef = useRef<(e: WheelEvent) => void>(() => {});
+
+  useEffect(() => () => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => wheelHandlerRef.current(e);
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
 
   const START_ANGLE = -135;
   const END_ANGLE = 135;
@@ -103,12 +161,46 @@ function KnobBase({
     const rawValue = valueForAngle(clampedAngle);
 
     // Mode discret si un pas est défini, sinon continu
-    const newValue =
-      step && step > 0
-        ? Math.round(rawValue / step) * step
-        : rawValue;
+    onChange(clampAndStep(rawValue, min, max, step));
+  };
 
-    onChange(newValue);
+  const applyMove = (pos: MovePos) => {
+    if (knobDragMode === 'vertical' && verticalDragRef.current) {
+      const drag = verticalDragRef.current;
+      // Rebasing on Shift toggle keeps the current value and only changes
+      // the sensitivity of subsequent movement.
+      if (pos.shiftKey !== drag.fine) {
+        drag.startY = drag.lastY;
+        drag.startValue = drag.lastValue;
+        drag.fine = pos.shiftKey;
+      }
+      const next = valueFromVerticalDrag({
+        startValue: drag.startValue,
+        startY: drag.startY,
+        currentY: pos.clientY,
+        min,
+        max,
+        dragRangePx: 100,
+        step,
+        fine: drag.fine,
+      });
+      drag.lastY = pos.clientY;
+      drag.lastValue = next;
+      onChange(next);
+      return;
+    }
+
+    updateFromEvent(pos);
+  };
+  applyMoveRef.current = applyMove;
+
+  wheelHandlerRef.current = (e) => {
+    if (isDragging.current || e.deltaY === 0) return;
+    e.preventDefault();
+    const baseStep = step && step > 0 ? step : (max - min) / 100;
+    const amount = e.shiftKey ? baseStep : baseStep * 10;
+    const dir = e.deltaY < 0 ? 1 : -1;
+    onChange(clampAndStep(value + dir * amount, min, max, step));
   };
 
   const handlePointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -116,7 +208,18 @@ function KnobBase({
 
     e.preventDefault();
     isDragging.current = true;
-    updateFromEvent(e);
+    pendingMoveRef.current = null;
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+
+    if (knobDragMode === 'vertical') {
+      verticalDragRef.current = { startY: e.clientY, startValue: value, lastY: e.clientY, lastValue: value, fine: e.shiftKey };
+    } else {
+      verticalDragRef.current = null;
+      updateFromEvent(e);
+    }
 
     // Capture: garantit la réception des pointermove/up pendant le drag
     try {
@@ -129,11 +232,32 @@ function KnobBase({
   const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
     if (!svgRef.current || !isDragging.current) return;
     e.preventDefault();
-    updateFromEvent(e);
+
+    pendingMoveRef.current = { clientX: e.clientX, clientY: e.clientY, shiftKey: e.shiftKey };
+
+    if (rafRef.current === null) {
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        const pending = pendingMoveRef.current;
+        if (!pending || !isDragging.current) return;
+        pendingMoveRef.current = null;
+        applyMoveRef.current(pending);
+      });
+    }
   };
 
   const handlePointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    const pending = pendingMoveRef.current;
+    pendingMoveRef.current = null;
+    if (pending) {
+      applyMoveRef.current(pending);
+    }
     isDragging.current = false;
+    verticalDragRef.current = null;
     try {
       (svgRef.current as unknown as SVGSVGElement).releasePointerCapture(e.pointerId);
     } catch {
@@ -143,25 +267,30 @@ function KnobBase({
 
   const angle = angleForValue(value);
   const angleRad = (angle - 90) * (Math.PI / 180);
-  const pointerX = center + radius * Math.cos(angleRad);
-  const pointerY = center + radius * Math.sin(angleRad);
+  const pointerRadius = radius - 2;
+  const pointerX = center + pointerRadius * Math.cos(angleRad);
+  const pointerY = center + pointerRadius * Math.sin(angleRad);
 
-  const getTick = (deg: number) => {
-    const rad = (deg - 90) * (Math.PI / 180);
-    const outerX = center + radius * Math.cos(rad);
-    const outerY = center + radius * Math.sin(rad);
-    const innerX = center + (radius - tickLength) * Math.cos(rad);
-    const innerY = center + (radius - tickLength) * Math.sin(rad);
-    return { x1: innerX, y1: innerY, x2: outerX, y2: outerY };
+  const describeArc = (fromDeg: number, toDeg: number) => {
+    const fromRad = (fromDeg - 90) * (Math.PI / 180);
+    const toRad = (toDeg - 90) * (Math.PI / 180);
+    const x1 = center + radius * Math.cos(fromRad);
+    const y1 = center + radius * Math.sin(fromRad);
+    const x2 = center + radius * Math.cos(toRad);
+    const y2 = center + radius * Math.sin(toRad);
+    const largeArc = Math.abs(toDeg - fromDeg) > 180 ? 1 : 0;
+    const sweep = toDeg >= fromDeg ? 1 : 0;
+    return `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} ${sweep} ${x2} ${y2}`;
   };
 
-  const tickMin = getTick(START_ANGLE);
-  const tickMax = getTick(END_ANGLE);
-  const tickZero = crossesZero ? getTick(0) : null;
+  const valueArcPath = describeArc(crossesZero ? 0 : START_ANGLE, angle);
+  const trackArcPath = describeArc(START_ANGLE, END_ANGLE);
+  const showValueArc = crossesZero ? Math.abs(angle) > 0.01 : angle > START_ANGLE + 0.01;
 
   // ── Editable value ──────────────────────────────────────────────────────────
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState('');
+  const [isHovered, setIsHovered] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const startEditing = () => {
@@ -199,7 +328,7 @@ function KnobBase({
     borderRadius: 3,
     color: color,
     fontSize: 12,
-    fontFamily: 'monospace',
+    fontFamily: 'var(--app-font-digit)',
     textAlign: 'center',
     outline: 'none',
     padding: '0 2px',
@@ -241,7 +370,7 @@ function KnobBase({
           style={{
             fontSize: 12,
             color: color,
-            fontFamily: 'monospace',
+            fontFamily: 'var(--app-font-digit)',
             minWidth: '45px',
             textAlign: 'right',
           }}
@@ -304,6 +433,7 @@ function KnobBase({
               textAlign: "center",
               fontSize: 12,
               color: color,
+              fontFamily: 'var(--app-font-digit)',
             }}
           >
             {isEditing ? (
@@ -340,7 +470,9 @@ function KnobBase({
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
-            style={{ userSelect: "none", cursor: "pointer", touchAction: "none" }}
+            onPointerEnter={() => setIsHovered(true)}
+            onPointerLeave={() => setIsHovered(false)}
+            style={{ userSelect: "none", cursor: knobDragMode === 'vertical' ? 'ns-resize' : 'pointer', touchAction: "none" }}
           >
             <circle
               cx={center}
@@ -353,13 +485,25 @@ function KnobBase({
               cy={center}
               r={radius}
               fill={backgroundColor}
-              stroke={strokeColor}
-              strokeWidth="2"
+              style={{ filter: isHovered ? 'brightness(1.2)' : undefined }}
             />
-            <line {...tickMin} stroke={theme.colors.knobTick} strokeWidth="2" />
-            <line {...tickMax} stroke={theme.colors.knobTick} strokeWidth="2" />
-            {tickZero && (
-              <line {...tickZero} stroke={theme.colors.knobTick} strokeWidth="2" opacity="0.6" />
+            <path
+              d={trackArcPath}
+              fill="none"
+              stroke={strokeColor}
+              strokeOpacity="0.4"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+            {showValueArc && (
+              <path
+                d={valueArcPath}
+                fill="none"
+                stroke={strokeColor}
+                strokeWidth="2"
+                strokeLinecap="round"
+                style={{ filter: isHovered ? 'brightness(1.2)' : undefined }}
+              />
             )}
             <line
               x1={center}
@@ -382,6 +526,7 @@ function KnobBase({
               textAlign: "center",
               fontSize: 12,
               color: color,
+              fontFamily: 'var(--app-font-digit)',
             }}
           >
             {isEditing ? (

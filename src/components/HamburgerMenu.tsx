@@ -41,7 +41,7 @@ const DropdownMenu = styled.div<{ $isOpen: boolean }>`
   border: 1px solid ${props => props.theme.colors.border};
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  min-width: 200px;
+  min-width: 290px;
   z-index: 1000;
   opacity: ${props => props.$isOpen ? 1 : 0};
   visibility: ${props => props.$isOpen ? 'visible' : 'hidden'};
@@ -50,11 +50,12 @@ const DropdownMenu = styled.div<{ $isOpen: boolean }>`
 `;
 
 const MenuItem = styled.div`
-  padding: 12px 16px;
+  padding: 13px 16px;
   border-bottom: 1px solid ${props => props.theme.colors.border};
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 18px;
   
   &:last-child {
     border-bottom: none;
@@ -65,6 +66,7 @@ const MenuLabel = styled.span`
   color: ${props => props.theme.colors.textSecondary};
   font-size: 0.875rem;
   font-weight: 500;
+  white-space: nowrap;
 `;
 
 const AboutButton = styled.button`
@@ -166,13 +168,38 @@ const ToggleSwitch = styled.button<{ $on: boolean }>`
   }
 `;
 
+const SegmentedToggle = styled.div`
+  display: inline-flex;
+  border: 1px solid ${props => props.theme.colors.border};
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+`;
+
+const SegmentButton = styled.button<{ $active: boolean }>`
+  border: none;
+  padding: 7px 12px;
+  min-width: 78px;
+  font-size: 0.8rem;
+  font-weight: ${p => p.$active ? 700 : 400};
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  background: ${p => p.$active ? p.theme.colors.primary : p.theme.colors.button};
+  color: ${p => p.$active ? 'white' : p.theme.colors.text};
+  box-shadow: ${p => p.$active ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.25)' : 'none'};
+
+  &:hover {
+    background: ${p => p.$active ? p.theme.colors.primary : p.theme.colors.buttonHover};
+  }
+`;
+
 export const HamburgerMenu: React.FC = () => {
   const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(true);
   const [isSplashOpen, setIsSplashOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const { starfieldEnabled, toggleStarfield } = useUIStore();
+  const { starfieldEnabled, toggleStarfield, knobDragMode, setKnobDragMode } = useUIStore();
 
   // Fermer le menu si on clique à l'extérieur
   useEffect(() => {
@@ -219,6 +246,34 @@ export const HamburgerMenu: React.FC = () => {
           <MenuItem>
             <MenuLabel>{t('menu.language')}</MenuLabel>
             <LanguageToggle />
+          </MenuItem>
+
+          <MenuItem>
+            <MenuLabel style={{ whiteSpace: 'normal' }}>{t('menu.knobDrag', 'Knob drag')}</MenuLabel>
+            <SegmentedToggle
+              role="group"
+              aria-label={t('menu.knobDrag', 'Knob drag')}
+              title={`${t('menu.knobDrag', 'Knob drag')}: ${knobDragMode === 'circular'
+                ? t('menu.knobDragCircular', 'Circular')
+                : t('menu.knobDragVertical', 'Vertical')}`}
+            >
+              <SegmentButton
+                type="button"
+                $active={knobDragMode === 'circular'}
+                aria-pressed={knobDragMode === 'circular'}
+                onClick={() => setKnobDragMode('circular')}
+              >
+                {t('menu.knobDragCircular', 'Circular')}
+              </SegmentButton>
+              <SegmentButton
+                type="button"
+                $active={knobDragMode === 'vertical'}
+                aria-pressed={knobDragMode === 'vertical'}
+                onClick={() => setKnobDragMode('vertical')}
+              >
+                {t('menu.knobDragVertical', 'Vertical')}
+              </SegmentButton>
+            </SegmentedToggle>
           </MenuItem>
 
           <MenuItem>

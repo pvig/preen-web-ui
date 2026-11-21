@@ -107,7 +107,7 @@ export const darkTheme: Theme = {
     navActive: '#4a5568',
     
     knobBackground: '#2d3748',
-    knobStroke: '#4a5568',
+    knobStroke: '#c4d0e3',
     knobLabel: '#a0aec0',
     knobTick: '#718096',
     

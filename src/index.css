@@ -1,4 +1,6 @@
 :root {
+  --app-font-digit: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.1;
   font-weight: 400;
@@ -16,6 +18,14 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+}
+
+input, textarea, button, select {
+  font-family: inherit;
+}
+
+code, pre, kbd, samp {
+  font-family: var(--app-font-digit);
 }
 
 h1 {
